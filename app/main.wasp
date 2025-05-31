@@ -148,8 +148,8 @@ action updateIsUserAdminById {
 //#region Demo AI App
 route DemoAppRoute { path: "/demo-app", to: DemoAppPage }
 page DemoAppPage {
-  authRequired: true,
-  component: import DemoAppPage from "@src/demo-ai-app/DemoAppPage"
+  component: import DemoAppPage from "@src/demo-ai-app/DemoAppPage",
+  authRequired: false // todo: change to true when ready
 }
 
 action generateGptResponse {
@@ -180,6 +180,14 @@ query getGptResponses {
 query getAllTasksByUser {
   fn: import { getAllTasksByUser } from "@src/demo-ai-app/operations",
   entities: [Task]
+}
+//#endregion
+
+//#region AI Resume Generator App
+route MainAppRoute { path: "/app", to: AppPage }
+page AppPage {
+  component: import AppPage from "@src/AppPage.tsx",
+  authRequired: true
 }
 //#endregion
 
@@ -326,3 +334,8 @@ page AdminMessagesPage {
   component: import AdminMessages from "@src/messages/MessagesPage"
 }
 //#endregion
+
+// Wasp Jobs for cron and background tasks
+// See https://wasp-lang.com/docs/advanced/jobs
+// job taskEmailSender {
+// ... existing code ...
