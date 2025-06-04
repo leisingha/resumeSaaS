@@ -7,6 +7,55 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// --- Resume SaaS Models Start ---
+
+enum DocumentType {
+  RESUME
+  COVER_LETTER
+}
+
+model UserProfile {
+  id                  String    @id @default(uuid())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  fullName            String?
+  phone               String?
+  professionalSummary String? // For BIO
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String    @unique // A user should have only one profile
+}
+
+model UploadedResume {
+  id                  String    @id @default(uuid())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  originalFilename    String
+  fileKey             String    // Consistent with existing File model's 'key' field, assuming it's a storage key
+  fileType            String    // e.g., "application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String
+}
+
+model GeneratedDocument {
+  id                  String        @id @default(uuid())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  documentType        DocumentType  // Using the enum
+  content             String        @db.Text // For potentially long text
+  customizationParams Json          // Store customization options as JSON
+  templateName        String?       // e.g., "classic", "modern"
+
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String
+}
+
+// --- Resume SaaS Models End ---
+
 model User {
   id                        String          @id @default(uuid())
   createdAt                 DateTime        @default(now())
@@ -26,6 +75,9 @@ model User {
   contactFormMessages       ContactFormMessage[]
   tasks                     Task[]
   files                     File[]
+  userProfile               UserProfile?       // Added for resume SaaS
+  uploadedResumes           UploadedResume[]   // Added for resume SaaS
+  generatedDocuments        GeneratedDocument[] // Added for resume SaaS
 }
 
 model GptResponse {
@@ -37,6 +89,7 @@ model GptResponse {
   userId                    String
 
   content                   String
+  repliedAt                 DateTime?
 }
 
 model Task {
