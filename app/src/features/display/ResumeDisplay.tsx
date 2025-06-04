@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { CustomizationOptions } from '../../AppPage';
+import type { CustomizationOptions, DocumentType } from '../../AppPage';
 
 interface ResumeDisplayProps {
   options: CustomizationOptions;
@@ -10,17 +10,16 @@ interface ResumeDisplayProps {
   showEditModal: boolean;
   setShowEditModal: (show: boolean) => void;
   onContentChange: (newContent: string) => void;
+  documentType: DocumentType;
 }
 
 const ResumeDisplay: React.FC<ResumeDisplayProps> = ({ 
-  options, 
+  options,
   generatedContent,
-  isResumeGenerated,
-  isEditing,
-  setIsEditing,
   showEditModal,
   setShowEditModal,
-  onContentChange
+  onContentChange,
+  documentType
 }) => {
   const [editedContent, setEditedContent] = useState(generatedContent || '');
 
@@ -33,8 +32,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   const handleCopy = () => {
     if (generatedContent) {
       navigator.clipboard.writeText(generatedContent)
-        .then(() => console.log('Resume copied to clipboard!')) // Replace with toast later
-        .catch(err => console.error('Failed to copy resume: ', err));
+        .then(() => console.log('Copied to clipboard')) // Replace with user feedback
+        .catch(err => console.error('Failed to copy: ', err));
     }
   };
 
@@ -44,96 +43,89 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'resume.txt'; // Or use a more dynamic name
+      a.download = `${documentType}_${options.targetJobTitle || 'document'}.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      console.log('Downloading resume...'); // Replace with toast later
     }
   };
 
-  const handleOpenEditModal = () => {
-    setEditedContent(generatedContent || ''); // Reset to current generated content
-    setShowEditModal(true);
+  const handleSaveChanges = () => {
+    onContentChange(editedContent);
+    setShowEditModal(false);
   };
 
-  const handleSaveEdit = () => {
-    onContentChange(editedContent);
-    setIsEditing(false); // To switch view back to non-textarea
-    setShowEditModal(false);
-    console.log('Resume updated!'); // Replace with toast later
-  };
+  const documentTitle = documentType === 'resume' ? 'Resume' : 'Cover Letter';
 
   return (
-    <div className='bg-white dark:bg-boxdark shadow-md p-6 rounded-sm mt-6 md:mt-0 relative'>
-      <h2 className='text-lg font-semibold text-black dark:text-white mb-4'>
-        Live Resume Preview
-      </h2>
+    <div className="bg-boxdark border border-strokedark rounded-lg shadow-default p-6">
+      {/* New Header Section */}
+      <div className="flex justify-between items-center mb-4 pb-4 border-b border-strokedark">
+        {/* Left Side: Title and Customization Info */}
+        <div>
+          <h2 className="text-xl font-semibold text-white">
+            Generated {documentTitle}
+          </h2>
+          <div className="text-sm text-gray-400 mt-1">
+            <span>Template: <span className="font-medium text-gray-300">{options.template}</span></span>
+            <span className="ml-3">Color: <span className="font-medium text-gray-300">{options.colorScheme}</span></span>
+          </div>
+        </div>
 
-      {isResumeGenerated && generatedContent ? (
-        <div className='border-2 border-dashed border-gray-300 dark:border-gray-600 p-6 min-h-[400px]'>
-          {/* Action Buttons - Placed at the top right of the preview */}
-          <div className="absolute top-4 right-4 flex gap-2">
-            <button 
-              onClick={handleCopy} 
-              className="px-3 py-1.5 text-xs font-medium rounded bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
-            >
-              Copy
-            </button>
-            <button 
-              onClick={handleDownload} 
-              className="px-3 py-1.5 text-xs font-medium rounded bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
-            >
-              Download
-            </button>
-            <button 
-              onClick={handleOpenEditModal} 
-              className="px-3 py-1.5 text-xs font-medium rounded bg-yellow-500 text-black hover:bg-yellow-600 dark:bg-yellow-500 dark:hover:bg-yellow-600"
-            >
-              Edit
-            </button>
-          </div>
-          
-          {/* Display Area */}
-          <div className="mt-10 whitespace-pre-wrap text-sm text-black dark:text-white">
-            {generatedContent}
-          </div>
+        {/* Right Side: Action Buttons */}
+        <div className="flex items-center space-x-2">
+          <button 
+            onClick={handleCopy} 
+            className="px-3 py-1.5 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-boxdark"
+          >
+            Copy
+          </button>
+          <button 
+            onClick={handleDownload} 
+            className="px-3 py-1.5 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-boxdark"
+          >
+            Download
+          </button>
+          <button 
+            onClick={() => setShowEditModal(true)} 
+            className="px-3 py-1.5 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-boxdark"
+          >
+            Edit
+          </button>
         </div>
-      ) : (
-        <div className='border-2 border-dashed border-gray-300 dark:border-gray-600 p-10 min-h-[400px] flex flex-col items-center justify-center'>
-          <p className='text-gray-700 dark:text-gray-300 text-center mb-4'>
-            Your generated resume will appear here after you click "Generate Resume".
-          </p>
-          <div className='text-center'>
-            <p className='text-md font-medium text-black dark:text-white'>Current Settings:</p>
-            <p className='text-sm text-gray-600 dark:text-gray-400'>Template: <span className='font-semibold'>{options.template}</span></p>
-            <p className='text-sm text-gray-600 dark:text-gray-400'>Color Scheme: <span className='font-semibold'>{options.colorScheme}</span></p>
-          </div>
-        </div>
-      )}
+      </div>
+
+      {/* Main Content Display */}
+      <div className="prose prose-invert max-w-none text-gray-300">
+        {generatedContent ? (
+          <pre className="whitespace-pre-wrap break-words p-4 bg-gray-800 rounded-md">{generatedContent}</pre>
+        ) : (
+          <p>No document generated yet.</p>
+        )}
+      </div>
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-boxdark p-6 rounded-lg shadow-xl w-full max-w-2xl">
-            <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Edit Resume Content</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-boxdark p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <h3 className="text-lg font-semibold text-white mb-4">Edit {documentTitle}</h3>
             <textarea
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
+              className="w-full flex-grow p-3 bg-gray-800 border border-strokedark rounded-md text-gray-300 resize-none focus:ring-primary focus:border-primary"
               rows={15}
-              className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary dark:text-white"
             />
-            <div className="mt-4 flex justify-end gap-3">
+            <div className="mt-4 flex justify-end space-x-3">
               <button 
                 onClick={() => setShowEditModal(false)} 
-                className="px-4 py-2 rounded border border-stroke text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-600 hover:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               >
                 Cancel
               </button>
               <button 
-                onClick={handleSaveEdit} 
-                className="px-4 py-2 rounded bg-primary text-white hover:bg-opacity-90"
+                onClick={handleSaveChanges} 
+                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-md focus:outline-none focus:ring-2 focus:ring-primary-dark"
               >
                 Save Changes
               </button>

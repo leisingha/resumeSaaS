@@ -8,6 +8,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        sans: ['Roboto', ...defaultTheme.fontFamily.sans],
         satoshi: ['Satoshi', 'system-ui', 'sans-serif'],
       },
       colors: {
