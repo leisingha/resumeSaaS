@@ -9,11 +9,10 @@ interface AccordionItemProps {
   children: React.ReactNode;
   isOpen: boolean;
   onToggle: () => void;
-  // TODO: Add isComplete prop for indicator
+  isComplete: boolean;
 }
 
-const AccordionItem: React.FC<AccordionItemProps> = ({ title, children, isOpen, onToggle }) => {
-  const isComplete = true; // Placeholder, replace with actual logic/prop
+const AccordionItem: React.FC<AccordionItemProps> = ({ title, children, isOpen, onToggle, isComplete }) => {
 
   return (
     <div> 
@@ -26,11 +25,15 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ title, children, isOpen, 
           <span className="text-lg font-medium text-black dark:text-white">{title}</span>
           {/* Completeness Indicator - to the right of the title */}
           {isComplete ? (
-              <svg className="w-5 h-5 text-green-500 ml-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
+            <svg className='w-5 h-5 ml-3 text-green-500' fill='currentColor' viewBox='0 0 20 20'>
+              <path
+                fillRule='evenodd'
+                d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z'
+                clipRule='evenodd'
+              />
+            </svg>
           ) : (
-              <span className="w-4 h-4 border-2 border-gray-400 rounded-full ml-3 inline-block"></span>
+            <span className='w-4 h-4 ml-3 inline-block rounded-full border-2 border-gray-400'></span>
           )}
         </div>
 
@@ -58,16 +61,20 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ title, children, isOpen, 
   );
 };
 
-const AccordionLayout = () => {
-  const [openItem, setOpenItem] = useState<string | null>('profile');
+interface AccordionLayoutProps {
+  isAccordionOpen: boolean;
+  onAccordionToggle: () => void;
+  isProfileComplete: boolean;
+}
 
+const AccordionLayout: React.FC<AccordionLayoutProps> = ({ isAccordionOpen, onAccordionToggle, isProfileComplete }) => {
   return (
     <div className="rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark p-5">
       <AccordionItem
         title="My Profile"
-        isOpen={openItem === 'profile'}
-        onToggle={() => setOpenItem(openItem === 'profile' ? null : 'profile')}
-        // TODO: Pass actual completeness status
+        isOpen={isAccordionOpen}
+        onToggle={onAccordionToggle}
+        isComplete={isProfileComplete}
       >
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div className="md:col-span-3">

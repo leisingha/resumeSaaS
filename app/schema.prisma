@@ -25,6 +25,28 @@ model UserProfile {
 
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId              String    @unique // A user should have only one profile
+
+  education           EducationEntry[]
+  experience          ExperienceEntry[]
+}
+
+model EducationEntry {
+  id             String      @id @default(uuid())
+  institution    String
+  degree         String
+  graduationYear String
+  userProfile    UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  userProfileId  String
+}
+
+model ExperienceEntry {
+  id            String      @id @default(uuid())
+  company       String
+  role          String
+  duration      String
+  description   String      @db.Text
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  userProfileId String
 }
 
 model UploadedResume {

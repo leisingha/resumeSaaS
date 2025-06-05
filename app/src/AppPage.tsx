@@ -3,6 +3,8 @@ import AccordionLayout from './features/topsection/AccordionLayout';
 import ResumeCustomizer from './features/customizer/ResumeCustomizer';
 import ResumeDisplay from './features/display/ResumeDisplay';
 import SuccessAlert from './features/common/SuccessAlert';
+import { useQuery } from 'wasp/client/operations';
+import { getUserProfile } from 'wasp/client/operations';
 
 // Define types for customization options
 export interface CustomizationOptions {
@@ -18,6 +20,10 @@ export interface CustomizationOptions {
 export type DocumentType = 'resume' | 'coverLetter'; // Export DocumentType
 
 const AppPage = () => {
+  const { data: userProfile, isLoading: isProfileLoading } = useQuery(getUserProfile);
+  const [isAccordionOpen, setIsAccordionOpen] = useState(true);
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
+
   const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>({
     template: 'classic',
     colorScheme: 'blue',
@@ -35,6 +41,21 @@ const AppPage = () => {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>('');
+
+  useEffect(() => {
+    if (userProfile) {
+      const wasComplete = isProfileComplete;
+      const isNowComplete = !!(userProfile.fullName && userProfile.phone && userProfile.professionalSummary);
+      
+      setIsProfileComplete(isNowComplete);
+
+      // Only automatically change the accordion state if the completeness status has changed.
+      // This allows the user to manually toggle the accordion otherwise.
+      if (wasComplete !== isNowComplete) {
+        setIsAccordionOpen(!isNowComplete);
+      }
+    }
+  }, [userProfile, isProfileComplete]);
 
   const handleGenerateResume = () => {
     setIsGenerating(true);
@@ -104,7 +125,11 @@ const AppPage = () => {
           onClose={() => setShowSuccessAlert(false)} 
         />
       }
-      <AccordionLayout />
+      <AccordionLayout
+        isAccordionOpen={isAccordionOpen}
+        onAccordionToggle={() => setIsAccordionOpen(!isAccordionOpen)}
+        isProfileComplete={isProfileComplete}
+      />
 
       <div className="mt-6 rounded-sm bg-transparent shadow-default dark:bg-transparent">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> 

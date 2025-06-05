@@ -187,6 +187,18 @@ query getAllTasksByUser {
 }
 //#endregion
 
+//#region Profile
+query getUserProfile {
+  fn: import { getUserProfile } from "@src/features/profile/operations",
+  entities: [User, UserProfile]
+}
+
+action saveUserProfile {
+  fn: import { saveUserProfile } from "@src/features/profile/operations",
+  entities: [User, UserProfile]
+}
+//#endregion
+
 //#region AI Resume Generator App
 route MainAppRoute { path: "/app", to: AppPage }
 page AppPage {
