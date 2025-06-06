@@ -13,6 +13,7 @@
     "@tailwindcss/typography": "^0.5.7",
     "apexcharts": "3.41.0",
     "clsx": "^2.1.0",
+    "date-fns": "^4.1.0",
     "headlessui": "^0.0.0",
     "node-fetch": "3.3.0",
     "openai": "^4.55.3",
