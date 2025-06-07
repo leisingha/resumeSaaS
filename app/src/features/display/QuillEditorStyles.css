@@ -1,0 +1,48 @@
+/* Custom styles for React-Quill to support dark mode */
+
+.quill-container .ql-editor {
+  background-color: #ffffff; /* Light mode background */
+  color: #1a202c; /* Light mode text */
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  min-height: 400px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.dark .quill-container .ql-editor {
+  background-color: #1d2a39; /* Dark mode background - matches boxdark */
+  color: #ffffff; /* Dark mode text */
+  border-color: #3d4d60; /* Dark mode border - matches form-strokedark */
+}
+
+/* Bubble theme toolbar/tooltip styling */
+.dark .ql-bubble .ql-tooltip {
+  background-color: #243447; /* A slightly lighter dark color for the tooltip */
+  border-color: #3d4d60;
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dark .ql-bubble .ql-tooltip .ql-action::before,
+.dark .ql-bubble .ql-tooltip .ql-remove::before {
+  color: #ffffff;
+}
+
+.dark .ql-bubble .ql-tooltip a {
+  color: #4a90e2; /* A link color that's visible in dark mode */
+}
+
+.dark .ql-bubble .ql-tooltip.ql-editing .ql-preview {
+  color: #ffffff !important;
+}
+
+.dark .ql-bubble .ql-tooltip .ql-picker-label,
+.dark .ql-bubble .ql-tooltip .ql-picker-item {
+  color: #ffffff;
+}
+
+.dark .ql-bubble .ql-picker.ql-expanded .ql-picker-options {
+  background-color: #243447;
+  border-color: #3d4d60;
+} 

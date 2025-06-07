@@ -199,6 +199,23 @@ action saveUserProfile {
 }
 //#endregion
 
+//#region Generation
+action generateDocument {
+  fn: import { generateDocument } from "@src/features/generation/operations",
+  entities: [User, UserProfile, EducationEntry, ExperienceEntry, GeneratedDocument]
+}
+
+action updateGeneratedDocument {
+  fn: import { updateGeneratedDocument } from "@src/features/generation/operations",
+  entities: [User, UserProfile, EducationEntry, ExperienceEntry, GeneratedDocument]
+}
+
+query getGeneratedDocuments {
+  fn: import { getGeneratedDocuments } from "@src/features/generation/operations",
+  entities: [User, GeneratedDocument]
+}
+//#endregion
+
 //#region AI Resume Generator App
 route MainAppRoute { path: "/app", to: AppPage }
 page AppPage {

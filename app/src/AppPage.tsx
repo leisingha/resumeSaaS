@@ -3,8 +3,10 @@ import AccordionLayout from './features/topsection/AccordionLayout';
 import ResumeCustomizer from './features/customizer/ResumeCustomizer';
 import ResumeDisplay from './features/display/ResumeDisplay';
 import SuccessAlert from './features/common/SuccessAlert';
-import { useQuery } from 'wasp/client/operations';
+import { useQuery, useAction } from 'wasp/client/operations';
 import { getUserProfile } from 'wasp/client/operations';
+import { generateDocument, updateGeneratedDocument } from 'wasp/client/operations';
+import type { GeneratedDocument } from 'wasp/entities';
 
 // Define types for customization options
 export interface CustomizationOptions {
@@ -20,9 +22,12 @@ export interface CustomizationOptions {
 export type DocumentType = 'resume' | 'coverLetter'; // Export DocumentType
 
 const AppPage = () => {
-  const { data: userProfile, isLoading: isProfileLoading } = useQuery(getUserProfile);
+  const { data: userProfile } = useQuery(getUserProfile);
+  const updateGeneratedDocumentAction = useAction(updateGeneratedDocument);
+
   const [isAccordionOpen, setIsAccordionOpen] = useState(true);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [activeDocument, setActiveDocument] = useState<GeneratedDocument | null>(null);
 
   const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>({
     template: 'classic',
@@ -33,14 +38,11 @@ const AppPage = () => {
     tone: 'neutral',
   });
   const [documentType, setDocumentType] = useState<DocumentType>('resume');
-  const [generatedResumeContent, setGeneratedResumeContent] = useState<string | null>(null);
-  const [isResumeGenerated, setIsResumeGenerated] = useState<boolean>(false);
-  const [isEditingResume, setIsEditingResume] = useState<boolean>(false);
-  const [showEditModal, setShowEditModal] = useState<boolean>(false);
-  const [isDetailCustomizerVisible, setIsDetailCustomizerVisible] = useState<boolean>(true);
-  const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>('');
+
+  const generatedResumeContent = activeDocument?.content || null;
+  const isResumeGenerated = !!activeDocument;
 
   useEffect(() => {
     if (userProfile) {
@@ -57,30 +59,31 @@ const AppPage = () => {
     }
   }, [userProfile, isProfileComplete]);
 
-  const handleGenerateResume = () => {
+  const handleGenerateResume = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      const docTypeDisplay = documentType === 'resume' ? 'Resume' : 'Cover Letter';
-      const mockContent = `
-        Document Type: ${documentType.toUpperCase()}\n
-        Resume for: ${customizationOptions.targetJobTitle || '[Not Specified]'}
-        Company: ${customizationOptions.targetCompany || '[Not Specified]'}
-        Skills: ${customizationOptions.keySkills || '[Not Specified]'}
-        Tone: ${customizationOptions.tone}
-        Template: ${customizationOptions.template}
-        Color Scheme: ${customizationOptions.colorScheme}
-        
-        --- (More ${documentType} content would go here) ---
-      `;
-      setGeneratedResumeContent(mockContent);
-      setIsResumeGenerated(true);
-      setIsEditingResume(false);
+    try {
+      const newDocument = await generateDocument({
+        customizationOptions: {
+          targetJobTitle: customizationOptions.targetJobTitle,
+          targetCompany: customizationOptions.targetCompany,
+          keySkills: customizationOptions.keySkills,
+          tone: customizationOptions.tone,
+        },
+        documentType,
+      });
+      setActiveDocument(newDocument);
+      setIsEditing(false);
       setShowEditModal(false);
       setIsDetailCustomizerVisible(false);
-      setIsGenerating(false);
+      const docTypeDisplay = documentType === 'resume' ? 'Resume' : 'Cover Letter';
       setAlertMessage(`${docTypeDisplay} Generated Successfully!`);
       setShowSuccessAlert(true);
-    }, 2000);
+    } catch (error: any) {
+      console.error('Error generating document: ', error);
+      alert('Error generating document: ' + (error.message || 'Something went wrong.'));
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   useEffect(() => {
@@ -93,16 +96,25 @@ const AppPage = () => {
     return () => clearTimeout(timer);
   }, [showSuccessAlert]);
 
-  const handleEditSave = (newContent: string) => {
-    setGeneratedResumeContent(newContent);
-    setIsEditingResume(false);
-    setShowEditModal(false);
+  const handleEditSave = async (newContent: string) => {
+    if (!activeDocument) return;
+    try {
+      await updateGeneratedDocumentAction({
+        id: activeDocument.id,
+        content: newContent,
+      });
+      // Update local state after saving
+      setActiveDocument({ ...activeDocument, content: newContent });
+      alert('Document saved successfully!');
+    } catch (error: any) {
+      console.error('Error saving document: ', error);
+      alert('Error saving document: ' + (error.message || 'Something went wrong.'));
+    }
   };
 
   const handleDocumentTypeChange = (type: DocumentType) => {
     setDocumentType(type);
-    setIsResumeGenerated(false);
-    setGeneratedResumeContent(null);
+    setActiveDocument(null);
     setIsDetailCustomizerVisible(true);
     setShowSuccessAlert(false);
   };
@@ -117,99 +129,96 @@ const AppPage = () => {
     setShowSuccessAlert(false);
   };
 
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [isDetailCustomizerVisible, setIsDetailCustomizerVisible] = useState<boolean>(true);
+
   return (
-    <div className="mx-auto max-w-5xl p-4 md:p-6 2xl:p-10 relative">
-      {showSuccessAlert && 
-        <SuccessAlert 
-          message={alertMessage} 
-          onClose={() => setShowSuccessAlert(false)} 
-        />
-      }
+    <div className='mx-auto flex max-w-5xl flex-col gap-6 p-4 md:p-6 2xl:p-10'>
+      {showSuccessAlert && (
+        <SuccessAlert message={alertMessage} onClose={() => setShowSuccessAlert(false)} />
+      )}
       <AccordionLayout
         isAccordionOpen={isAccordionOpen}
         onAccordionToggle={() => setIsAccordionOpen(!isAccordionOpen)}
         isProfileComplete={isProfileComplete}
       />
 
-      <div className="mt-6 rounded-sm bg-transparent shadow-default dark:bg-transparent">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> 
-          <div className="md:col-span-1 flex flex-col gap-6">
-            <ResumeCustomizer
-              part="templateControls"
-              options={customizationOptions}
-              onOptionsChange={setCustomizationOptions}
-            />
-          </div>
+      <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
+        <div className='flex flex-col gap-6 md:col-span-1'>
+          <ResumeCustomizer part='templateControls' options={customizationOptions} onOptionsChange={setCustomizationOptions} />
+        </div>
 
-          <div className="md:col-span-2 flex flex-col gap-6">
-            {isGenerating ? (
-              <div className="flex justify-center items-center h-40 mt-8">
-                <div className="typewriter">
-                  <div className="slide"><i></i></div>
-                  <div className="paper"></div>
-                  <div className="keyboard"></div>
+        <div className='flex flex-col gap-6 md:col-span-2'>
+          {isGenerating ? (
+            <div className='mt-8 flex h-40 items-center justify-center'>
+              <div className='typewriter'>
+                <div className='slide'>
+                  <i></i>
                 </div>
+                <div className='paper'></div>
+                <div className='keyboard'></div>
               </div>
-            ) : isDetailCustomizerVisible ? (
-              <>
-                <ResumeCustomizer
-                  part="detailControls"
-                  options={customizationOptions}
-                  onOptionsChange={setCustomizationOptions}
-                  documentType={documentType}
-                  onDocumentTypeChange={handleDocumentTypeChange}
-                />
-                <div className="flex gap-3">
-                  {isResumeGenerated ? (
-                    <>
-                      <button
-                        onClick={handleGenerateResume}
-                        className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
-                      >
-                        Regenerate
-                      </button>
-                      <button
-                        onClick={handleCancelAdjustCustomizations}
-                        className="flex w-full justify-center rounded border border-stroke dark:border-strokedark p-3 font-medium text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
+            </div>
+          ) : isDetailCustomizerVisible ? (
+            <>
+              <ResumeCustomizer
+                part='detailControls'
+                options={customizationOptions}
+                onOptionsChange={setCustomizationOptions}
+                documentType={documentType}
+                onDocumentTypeChange={handleDocumentTypeChange}
+              />
+              <div className='flex gap-3'>
+                {isResumeGenerated ? (
+                  <>
                     <button
                       onClick={handleGenerateResume}
-                      className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
+                      className='flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90'
                     >
-                      Generate
+                      Regenerate
                     </button>
-                  )}
-                </div>
-              </>
-            ) : null}
-            
-            {isResumeGenerated && !isDetailCustomizerVisible && !isGenerating && (
-              <ResumeDisplay 
-                options={customizationOptions} 
+                    <button
+                      onClick={handleCancelAdjustCustomizations}
+                      className='dark:border-strokedark flex w-full justify-center rounded border border-stroke p-3 font-medium text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700'
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleGenerateResume}
+                    className='flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90'
+                  >
+                    Generate
+                  </button>
+                )}
+              </div>
+            </>
+          ) : null}
+
+          {isResumeGenerated && !isDetailCustomizerVisible && !isGenerating && (
+            <div className='space-y-4'>
+              <ResumeDisplay
+                options={customizationOptions}
                 generatedContent={generatedResumeContent}
                 isResumeGenerated={isResumeGenerated}
-                isEditing={false} 
-                setIsEditing={() => {}} 
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
                 showEditModal={showEditModal}
                 setShowEditModal={setShowEditModal}
                 onContentChange={handleEditSave}
                 documentType={documentType}
               />
-            )}
-
-            {isResumeGenerated && !isDetailCustomizerVisible && !isGenerating && (
               <button
                 onClick={handleShowAdjustCustomizations}
-                className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90 mt-4"
+                className='-mt-2 flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90'
               >
                 Adjust Customizations
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
