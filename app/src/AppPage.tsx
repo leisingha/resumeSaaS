@@ -47,7 +47,7 @@ const AppPage = () => {
   useEffect(() => {
     if (userProfile) {
       const wasComplete = isProfileComplete;
-      const isNowComplete = !!(userProfile.fullName && userProfile.phone && userProfile.professionalSummary);
+      const isNowComplete = !!(userProfile.firstName && userProfile.lastName && userProfile.phone);
       
       setIsProfileComplete(isNowComplete);
 

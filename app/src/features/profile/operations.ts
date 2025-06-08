@@ -31,9 +31,10 @@ export const getUserProfile: GetUserProfile<
       userId: context.user.id,
       createdAt: new Date(),
       updatedAt: new Date(),
-      fullName: null,
+      firstName: null,
+      lastName: null,
       phone: null,
-      professionalSummary: null,
+      location: null,
       email,
       education: [],
       experience: [],
@@ -51,10 +52,10 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
     throw new HttpError(401);
   }
 
-  const { fullName, phone, professionalSummary, education, experience } = args;
+  const { firstName, lastName, phone, location, education, experience } = args;
 
-  if (!fullName || !phone || !professionalSummary) {
-    throw new HttpError(400, 'Missing required fields: Full Name, Phone, and Professional Summary are required.');
+  if (!firstName || !lastName || !phone) {
+    throw new HttpError(400, 'Missing required fields: First Name, Last Name and Phone are required.');
   }
   
   const existingProfile = await context.entities.UserProfile.findUnique({
@@ -72,43 +73,49 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
     where: { userId: context.user.id },
     create: {
       userId: context.user.id,
-      fullName,
+      firstName,
+      lastName,
       phone,
-      professionalSummary,
+      location,
       education: {
-        create: education.map(({ institution, degree, graduationYear }) => ({
-          institution,
-          degree,
-          graduationYear,
+        create: education.map(({ school, fieldOfStudy, graduationDate, location, achievements }) => ({
+          school,
+          fieldOfStudy,
+          graduationDate,
+          location,
+          achievements,
         })),
       },
       experience: {
-        create: experience.map(({ company, role, duration, description }) => ({
-          company,
-          role,
-          duration,
-          description,
+        create: experience.map(({ employer, jobTitle, startDate, endDate, location, workDescription }) => ({
+          employer,
+          jobTitle,
+          startDate,
+          endDate,
+          location,
+          workDescription,
         })),
       },
     },
     update: {
-      fullName,
+      firstName,
+      lastName,
       phone,
-      professionalSummary,
+      location,
       education: {
         deleteMany: { id: { in: educationIdsToDelete } },
-        upsert: education.map(({ id, institution, degree, graduationYear }) => ({
+        upsert: education.map(({ id, school, fieldOfStudy, graduationDate, location, achievements }) => ({
           where: { id: id || '' },
-          create: { institution, degree, graduationYear },
-          update: { institution, degree, graduationYear },
+          create: { school, fieldOfStudy, graduationDate, location, achievements },
+          update: { school, fieldOfStudy, graduationDate, location, achievements },
         })),
       },
       experience: {
         deleteMany: { id: { in: experienceIdsToDelete } },
-        upsert: experience.map(({ id, company, role, duration, description }) => ({
+        upsert: experience.map(({ id, employer, jobTitle, startDate, endDate, location, workDescription }) => ({
           where: { id: id || '' },
-          create: { company, role, duration, description },
-          update: { company, role, duration, description },
+          create: { employer, jobTitle, startDate, endDate, location, workDescription },
+          update: { employer, jobTitle, startDate, endDate, location, workDescription },
         })),
       },
     },

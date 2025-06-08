@@ -1,7 +1,12 @@
 import { HttpError } from 'wasp/server';
 import OpenAI from 'openai';
 import type { GeneratedDocument, UserProfile, EducationEntry, ExperienceEntry } from 'wasp/entities';
-import type { GenerateDocument, GetGeneratedDocuments } from 'wasp/server/operations';
+import type {
+  GenerateDocument,
+  GetGeneratedDocuments,
+  UpdateGeneratedDocument,
+  GenerateAiResumePoints,
+} from 'wasp/server/operations';
 
 // Setup OpenAI client
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
@@ -22,22 +27,21 @@ const formatProfileForPrompt = (
   profile: UserProfile & { education: EducationEntry[]; experience: ExperienceEntry[] }
 ) => {
   let prompt = `
-    Full Name: ${profile.fullName}
+    Full Name: ${profile.firstName} ${profile.lastName}
     Phone: ${profile.phone}
-    Professional Summary: ${profile.professionalSummary}
   `;
 
   if (profile.education.length > 0) {
     prompt += '\n\nEducation:\n';
     profile.education.forEach((edu) => {
-      prompt += `- ${edu.degree} from ${edu.institution} (Graduated ${edu.graduationYear})\n`;
+      prompt += `- ${edu.fieldOfStudy} from ${edu.school} (Graduated ${edu.graduationDate})\n  Location: ${edu.location}\n  Achievements: ${edu.achievements}\n`;
     });
   }
 
   if (profile.experience.length > 0) {
     prompt += '\n\nWork Experience:\n';
     profile.experience.forEach((exp) => {
-      prompt += `- ${exp.role} at ${exp.company} (${exp.duration})\n  Description: ${exp.description}\n`;
+      prompt += `- ${exp.jobTitle} at ${exp.employer} (${exp.startDate} - ${exp.endDate})\n  Location: ${exp.location}\n  Description: ${exp.workDescription}\n`;
     });
   }
 
@@ -148,4 +152,71 @@ export const getGeneratedDocuments: GetGeneratedDocuments<void, GeneratedDocumen
     where: { userId: context.user.id },
     orderBy: { createdAt: 'desc' },
   });
+};
+
+export const generateAiResumePoints: GenerateAiResumePoints<
+  { context: string },
+  { content: string }
+> = async (args, context) => {
+  if (!context.user) {
+    throw new HttpError(401, 'Not authorized');
+  }
+
+  if (!openai) {
+    throw new HttpError(500, 'OpenAI API key is not set.');
+  }
+
+  const user = await context.entities.User.findUnique({
+    where: { id: context.user.id },
+  });
+
+  if (!user) {
+    throw new HttpError(404, 'User not found');
+  }
+
+  if (user.credits === 0 && !user.isAdmin) {
+    throw new HttpError(402, 'No credits remaining');
+  }
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert resume writer. Based on the following context, generate 3 concise, impactful, and quantifiable bullet points for a resume. Each bullet point should start with an action verb. Return the response as an HTML-formatted string with each bullet point wrapped in a <p> tag.`,
+        },
+        {
+          role: 'user',
+          content: args.context,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 200,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+    });
+
+    if (!user.isAdmin) {
+      await context.entities.User.update({
+        where: { id: context.user.id },
+        data: { credits: { decrement: 1 } },
+      });
+    }
+
+    const content = completion.choices[0].message.content;
+    if (!content) {
+      throw new HttpError(500, 'AI response was empty.');
+    }
+
+    return { content };
+  } catch (error: any) {
+    console.error('Error generating AI resume points: ', error);
+    if (error.response) {
+      throw new HttpError(error.response.status, error.response.data.message);
+    } else {
+      throw new HttpError(500, 'Failed to generate AI content.');
+    }
+  }
 }; 

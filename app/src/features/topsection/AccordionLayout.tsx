@@ -76,15 +76,7 @@ const AccordionLayout: React.FC<AccordionLayoutProps> = ({ isAccordionOpen, onAc
         onToggle={onAccordionToggle}
         isComplete={isProfileComplete}
       >
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <div className="md:col-span-3">
-            <ProfileForm />
-          </div>
-          <div className="md:col-span-2">
-            <h3 className="text-md font-medium text-black dark:text-white mb-3">Your Resume</h3>
-            <UploadSection />
-          </div>
-        </div>
+        <ProfileForm />
       </AccordionItem>
     </div>
   );

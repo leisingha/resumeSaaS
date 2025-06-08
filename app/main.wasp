@@ -190,12 +190,12 @@ query getAllTasksByUser {
 //#region Profile
 query getUserProfile {
   fn: import { getUserProfile } from "@src/features/profile/operations",
-  entities: [User, UserProfile]
+  entities: [UserProfile]
 }
 
 action saveUserProfile {
   fn: import { saveUserProfile } from "@src/features/profile/operations",
-  entities: [User, UserProfile]
+  entities: [UserProfile, EducationEntry, ExperienceEntry]
 }
 //#endregion
 
@@ -213,6 +213,11 @@ action updateGeneratedDocument {
 query getGeneratedDocuments {
   fn: import { getGeneratedDocuments } from "@src/features/generation/operations",
   entities: [User, GeneratedDocument]
+}
+
+action generateAiResumePoints {
+  fn: import { generateAiResumePoints } from "@src/features/generation/operations",
+  entities: [User]
 }
 //#endregion
 
