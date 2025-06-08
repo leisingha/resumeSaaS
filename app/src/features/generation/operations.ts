@@ -184,7 +184,7 @@ export const generateAiResumePoints: GenerateAiResumePoints<
       messages: [
         {
           role: 'system',
-          content: `You are an expert resume writer. Based on the following context, generate 3 concise, impactful, and quantifiable bullet points for a resume. Each bullet point should start with an action verb. Return the response as an HTML-formatted string with each bullet point wrapped in a <p> tag.`,
+          content: `You are an expert resume writer. Based on the following context, generate 3 concise, impactful, and quantifiable bullet points for a resume. Each bullet point should start with an action verb. Your response must be ONLY the HTML content of an unordered list (<ul>), with each bullet point wrapped in an <li> tag. Do not include any other text, explanations, or markdown formatting.`,
         },
         {
           role: 'user',

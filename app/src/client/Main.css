@@ -490,6 +490,7 @@ span.flatpickr-weekday,
 .ql-editor {
   background-color: transparent;
   min-height: 120px;
+  font-size: 0.9375rem; /* 15px, to match form inputs */
 }
 
 .dark .ql-editor {
