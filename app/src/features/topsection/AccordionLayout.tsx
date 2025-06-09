@@ -76,7 +76,7 @@ const AccordionLayout: React.FC<AccordionLayoutProps> = ({ isAccordionOpen, onAc
         onToggle={onAccordionToggle}
         isComplete={isProfileComplete}
       >
-        <ProfileForm />
+            <ProfileForm />
       </AccordionItem>
     </div>
   );

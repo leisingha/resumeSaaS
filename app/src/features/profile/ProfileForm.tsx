@@ -247,57 +247,57 @@ const ProfileForm = () => {
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
           <h3 className={subSectionTitleClassName}>Contact Info</h3>
-          {/* Personal Details */}
-          <div className='flex flex-col gap-5.5 sm:flex-row'>
-            <div className='w-full sm:w-1/2'>
+      {/* Personal Details */}
+      <div className='flex flex-col gap-5.5 sm:flex-row'>
+        <div className='w-full sm:w-1/2'>
               <label className={labelClassName} htmlFor='firstName'>
                 First Name
-              </label>
-              <div className='relative'>
-                <input
-                  className={newStandardInputClass}
-                  type='text'
+          </label>
+          <div className='relative'>
+            <input
+              className={newStandardInputClass}
+              type='text'
                   name='firstName'
                   id='firstName'
                   placeholder='First Name'
                   value={profileData.firstName || ''}
-                  onChange={handleProfileChange}
-                />
+              onChange={handleProfileChange}
+            />
                 {formErrors.firstName && <p className='text-sm text-red-500 mt-1'>{formErrors.firstName}</p>}
-              </div>
-            </div>
-            <div className='w-full sm:w-1/2'>
+          </div>
+        </div>
+        <div className='w-full sm:w-1/2'>
               <label className={labelClassName} htmlFor='lastName'>
                 Last Name
-              </label>
-              <input
-                className={newStandardInputClass}
+          </label>
+          <input
+            className={newStandardInputClass}
                 type='text'
                 name='lastName'
                 id='lastName'
                 placeholder='Last Name'
                 value={profileData.lastName || ''}
-                onChange={handleProfileChange}
-              />
+            onChange={handleProfileChange}
+          />
               {formErrors.lastName && <p className='text-sm text-red-500 mt-1'>{formErrors.lastName}</p>}
-            </div>
-          </div>
+        </div>
+      </div>
           <div className='flex flex-col gap-5.5 sm:flex-row'>
             <div className='w-full sm:w-1/2'>
-              <label className={labelClassName} htmlFor='emailAddress'>
-                Email Address
-              </label>
-              <div className='relative'>
-                <input
-                  className={newStandardInputClass}
-                  type='email'
-                  name='email'
-                  id='emailAddress'
-                  placeholder='Email Address'
-                  value={profileData.email}
-                  disabled // Email is from auth and not editable
-                />
-                {formErrors.email && <p className='text-sm text-red-500 mt-1'>{formErrors.email}</p>}
+        <label className={labelClassName} htmlFor='emailAddress'>
+          Email Address
+        </label>
+        <div className='relative'>
+          <input
+            className={newStandardInputClass}
+            type='email'
+            name='email'
+            id='emailAddress'
+            placeholder='Email Address'
+            value={profileData.email}
+            disabled // Email is from auth and not editable
+          />
+          {formErrors.email && <p className='text-sm text-red-500 mt-1'>{formErrors.email}</p>}
               </div>
             </div>
             <div className='w-full sm:w-1/2'>
@@ -314,13 +314,13 @@ const ProfileForm = () => {
                 onChange={handleProfileChange}
               />
               {formErrors.phone && <p className='text-sm text-red-500 mt-1'>{formErrors.phone}</p>}
-            </div>
-          </div>
-          <div>
+        </div>
+      </div>
+      <div>
             <label className={labelClassName} htmlFor='location'>
               Location
-            </label>
-            <div className='relative'>
+        </label>
+        <div className='relative'>
               <input
                 className={newStandardInputClass}
                 type='text'
@@ -328,7 +328,7 @@ const ProfileForm = () => {
                 id='location'
                 placeholder='City, Country'
                 value={profileData.location || ''}
-                onChange={handleProfileChange}
+            onChange={handleProfileChange}
               />
             </div>
           </div>
@@ -341,48 +341,48 @@ const ProfileForm = () => {
 
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
-          {/* Education Section */}
-          <h3 className={subSectionTitleClassName}>Education</h3>
-          {educationEntries.map((edu, index) => (
-            <div key={edu.id} className='space-y-4 mb-4 relative'>
-              {educationEntries.length > 1 && (
-                <button
-                  type='button'
-                  onClick={() => removeEducationEntry(index)}
-                  className='absolute top-0 right-0 p-1 text-red-500 hover:text-red-700'
-                >
-                  Remove
-                </button>
-              )}
+      {/* Education Section */}
+      <h3 className={subSectionTitleClassName}>Education</h3>
+      {educationEntries.map((edu, index) => (
+        <div key={edu.id} className='space-y-4 mb-4 relative'>
+          {educationEntries.length > 1 && (
+            <button
+              type='button'
+              onClick={() => removeEducationEntry(index)}
+              className='absolute top-0 right-0 p-1 text-red-500 hover:text-red-700'
+            >
+              Remove
+            </button>
+          )}
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`school-${index}`} className={labelClassName}>
                     School
-                  </label>
-                  <input
-                    type='text'
+            </label>
+            <input
+              type='text'
                     name='school'
                     id={`school-${index}`}
                     value={edu.school || ''}
-                    onChange={(e) => handleDynamicChange(e, 'education', index)}
-                    className={newStandardInputClass}
-                    placeholder='Stark University'
-                  />
-                </div>
-                <div className='w-full sm:w-1/2'>
+              onChange={(e) => handleDynamicChange(e, 'education', index)}
+              className={newStandardInputClass}
+              placeholder='Stark University'
+            />
+          </div>
+            <div className='w-full sm:w-1/2'>
                   <label htmlFor={`fieldOfStudy-${index}`} className={labelClassName}>
                     Field of Study
-                  </label>
-                  <input
-                    type='text'
+              </label>
+              <input
+                type='text'
                     name='fieldOfStudy'
                     id={`fieldOfStudy-${index}`}
                     value={edu.fieldOfStudy || ''}
-                    onChange={(e) => handleDynamicChange(e, 'education', index)}
-                    className={newStandardInputClass}
-                    placeholder='B.S. in Iron Studies'
-                  />
-                </div>
+                onChange={(e) => handleDynamicChange(e, 'education', index)}
+                className={newStandardInputClass}
+                placeholder='B.S. in Iron Studies'
+              />
+            </div>
               </div>
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='w-full sm:w-1/2'>
@@ -399,21 +399,21 @@ const ProfileForm = () => {
                     placeholder='May 2010'
                   />
                 </div>
-                <div className='w-full sm:w-1/2'>
+            <div className='w-full sm:w-1/2'>
                   <label htmlFor={`location-${index}`} className={labelClassName}>
                     Location
-                  </label>
-                  <input
-                    type='text'
+              </label>
+              <input
+                type='text'
                     name='location'
                     id={`location-${index}`}
                     value={edu.location || ''}
-                    onChange={(e) => handleDynamicChange(e, 'education', index)}
-                    className={newStandardInputClass}
+                onChange={(e) => handleDynamicChange(e, 'education', index)}
+                className={newStandardInputClass}
                     placeholder='New York, NY'
-                  />
-                </div>
-              </div>
+              />
+            </div>
+          </div>
               <div className='quill-container'>
                 <div className='flex justify-between items-center'>
                   <label htmlFor={`achievements-${index}`} className={labelClassName}>
@@ -434,11 +434,11 @@ const ProfileForm = () => {
                   onChange={(value) => handleQuillChange(value, 'education', index)}
                 />
               </div>
-            </div>
-          ))}
-          <button type='button' onClick={addEducationEntry} className='text-sm text-primary hover:underline'>
-            + Add Education
-          </button>
+        </div>
+      ))}
+      <button type='button' onClick={addEducationEntry} className='text-sm text-primary hover:underline'>
+        + Add Education
+      </button>
         </div>
         <div className="md:col-span-2">
           <h3 className='text-md font-medium text-black dark:text-white mb-3'>Tips</h3>
@@ -452,48 +452,48 @@ const ProfileForm = () => {
 
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
-          {/* Work Experience Section */}
-          <h3 className={subSectionTitleClassName}>Work Experience</h3>
-          {experienceEntries.map((exp, index) => (
-            <div key={exp.id} className='space-y-4 mb-4 relative'>
-              {experienceEntries.length > 1 && (
-                <button
-                  type='button'
-                  onClick={() => removeExperienceEntry(index)}
-                  className='absolute top-0 right-0 p-1 text-red-500 hover:text-red-700'
-                >
-                  Remove
-                </button>
-              )}
+      {/* Work Experience Section */}
+      <h3 className={subSectionTitleClassName}>Work Experience</h3>
+      {experienceEntries.map((exp, index) => (
+        <div key={exp.id} className='space-y-4 mb-4 relative'>
+          {experienceEntries.length > 1 && (
+            <button
+              type='button'
+              onClick={() => removeExperienceEntry(index)}
+              className='absolute top-0 right-0 p-1 text-red-500 hover:text-red-700'
+            >
+              Remove
+            </button>
+          )}
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`employer-${index}`} className={labelClassName}>
                     Employer
-                  </label>
-                  <input
-                    type='text'
+            </label>
+            <input
+              type='text'
                     name='employer'
                     id={`employer-${index}`}
                     value={exp.employer || ''}
-                    onChange={(e) => handleDynamicChange(e, 'experience', index)}
-                    className={newStandardInputClass}
-                    placeholder='Stark Industries'
-                  />
-                </div>
+              onChange={(e) => handleDynamicChange(e, 'experience', index)}
+              className={newStandardInputClass}
+              placeholder='Stark Industries'
+            />
+          </div>
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`jobTitle-${index}`} className={labelClassName}>
                     Job Title
-                  </label>
-                  <input
-                    type='text'
+              </label>
+              <input
+                type='text'
                     name='jobTitle'
                     id={`jobTitle-${index}`}
                     value={exp.jobTitle || ''}
-                    onChange={(e) => handleDynamicChange(e, 'experience', index)}
-                    className={newStandardInputClass}
-                    placeholder='CEO'
-                  />
-                </div>
+                onChange={(e) => handleDynamicChange(e, 'experience', index)}
+                className={newStandardInputClass}
+                placeholder='CEO'
+              />
+            </div>
               </div>
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='w-full sm:w-1/2'>
@@ -513,28 +513,28 @@ const ProfileForm = () => {
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`endDate-${index}`} className={labelClassName}>
                     End Date
-                  </label>
-                  <input
-                    type='text'
+              </label>
+              <input
+                type='text'
                     name='endDate'
                     id={`endDate-${index}`}
                     value={exp.endDate || ''}
-                    onChange={(e) => handleDynamicChange(e, 'experience', index)}
-                    className={newStandardInputClass}
+                onChange={(e) => handleDynamicChange(e, 'experience', index)}
+                className={newStandardInputClass}
                     placeholder='Present'
-                  />
-                </div>
-              </div>
-              <div>
+              />
+            </div>
+          </div>
+          <div>
                 <label htmlFor={`location-${index}`} className={labelClassName}>
                   Location
-                </label>
+            </label>
                 <input
                   type='text'
                   name='location'
                   id={`location-${index}`}
                   value={exp.location || ''}
-                  onChange={(e) => handleDynamicChange(e, 'experience', index)}
+              onChange={(e) => handleDynamicChange(e, 'experience', index)}
                   className={newStandardInputClass}
                   placeholder='New York, NY'
                 />
@@ -558,12 +558,12 @@ const ProfileForm = () => {
                   value={exp.workDescription || ''}
                   onChange={(value) => handleQuillChange(value, 'experience', index)}
                 />
-              </div>
-            </div>
-          ))}
-          <button type='button' onClick={addExperienceEntry} className='text-sm text-primary hover:underline'>
-            + Add Work Experience
-          </button>
+          </div>
+        </div>
+      ))}
+      <button type='button' onClick={addExperienceEntry} className='text-sm text-primary hover:underline'>
+        + Add Work Experience
+      </button>
         </div>
         <div className="md:col-span-2">
           <h3 className='text-md font-medium text-black dark:text-white mb-3'>Tips</h3>

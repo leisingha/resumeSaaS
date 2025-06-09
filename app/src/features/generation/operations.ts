@@ -9,7 +9,7 @@ import type {
 } from 'wasp/server/operations';
 
 // Setup OpenAI client
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : undefined;
 
 // Type definition for the input payload of the generateDocument action
 type GenerateDocumentPayload = {
@@ -24,97 +24,238 @@ type GenerateDocumentPayload = {
 
 // Helper function to format profile data into a string for the prompt
 const formatProfileForPrompt = (
-  profile: UserProfile & { education: EducationEntry[]; experience: ExperienceEntry[] }
+  profile: UserProfile & { education: EducationEntry[]; experience: ExperienceEntry[] },
+  email?: string | null
 ) => {
-  let prompt = `
-    Full Name: ${profile.firstName} ${profile.lastName}
-    Phone: ${profile.phone}
-  `;
-
-  if (profile.education.length > 0) {
-    prompt += '\n\nEducation:\n';
-    profile.education.forEach((edu) => {
-      prompt += `- ${edu.fieldOfStudy} from ${edu.school} (Graduated ${edu.graduationDate})\n  Location: ${edu.location}\n  Achievements: ${edu.achievements}\n`;
-    });
-  }
-
-  if (profile.experience.length > 0) {
-    prompt += '\n\nWork Experience:\n';
-    profile.experience.forEach((exp) => {
-      prompt += `- ${exp.jobTitle} at ${exp.employer} (${exp.startDate} - ${exp.endDate})\n  Location: ${exp.location}\n  Description: ${exp.workDescription}\n`;
-    });
-  }
-
-  return prompt;
+  const simplifiedProfile = {
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    email: email,
+    phone: profile.phone,
+    location: profile.location,
+    education: profile.education.map((e) => ({
+      school: e.school,
+      fieldOfStudy: e.fieldOfStudy,
+      graduationDate: e.graduationDate,
+      location: e.location,
+      achievements: e.achievements,
+    })),
+    experience: profile.experience.map((e) => ({
+      employer: e.employer,
+      jobTitle: e.jobTitle,
+      startDate: e.startDate,
+      endDate: e.endDate,
+      location: e.location,
+      workDescription: e.workDescription,
+    })),
+  };
+  return JSON.stringify(simplifiedProfile, null, 2);
 };
 
-export const generateDocument: GenerateDocument<GenerateDocumentPayload, GeneratedDocument> = async (args, context) => {
+const resumeJsonSchema = `
+{
+  "summary": "string",
+  "experience": [
+    {
+      "title": "string",
+      "company": "string",
+      "date": "string",
+      "location": "string",
+      "description": [
+        "string"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "string",
+      "school": "string",
+      "date": "string",
+      "details": [
+        "string"
+      ]
+    }
+  ],
+  "skills": [
+    "string"
+  ],
+  "languages": [
+    {
+      "language": "string",
+      "proficiency": "string"
+    }
+  ]
+}
+`;
+
+type ResumeData = {
+  summary: string;
+  experience: {
+    title: string;
+    company: string;
+    date: string;
+    location: string;
+    description: string[];
+  }[];
+  education: {
+    degree: string;
+    school: string;
+    date: string;
+    details: string[];
+  }[];
+  skills: string[];
+  languages: {
+    language: string;
+    proficiency: string;
+  }[];
+};
+
+export const generateDocument: GenerateDocument<GenerateDocumentPayload, GeneratedDocument> = async (
+  { customizationOptions, documentType },
+  context
+) => {
   if (!context.user) {
-    throw new HttpError(401, 'Not authorized');
-  }
-  if (!openai) {
-    throw new HttpError(500, 'OpenAI API key not set. Please set OPENAI_API_KEY in .env.server file.');
+    throw new HttpError(401);
   }
 
-  const { customizationOptions, documentType } = args;
-
-  // 1. Fetch the user's full profile
-  const userProfile = await context.entities.UserProfile.findUnique({
+  const userProfile = await context.entities.UserProfile.findFirst({
     where: { userId: context.user.id },
     include: { education: true, experience: true },
   });
 
   if (!userProfile) {
-    throw new HttpError(404, 'User profile not found. Please complete your profile first.');
+    throw new HttpError(404, 'User profile not found');
   }
+  
+  const email = context.user.email;
 
-  // 2. Construct the prompt for OpenAI
-  const profileString = formatProfileForPrompt(userProfile);
-  const documentTypeString = documentType === 'resume' ? 'a professional resume' : 'a compelling cover letter';
+  const profileContext = formatProfileForPrompt(userProfile, email);
 
-  const systemPrompt = `You are a world-class career coach and professional writer. Your task is to generate ${documentTypeString} based on the user's profile and specific job application details provided. Adhere to the specified tone and highlight the key skills mentioned. The output should be a single block of well-formatted text.`;
+  const systemPrompt = `
+    You are an expert resume writer. Your task is to generate a professional resume in JSON format based on the user's profile data.
+    The output MUST strictly adhere to the following JSON schema and contain a minimum of 260 words. The content should be dense, professional, and tailored to the target job.
+    \`\`\`json
+    ${resumeJsonSchema}
+    \`\`\`
 
-  const userPrompt = `
-    Based on the following profile, please generate ${documentTypeString}.
+    Use the following example as a guide for structure and professional tone. Do not copy the content verbatim; adapt it to the user's data provided below.
+    
+    Example Resume Structure:
+    - Name (e.g., James Appleseed)
+    - Contact Info (e.g., (555) 555-5555 | james.appleseed@resume.com | 1234 Main St. San Francisco, CA)
+    - Summary: A 2-3 sentence professional summary.
+    - Experience: List of jobs with title, company, dates, and 2-3 bullet points with quantifiable achievements.
+    - Education: List of degrees with school, graduation date, and details like GPA or clubs.
+    - Skills: List of relevant skills.
+    - Languages: List of languages and proficiency.
 
-    Profile Details:
-    ${profileString}
-
-    Customization Details:
-    - Target Job Title: ${customizationOptions.targetJobTitle}
-    - Target Company: ${customizationOptions.targetCompany}
-    - Key Skills to Highlight: ${customizationOptions.keySkills}
-    - Tone: ${customizationOptions.tone}
+    Now, generate a resume for the following user profile. Emphasize keywords relevant to their experience and the target job title: "${customizationOptions.targetJobTitle}".
   `;
 
-  // 3. Call OpenAI API
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    temperature: 0.7,
-  });
+  try {
+    if (!openai) {
+      throw new HttpError(500, 'OpenAI API key is not set.');
+    }
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4-turbo-preview',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: profileContext },
+      ],
+      response_format: { type: 'json_object' },
+    });
 
-  const generatedContent = completion.choices[0]?.message?.content;
+    const jsonResponse = JSON.parse(completion.choices[0].message.content || '{}') as ResumeData;
 
-  if (!generatedContent) {
-    throw new HttpError(500, 'Failed to generate document from OpenAI.');
+    // Convert the JSON response to a structured HTML document
+    const htmlContent = `
+      <div style="background-color: white; padding: 0.5in; font-family: serif; font-size: 10pt; color: #333;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="font-size: 24pt; font-weight: bold; margin: 0;">${userProfile.firstName} ${
+      userProfile.lastName
+    }</h1>
+          <p style="font-size: 10pt; margin: 5px 0;">${userProfile.phone} | ${email} | ${userProfile.location}</p>
+        </div>
+
+        <div>
+          <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Summary</h2>
+          <p style="line-height: 1.4;">${jsonResponse.summary || ''}</p>
+        </div>
+        
+        <div>
+          <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Experience</h2>
+          ${(jsonResponse.experience || [])
+            .map(
+              (exp) => `
+            <div style="margin-bottom: 15px;">
+              <div style="display: flex; justify-content: space-between;">
+                <div>
+                  <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${exp.title}</h3>
+                  <p style="margin: 2px 0;">${exp.company} - ${exp.location}</p>
+                </div>
+                <div style="text-align: right;">
+                  <p style="margin: 0;">${exp.date}</p>
+                </div>
+              </div>
+              <ul style="margin-top: 5px; padding-left: 20px; line-height: 1.4;">
+                ${(exp.description || []).map((desc) => `<li>${desc}</li>`).join('')}
+              </ul>
+            </div>
+          `
+            )
+            .join('')}
+        </div>
+        
+        <div>
+            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Skills</h2>
+            <p style="line-height: 1.4;">${(jsonResponse.skills || []).join(', ')}</p>
+        </div>
+
+        <div>
+            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Education</h2>
+            ${(jsonResponse.education || [])
+              .map(
+                (edu) => `
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${edu.degree}</h3>
+                            <p style="margin: 2px 0;">${edu.school}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="margin: 0;">${edu.date}</p>
+                        </div>
+                    </div>
+                    <ul style="margin-top: 5px; padding-left: 20px; line-height: 1.4;">
+                        ${(edu.details || []).map((detail) => `<li>${detail}</li>`).join('')}
+                    </ul>
+                </div>
+                `
+              )
+              .join('')}
+        </div>
+        
+        <div>
+            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Languages</h2>
+            ${(jsonResponse.languages || [])
+              .map((lang) => `<p><strong>${lang.language}:</strong> ${lang.proficiency}</p>`)
+              .join('')}
+        </div>
+      </div>
+    `;
+
+    return context.entities.GeneratedDocument.create({
+      data: {
+        userId: context.user.id,
+        content: htmlContent,
+        documentType: documentType.toUpperCase() as 'RESUME' | 'COVER_LETTER',
+        customizationParams: customizationOptions,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error generating document: ', error);
+    throw new HttpError(500, 'Failed to generate document.');
   }
-
-  // 4. Save the generated document to the database
-  const newDocument = await context.entities.GeneratedDocument.create({
-    data: {
-      user: { connect: { id: context.user.id } },
-      documentType: documentType.toUpperCase() as 'RESUME' | 'COVER_LETTER',
-      content: generatedContent,
-      customizationParams: customizationOptions,
-      templateName: 'default', // Or get from args if available
-    },
-  });
-
-  return newDocument;
 };
 
 type UpdateDocumentPayload = {

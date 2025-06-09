@@ -145,12 +145,12 @@ const AppPage = () => {
         isProfileComplete={isProfileComplete}
       />
 
-      <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
-        <div className='flex flex-col gap-6 md:col-span-1'>
+      <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>
+        <div className='flex flex-col gap-6 md:col-span-3'>
           <ResumeCustomizer part='templateControls' options={customizationOptions} onOptionsChange={setCustomizationOptions} />
         </div>
 
-        <div className='flex flex-col gap-6 md:col-span-2'>
+        <div className='flex flex-col gap-6 md:col-span-9'>
           {isGenerating ? (
             <div className='mt-8 flex h-40 items-center justify-center'>
               <div className='typewriter'>

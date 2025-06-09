@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import type { CustomizationOptions, DocumentType } from '../../AppPage';
 import EditModal from './EditModal';
 import jsPDF from 'jspdf';
@@ -28,11 +28,40 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   documentType,
 }) => {
   const [editedContent, setEditedContent] = useState(generatedContent || '');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (generatedContent) {
       setEditedContent(generatedContent);
     }
+  }, [generatedContent]);
+
+  useLayoutEffect(() => {
+    const calculateScale = () => {
+      const containerNode = containerRef.current;
+      const contentNode = contentRef.current;
+
+      if (containerNode && contentNode && contentNode.firstChild) {
+        const containerWidth = containerNode.offsetWidth;
+        const contentElement = contentNode.firstChild as HTMLElement;
+        const contentWidth = contentElement.offsetWidth;
+
+        if (contentWidth > 0 && containerWidth > 0) {
+          const scale = containerWidth / contentWidth;
+          contentNode.style.transform = `scale(${scale})`;
+          const contentHeight = contentElement.offsetHeight;
+          containerNode.style.height = `${contentHeight * scale}px`;
+        }
+      }
+    };
+
+    calculateScale();
+
+    window.addEventListener('resize', calculateScale);
+    return () => {
+      window.removeEventListener('resize', calculateScale);
+    };
   }, [generatedContent]);
 
   const documentTitle = documentType === 'resume' ? 'Resume' : 'Cover Letter';
@@ -66,9 +95,9 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   };
 
   return (
-    <div className='bg-white dark:bg-boxdark border border-stroke dark:border-strokedark rounded-lg shadow-default p-6'>
+    <>
       {/* Header */}
-      <div className='flex justify-between items-center mb-4 pb-4 border-b border-stroke dark:border-strokedark'>
+      <div className='flex justify-between items-center'>
         <div>
           <h2 className='text-xl font-semibold text-black dark:text-white'>Generated {documentTitle}</h2>
           <div className='text-sm text-gray-400 mt-1'>
@@ -100,10 +129,16 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       </div>
 
       {/* Content Area */}
-      <div className='max-w-full overflow-x-auto rounded-lg border-[1.5px] border-stroke bg-gray-50 dark:border-form-strokedark dark:bg-form-input p-5'>
+      <div
+        ref={containerRef}
+        className='w-full overflow-hidden rounded-lg border border-stroke dark:border-strokedark'
+      >
         <div
+          ref={contentRef}
           id='resume-content'
-          className='prose dark:prose-invert min-w-full'
+          style={{
+            transformOrigin: 'top left',
+          }}
           dangerouslySetInnerHTML={{ __html: generatedContent || '<p>Your generated document will appear here...</p>' }}
         />
       </div>
@@ -114,7 +149,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         onSave={onContentChange}
         initialContent={generatedContent || ''}
       />
-    </div>
+    </>
   );
 };
 
