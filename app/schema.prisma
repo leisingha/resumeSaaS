@@ -23,6 +23,8 @@ model UserProfile {
   lastName            String?
   phone               String?
   location            String?
+  languages           String?
+  awards              String?
 
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId              String    @unique // A user should have only one profile

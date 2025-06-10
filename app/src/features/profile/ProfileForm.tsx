@@ -4,8 +4,34 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { getUserProfile, saveUserProfile, generateAiResumePoints } from 'wasp/client/operations';
 import UploadSection from '../upload/UploadSection';
+import SwitcherOne from '../../admin/elements/forms/SwitcherOne';
 // NOTE: Education and Experience are not yet saved to the backend. This will be implemented in a future step.
 // For now, we keep the UI and local state management for them.
+
+const SmallSwitcher = ({ isOn, onChange }: { isOn: boolean; onChange: (value: boolean) => void }) => {
+  const id = React.useId();
+  return (
+    <div className='relative'>
+      <label htmlFor={id} className='flex cursor-pointer select-none items-center'>
+        <div className='relative'>
+          <input
+            id={id}
+            type='checkbox'
+            className='sr-only'
+            checked={isOn}
+            onChange={(e) => onChange(e.target.checked)}
+          />
+          <div className='reblock h-5 w-10 rounded-full bg-meta-9 dark:bg-[#5A616B]'></div>
+          <div
+            className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white dark:bg-gray-400 transition ${
+              isOn ? 'translate-x-full !bg-primary dark:!bg-white' : ''
+            }`}
+          ></div>
+        </div>
+      </label>
+    </div>
+  );
+};
 
 interface EducationEntry {
   id: string;
@@ -54,6 +80,12 @@ const ProfileForm = () => {
     },
   ]);
   const [formErrors, setFormErrors] = useState<Partial<typeof profileData>>({});
+  const [showLanguages, setShowLanguages] = useState(false);
+  const [showAwards, setShowAwards] = useState(false);
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [currentLanguage, setCurrentLanguage] = useState('');
+  const [awards, setAwards] = useState<string[]>([]);
+  const [currentAward, setCurrentAward] = useState('');
   
   useEffect(() => {
     if (userProfile) {
@@ -64,12 +96,24 @@ const ProfileForm = () => {
         location: userProfile.location || '',
         email: userProfile.email || '',
       });
-      setEducationEntries(userProfile.education.length > 0 ? userProfile.education.map(edu => ({...edu})) : [
-        { id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '', achievements: '' },
-      ]);
-      setExperienceEntries(userProfile.experience.length > 0 ? userProfile.experience.map(exp => ({...exp})) : [
-        { id: '', employer: '', jobTitle: '', startDate: '', endDate: '', location: '', workDescription: '' },
-      ]);
+      setEducationEntries(
+        userProfile.education.length > 0
+          ? userProfile.education.map((edu) => ({ ...edu }))
+          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '', achievements: '' }]
+      );
+      setExperienceEntries(
+        userProfile.experience.length > 0
+          ? userProfile.experience.map((exp) => ({ ...exp }))
+          : [{ id: '', employer: '', jobTitle: '', startDate: '', endDate: '', location: '', workDescription: '' }]
+      );
+      setLanguages(
+        (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
+      );
+      setShowLanguages(!!userProfile.languages);
+      setAwards(
+        (userProfile.awards || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
+      );
+      setShowAwards(!!userProfile.awards);
     }
   }, [userProfile]);
 
@@ -137,6 +181,44 @@ const ProfileForm = () => {
     setExperienceEntries(experienceEntries.filter((_, i) => i !== index));
   };
 
+  const handleLanguageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addLanguage();
+    }
+  };
+
+  const addLanguage = () => {
+    const trimmedLanguage = currentLanguage.trim();
+    if (trimmedLanguage && !languages.includes(trimmedLanguage)) {
+      setLanguages([...languages, trimmedLanguage]);
+      setCurrentLanguage('');
+    }
+  };
+
+  const removeLanguage = (langToRemove: string) => {
+    setLanguages(languages.filter((lang) => lang !== langToRemove));
+  };
+
+  const handleAwardInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addAward();
+    }
+  };
+
+  const addAward = () => {
+    const trimmedAward = currentAward.trim();
+    if (trimmedAward && !awards.includes(trimmedAward)) {
+      setAwards([...awards, trimmedAward]);
+      setCurrentAward('');
+    }
+  };
+
+  const removeAward = (awardToRemove: string) => {
+    setAwards(awards.filter((award) => award !== awardToRemove));
+  };
+
   const validateForm = () => {
     const errors: Partial<typeof profileData> = {};
     if (!profileData.firstName.trim()) errors.firstName = 'First Name is required.';
@@ -195,8 +277,27 @@ const ProfileForm = () => {
         lastName: profileData.lastName,
         phone: profileData.phone,
         location: profileData.location,
-        education: educationEntries.map(({ id, school, fieldOfStudy, graduationDate, location, achievements }) => ({ id, school, fieldOfStudy, graduationDate, location, achievements })),
-        experience: experienceEntries.map(({ id, employer, jobTitle, startDate, endDate, location, workDescription }) => ({ id, employer, jobTitle, startDate, endDate, location, workDescription })),
+        education: educationEntries.map(({ id, school, fieldOfStudy, graduationDate, location, achievements }) => ({
+          id,
+          school,
+          fieldOfStudy,
+          graduationDate,
+          location,
+          achievements,
+        })),
+        experience: experienceEntries.map(
+          ({ id, employer, jobTitle, startDate, endDate, location, workDescription }) => ({
+            id,
+            employer,
+            jobTitle,
+            startDate,
+            endDate,
+            location,
+            workDescription,
+          })
+        ),
+        languages: languages.join(', '),
+        awards: awards.join(', '),
       });
       // You can add a success alert here
       alert('Profile Saved Successfully!');
@@ -217,12 +318,24 @@ const ProfileForm = () => {
         location: userProfile.location || '',
         email: userProfile.email || '',
       });
-      setEducationEntries(userProfile.education.length > 0 ? userProfile.education.map(edu => ({...edu})) : [
-        { id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '', achievements: '' },
-      ]);
-      setExperienceEntries(userProfile.experience.length > 0 ? userProfile.experience.map(exp => ({...exp})) : [
-        { id: '', employer: '', jobTitle: '', startDate: '', endDate: '', location: '', workDescription: '' },
-      ]);
+      setEducationEntries(
+        userProfile.education.length > 0
+          ? userProfile.education.map((edu) => ({ ...edu }))
+          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '', achievements: '' }]
+      );
+      setExperienceEntries(
+        userProfile.experience.length > 0
+          ? userProfile.experience.map((exp) => ({ ...exp }))
+          : [{ id: '', employer: '', jobTitle: '', startDate: '', endDate: '', location: '', workDescription: '' }]
+      );
+      setLanguages(
+        (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
+      );
+      setShowLanguages(!!userProfile.languages);
+      setAwards(
+        (userProfile.awards || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
+      );
+      setShowAwards(!!userProfile.awards);
     }
     setFormErrors({});
   };
@@ -247,142 +360,130 @@ const ProfileForm = () => {
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
           <h3 className={subSectionTitleClassName}>Contact Info</h3>
-      {/* Personal Details */}
-      <div className='flex flex-col gap-5.5 sm:flex-row'>
-        <div className='w-full sm:w-1/2'>
-              <label className={labelClassName} htmlFor='firstName'>
-                First Name
-          </label>
-          <div className='relative'>
-            <input
-              className={newStandardInputClass}
-              type='text'
-                  name='firstName'
-                  id='firstName'
-                  placeholder='First Name'
-                  value={profileData.firstName || ''}
-              onChange={handleProfileChange}
-            />
-                {formErrors.firstName && <p className='text-sm text-red-500 mt-1'>{formErrors.firstName}</p>}
-          </div>
-        </div>
-        <div className='w-full sm:w-1/2'>
-              <label className={labelClassName} htmlFor='lastName'>
-                Last Name
-          </label>
-          <input
-            className={newStandardInputClass}
-                type='text'
-                name='lastName'
-                id='lastName'
-                placeholder='Last Name'
-                value={profileData.lastName || ''}
-            onChange={handleProfileChange}
-          />
-              {formErrors.lastName && <p className='text-sm text-red-500 mt-1'>{formErrors.lastName}</p>}
-        </div>
-      </div>
+          {/* Personal Details */}
           <div className='flex flex-col gap-5.5 sm:flex-row'>
             <div className='w-full sm:w-1/2'>
-        <label className={labelClassName} htmlFor='emailAddress'>
-          Email Address
-        </label>
-        <div className='relative'>
-          <input
-            className={newStandardInputClass}
-            type='email'
-            name='email'
-            id='emailAddress'
-            placeholder='Email Address'
-            value={profileData.email}
-            disabled // Email is from auth and not editable
-          />
-          {formErrors.email && <p className='text-sm text-red-500 mt-1'>{formErrors.email}</p>}
+              <label className={labelClassName} htmlFor='firstName'>
+                First Name
+              </label>
+              <div className='relative'>
+                <input
+                  type='text'
+                  id='firstName'
+                  name='firstName'
+                  placeholder='Enter your first name'
+                  className={newStandardInputClass}
+                  value={profileData.firstName}
+                  onChange={handleProfileChange}
+                />
+                {formErrors.firstName && <p className='text-sm text-red-500 mt-1'>{formErrors.firstName}</p>}
               </div>
             </div>
+
             <div className='w-full sm:w-1/2'>
-              <label className={labelClassName} htmlFor='phoneNumber'>
+              <label className={labelClassName} htmlFor='lastName'>
+                Last Name
+              </label>
+              <div className='relative'>
+                <input
+                  type='text'
+                  id='lastName'
+                  name='lastName'
+                  placeholder='Enter your last name'
+                  className={newStandardInputClass}
+                  value={profileData.lastName}
+                  onChange={handleProfileChange}
+                />
+                {formErrors.lastName && <p className='text-sm text-red-500 mt-1'>{formErrors.lastName}</p>}
+              </div>
+            </div>
+          </div>
+
+          <div className='flex flex-col gap-5.5 sm:flex-row'>
+            <div className='w-full sm:w-1/2'>
+              <label className={labelClassName} htmlFor='phone'>
                 Phone Number
               </label>
-              <input
-                className={newStandardInputClass}
-                type='tel'
-                name='phone'
-                id='phoneNumber'
-                placeholder='Phone Number'
-                value={profileData.phone || ''}
-                onChange={handleProfileChange}
-              />
-              {formErrors.phone && <p className='text-sm text-red-500 mt-1'>{formErrors.phone}</p>}
-        </div>
-      </div>
-      <div>
-            <label className={labelClassName} htmlFor='location'>
-              Location
-        </label>
-        <div className='relative'>
-              <input
-                className={newStandardInputClass}
-                type='text'
-                name='location'
-                id='location'
-                placeholder='City, Country'
-                value={profileData.location || ''}
-            onChange={handleProfileChange}
-              />
+              <div className='relative'>
+                <input
+                  type='text'
+                  id='phone'
+                  name='phone'
+                  placeholder='Enter your phone number'
+                  className={newStandardInputClass}
+                  value={profileData.phone}
+                  onChange={handleProfileChange}
+                />
+                {formErrors.phone && <p className='text-sm text-red-500 mt-1'>{formErrors.phone}</p>}
+              </div>
+            </div>
+
+            <div className='w-full sm:w-1/2'>
+              <label className={labelClassName} htmlFor='location'>
+                Location
+              </label>
+              <div className='relative'>
+                <input
+                  type='text'
+                  id='location'
+                  name='location'
+                  placeholder='Enter your location'
+                  className={newStandardInputClass}
+                  value={profileData.location}
+                  onChange={handleProfileChange}
+                />
+              </div>
             </div>
           </div>
         </div>
-        <div className="md:col-span-2">
-          <h3 className="text-md font-medium text-black dark:text-white mb-3">Your Resume</h3>
+        <div className='md:col-span-2'>
           <UploadSection />
         </div>
       </div>
-
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
-      {/* Education Section */}
-      <h3 className={subSectionTitleClassName}>Education</h3>
-      {educationEntries.map((edu, index) => (
-        <div key={edu.id} className='space-y-4 mb-4 relative'>
-          {educationEntries.length > 1 && (
-            <button
-              type='button'
-              onClick={() => removeEducationEntry(index)}
-              className='absolute top-0 right-0 p-1 text-red-500 hover:text-red-700'
-            >
-              Remove
-            </button>
-          )}
+          {/* Education Section */}
+          <h3 className={subSectionTitleClassName}>Education</h3>
+          {educationEntries.map((edu, index) => (
+            <div key={edu.id} className='space-y-4 mb-4 relative'>
+              {educationEntries.length > 1 && (
+                <button
+                  type='button'
+                  onClick={() => removeEducationEntry(index)}
+                  className='absolute top-0 right-0 p-1 text-sm text-red-500 hover:text-red-700'
+                >
+                  Remove
+                </button>
+              )}
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`school-${index}`} className={labelClassName}>
                     School
-            </label>
-            <input
-              type='text'
-                    name='school'
+                  </label>
+                  <input
+                    type='text'
                     id={`school-${index}`}
+                    name='school'
                     value={edu.school || ''}
-              onChange={(e) => handleDynamicChange(e, 'education', index)}
-              className={newStandardInputClass}
-              placeholder='Stark University'
-            />
-          </div>
-            <div className='w-full sm:w-1/2'>
+                    onChange={(e) => handleDynamicChange(e, 'education', index)}
+                    className={newStandardInputClass}
+                    placeholder='e.g., University of Example'
+                  />
+                </div>
+                <div className='w-full sm:w-1/2'>
                   <label htmlFor={`fieldOfStudy-${index}`} className={labelClassName}>
                     Field of Study
-              </label>
-              <input
-                type='text'
-                    name='fieldOfStudy'
+                  </label>
+                  <input
+                    type='text'
                     id={`fieldOfStudy-${index}`}
+                    name='fieldOfStudy'
                     value={edu.fieldOfStudy || ''}
-                onChange={(e) => handleDynamicChange(e, 'education', index)}
-                className={newStandardInputClass}
-                placeholder='B.S. in Iron Studies'
-              />
-            </div>
+                    onChange={(e) => handleDynamicChange(e, 'education', index)}
+                    className={newStandardInputClass}
+                    placeholder='e.g., Computer Science'
+                  />
+                </div>
               </div>
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='w-full sm:w-1/2'>
@@ -391,33 +492,33 @@ const ProfileForm = () => {
                   </label>
                   <input
                     type='text'
-                    name='graduationDate'
                     id={`graduationDate-${index}`}
+                    name='graduationDate'
                     value={edu.graduationDate || ''}
                     onChange={(e) => handleDynamicChange(e, 'education', index)}
                     className={newStandardInputClass}
-                    placeholder='May 2010'
+                    placeholder='e.g., May 2024'
                   />
                 </div>
-            <div className='w-full sm:w-1/2'>
+                <div className='w-full sm:w-1/2'>
                   <label htmlFor={`location-${index}`} className={labelClassName}>
                     Location
-              </label>
-              <input
-                type='text'
-                    name='location'
+                  </label>
+                  <input
+                    type='text'
                     id={`location-${index}`}
+                    name='location'
                     value={edu.location || ''}
-                onChange={(e) => handleDynamicChange(e, 'education', index)}
-                className={newStandardInputClass}
-                    placeholder='New York, NY'
-              />
-            </div>
-          </div>
+                    onChange={(e) => handleDynamicChange(e, 'education', index)}
+                    className={newStandardInputClass}
+                    placeholder='e.g., City, State'
+                  />
+                </div>
+              </div>
               <div className='quill-container'>
                 <div className='flex justify-between items-center'>
                   <label htmlFor={`achievements-${index}`} className={labelClassName}>
-                    What are your academic achievements?
+                    Key Achievements
                   </label>
                   <button
                     type='button'
@@ -434,66 +535,70 @@ const ProfileForm = () => {
                   onChange={(value) => handleQuillChange(value, 'education', index)}
                 />
               </div>
+            </div>
+          ))}
+          <button type='button' onClick={addEducationEntry} className='text-sm text-primary hover:underline'>
+            + Add Education
+          </button>
         </div>
-      ))}
-      <button type='button' onClick={addEducationEntry} className='text-sm text-primary hover:underline'>
-        + Add Education
-      </button>
-        </div>
-        <div className="md:col-span-2">
+        <div className='md:col-span-2'>
           <h3 className='text-md font-medium text-black dark:text-white mb-3'>Tips</h3>
           <p className='text-xs text-gray-500 dark:text-gray-400'>
-            It pays to be picky about the academic accomplishments that you list on your resume. Employers want to see a maximum of three education entries in a resume.* If you have more academic achievements, consider listing them under one of your main education entries.
-            <br/><br/>
-            Listing your education shows that you meet any necessary prerequisites to employment and allows you to showcase your book smarts if you're a little short on actual experience.
+            It pays to be picky about the academic accomplishments that you list on your resume. Employers want to see
+            a maximum of three education entries in a resume.* If you have more academic achievements, consider listing
+            them under one of your main education entries.
+            <br />
+            <br />
+            Listing your education shows that you meet any necessary prerequisites to employment and allows you to
+            showcase your book smarts if you're a little short on actual experience.
           </p>
         </div>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
-      {/* Work Experience Section */}
-      <h3 className={subSectionTitleClassName}>Work Experience</h3>
-      {experienceEntries.map((exp, index) => (
-        <div key={exp.id} className='space-y-4 mb-4 relative'>
-          {experienceEntries.length > 1 && (
-            <button
-              type='button'
-              onClick={() => removeExperienceEntry(index)}
-              className='absolute top-0 right-0 p-1 text-red-500 hover:text-red-700'
-            >
-              Remove
-            </button>
-          )}
+          {/* Work Experience Section */}
+          <h3 className={subSectionTitleClassName}>Work Experience</h3>
+          {experienceEntries.map((exp, index) => (
+            <div key={exp.id} className='space-y-4 mb-4 relative'>
+              {experienceEntries.length > 1 && (
+                <button
+                  type='button'
+                  onClick={() => removeExperienceEntry(index)}
+                  className='absolute top-0 right-0 p-1 text-sm text-red-500 hover:text-red-700'
+                >
+                  Remove
+                </button>
+              )}
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`employer-${index}`} className={labelClassName}>
                     Employer
-            </label>
-            <input
-              type='text'
-                    name='employer'
+                  </label>
+                  <input
+                    type='text'
                     id={`employer-${index}`}
+                    name='employer'
                     value={exp.employer || ''}
-              onChange={(e) => handleDynamicChange(e, 'experience', index)}
-              className={newStandardInputClass}
-              placeholder='Stark Industries'
-            />
-          </div>
+                    onChange={(e) => handleDynamicChange(e, 'experience', index)}
+                    className={newStandardInputClass}
+                    placeholder='e.g., Example Corp'
+                  />
+                </div>
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`jobTitle-${index}`} className={labelClassName}>
                     Job Title
-              </label>
-              <input
-                type='text'
-                    name='jobTitle'
+                  </label>
+                  <input
+                    type='text'
                     id={`jobTitle-${index}`}
+                    name='jobTitle'
                     value={exp.jobTitle || ''}
-                onChange={(e) => handleDynamicChange(e, 'experience', index)}
-                className={newStandardInputClass}
-                placeholder='CEO'
-              />
-            </div>
+                    onChange={(e) => handleDynamicChange(e, 'experience', index)}
+                    className={newStandardInputClass}
+                    placeholder='e.g., Software Engineer'
+                  />
+                </div>
               </div>
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='w-full sm:w-1/2'>
@@ -502,42 +607,44 @@ const ProfileForm = () => {
                   </label>
                   <input
                     type='text'
-                    name='startDate'
                     id={`startDate-${index}`}
+                    name='startDate'
                     value={exp.startDate || ''}
                     onChange={(e) => handleDynamicChange(e, 'experience', index)}
                     className={newStandardInputClass}
-                    placeholder='Aug 2008'
+                    placeholder='e.g., June 2024'
                   />
                 </div>
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`endDate-${index}`} className={labelClassName}>
                     End Date
-              </label>
-              <input
-                type='text'
-                    name='endDate'
+                  </label>
+                  <input
+                    type='text'
                     id={`endDate-${index}`}
+                    name='endDate'
                     value={exp.endDate || ''}
-                onChange={(e) => handleDynamicChange(e, 'experience', index)}
-                className={newStandardInputClass}
-                    placeholder='Present'
-              />
-            </div>
-          </div>
-          <div>
-                <label htmlFor={`location-${index}`} className={labelClassName}>
-                  Location
-            </label>
-                <input
-                  type='text'
-                  name='location'
-                  id={`location-${index}`}
-                  value={exp.location || ''}
-              onChange={(e) => handleDynamicChange(e, 'experience', index)}
-                  className={newStandardInputClass}
-                  placeholder='New York, NY'
-                />
+                    onChange={(e) => handleDynamicChange(e, 'experience', index)}
+                    className={newStandardInputClass}
+                    placeholder='e.g., Present'
+                  />
+                </div>
+              </div>
+              <div className='flex flex-col sm:flex-row gap-4'>
+                <div className='w-full'>
+                  <label htmlFor={`location-${index}`} className={labelClassName}>
+                    Location
+                  </label>
+                  <input
+                    type='text'
+                    id={`location-${index}`}
+                    name='location'
+                    value={exp.location || ''}
+                    onChange={(e) => handleDynamicChange(e, 'experience', index)}
+                    className={newStandardInputClass}
+                    placeholder='e.g., City, State'
+                  />
+                </div>
               </div>
               <div className='quill-container'>
                 <div className='flex justify-between items-center'>
@@ -558,18 +665,103 @@ const ProfileForm = () => {
                   value={exp.workDescription || ''}
                   onChange={(value) => handleQuillChange(value, 'experience', index)}
                 />
-          </div>
+              </div>
+            </div>
+          ))}
+          <button type='button' onClick={addExperienceEntry} className='text-sm text-primary hover:underline'>
+            + Add Work Experience
+          </button>
         </div>
-      ))}
-      <button type='button' onClick={addExperienceEntry} className='text-sm text-primary hover:underline'>
-        + Add Work Experience
-      </button>
-        </div>
-        <div className="md:col-span-2">
+        <div className='md:col-span-2'>
           <h3 className='text-md font-medium text-black dark:text-white mb-3'>Tips</h3>
           <p className='text-xs text-gray-500 dark:text-gray-400'>
-            Details can differentiate your resume. More than three out of four employers think that descriptions of experience must always be present on a resume*. Show that you create value with your work by listing your responsibilities and quantifiable achievements in the experience section of your resume to help you catch their eye.
+            Details can differentiate your resume. More than three out of four employers think that descriptions of
+            experience must always be present on a resume*. Show that you create value with your work by listing your
+            responsibilities and quantifiable achievements in the experience section of your resume to help you catch
+            their eye.
           </p>
+        </div>
+      </div>
+
+      <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
+        <div className='md:col-span-3 space-y-5.5'>
+          {/* Languages Section */}
+          <div className='space-y-2'>
+            <div className='flex items-center'>
+              <h3 className='text-md font-semibold text-black dark:text-white mr-4'>Languages</h3>
+              <SmallSwitcher isOn={showLanguages} onChange={setShowLanguages} />
+            </div>
+            {showLanguages && (
+              <div className='mt-2.5'>
+                <div className='relative'>
+                  <input
+                    type='text'
+                    placeholder='Add a language and press Enter'
+                    value={currentLanguage}
+                    onChange={(e) => setCurrentLanguage(e.target.value)}
+                    onKeyDown={handleLanguageInputKeyDown}
+                    className={newStandardInputClass}
+                  />
+                </div>
+                <div className='flex flex-wrap items-center mt-2'>
+                  {languages.map((lang, index) => (
+                    <span
+                      key={index}
+                      className='m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30'
+                    >
+                      {lang}
+                      <button
+                        type='button'
+                        onClick={() => removeLanguage(lang)}
+                        className='ml-2 cursor-pointer hover:text-danger'
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Awards & Certifications Section */}
+          <div className='space-y-2'>
+            <div className='flex items-center'>
+              <h3 className='text-md font-semibold text-black dark:text-white mr-4'>Awards & Certifications</h3>
+              <SmallSwitcher isOn={showAwards} onChange={setShowAwards} />
+            </div>
+            {showAwards && (
+              <div className='mt-2.5'>
+                <div className='relative'>
+                  <input
+                    type='text'
+                    placeholder='Add an award and press Enter'
+                    value={currentAward}
+                    onChange={(e) => setCurrentAward(e.target.value)}
+                    onKeyDown={handleAwardInputKeyDown}
+                    className={newStandardInputClass}
+                  />
+                </div>
+                <div className='flex flex-wrap items-center mt-2'>
+                  {awards.map((award, index) => (
+                    <span
+                      key={index}
+                      className='m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30'
+                    >
+                      {award}
+                      <button
+                        type='button'
+                        onClick={() => removeAward(award)}
+                        className='ml-2 cursor-pointer hover:text-danger'
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

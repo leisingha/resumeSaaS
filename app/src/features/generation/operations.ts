@@ -33,6 +33,8 @@ const formatProfileForPrompt = (
     email: email,
     phone: profile.phone,
     location: profile.location,
+    languages: profile.languages,
+    awards: profile.awards,
     education: profile.education.map((e) => ({
       school: e.school,
       fieldOfStudy: e.fieldOfStudy,
@@ -84,6 +86,13 @@ const resumeJsonSchema = `
       "language": "string",
       "proficiency": "string"
     }
+  ],
+  "awardsAndCertifications": [
+    {
+      "name": "string",
+      "issuer": "string",
+      "date": "string"
+    }
   ]
 }
 `;
@@ -107,6 +116,11 @@ type ResumeData = {
   languages: {
     language: string;
     proficiency: string;
+  }[];
+  awardsAndCertifications: {
+    name: string;
+    issuer: string;
+    date: string;
   }[];
 };
 
@@ -148,6 +162,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
     - Education: List of degrees with school, graduation date, and details like GPA or clubs.
     - Skills: List of relevant skills.
     - Languages: List of languages and proficiency.
+    - Awards and Certifications: List of awards with name, issuer, and date.
 
     Now, generate a resume for the following user profile. Emphasize keywords relevant to their experience and the target job title: "${customizationOptions.targetJobTitle}".
   `;
@@ -238,7 +253,17 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
         <div>
             <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Languages</h2>
             ${(jsonResponse.languages || [])
-              .map((lang) => `<p><strong>${lang.language}:</strong> ${lang.proficiency}</p>`)
+              .map((lang) => `<p style="margin: 2px 0;"><strong>${lang.language}:</strong> ${lang.proficiency}</p>`)
+              .join('')}
+        </div>
+
+        <div>
+            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Awards and Certifications</h2>
+            ${(jsonResponse.awardsAndCertifications || [])
+              .map(
+                (award) =>
+                  `<p style="margin: 2px 0;"><strong>${award.name}</strong> from ${award.issuer} (${award.date})</p>`
+              )
               .join('')}
         </div>
       </div>

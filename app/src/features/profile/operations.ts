@@ -2,7 +2,7 @@ import { HttpError } from 'wasp/server';
 import type { UserProfile, EducationEntry, ExperienceEntry } from 'wasp/entities';
 import type { GetUserProfile, SaveUserProfile } from 'wasp/server/operations';
 
-type SaveProfilePayload = Omit<UserProfile, 'id' | 'userId' | 'createdAt' | 'updatedAt'> & {
+type SaveProfilePayload = Omit<UserProfile, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'education' | 'experience'> & {
   education: Omit<EducationEntry, 'userProfileId'>[];
   experience: Omit<ExperienceEntry, 'userProfileId'>[];
 };
@@ -26,6 +26,7 @@ export const getUserProfile: GetUserProfile<
   const email = context.user.email;
 
   if (!userProfile) {
+    // A slight hack to satisfy the type-checker until we have a more robust solution
     return {
       id: '',
       userId: context.user.id,
@@ -35,10 +36,12 @@ export const getUserProfile: GetUserProfile<
       lastName: null,
       phone: null,
       location: null,
+      languages: null,
+      awards: null,
       email,
       education: [],
       experience: [],
-    };
+    } as any;
   }
 
   return {
@@ -52,22 +55,27 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
     throw new HttpError(401);
   }
 
-  const { firstName, lastName, phone, location, education, experience } = args;
+  const { firstName, lastName, phone, location, education, experience, languages, awards } = args as UserProfile & {
+    education: EducationEntry[];
+    experience: ExperienceEntry[];
+  };
 
   if (!firstName || !lastName || !phone) {
     throw new HttpError(400, 'Missing required fields: First Name, Last Name and Phone are required.');
   }
-  
+
   const existingProfile = await context.entities.UserProfile.findUnique({
     where: { userId: context.user.id },
     select: { education: { select: { id: true } }, experience: { select: { id: true } } },
   });
 
   const clientEducationIds = education.map((e) => e.id).filter(Boolean);
-  const educationIdsToDelete = existingProfile?.education.map((e) => e.id).filter((id) => !clientEducationIds.includes(id)) || [];
+  const educationIdsToDelete =
+    existingProfile?.education.map((e) => e.id).filter((id) => !clientEducationIds.includes(id)) || [];
 
   const clientExperienceIds = experience.map((e) => e.id).filter(Boolean);
-  const experienceIdsToDelete = existingProfile?.experience.map((e) => e.id).filter((id) => !clientExperienceIds.includes(id)) || [];
+  const experienceIdsToDelete =
+    existingProfile?.experience.map((e) => e.id).filter((id) => !clientExperienceIds.includes(id)) || [];
 
   return context.entities.UserProfile.upsert({
     where: { userId: context.user.id },
@@ -77,6 +85,8 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
       lastName,
       phone,
       location,
+      languages,
+      awards,
       education: {
         create: education.map(({ school, fieldOfStudy, graduationDate, location, achievements }) => ({
           school,
@@ -102,6 +112,8 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
       lastName,
       phone,
       location,
+      languages,
+      awards,
       education: {
         deleteMany: { id: { in: educationIdsToDelete } },
         upsert: education.map(({ id, school, fieldOfStudy, graduationDate, location, achievements }) => ({
