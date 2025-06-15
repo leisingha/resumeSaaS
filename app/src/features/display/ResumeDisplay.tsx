@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 import { Pencil } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import 'react-quill/dist/quill.snow.css';
+import './ResumeDisplay.css';
 import { generateAiResumePoints } from 'wasp/client/operations';
 import { useAction } from 'wasp/client/operations';
 
@@ -22,6 +23,14 @@ interface ResumeDisplayProps {
   onContentChange: (newContent: string) => void;
   documentType: 'resume' | 'coverLetter';
 }
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['clean'],
+  ],
+};
 
 const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   options,
@@ -156,7 +165,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
           const company = companyLocation[0];
           const location = companyLocation[1] || '';
           const date = entry.querySelector('div[style*="text-align: right"] p')?.textContent || '';
-          const description = entry.querySelector('ul')?.innerHTML || '';
+          const ulEl = entry.querySelector('ul');
+          const description = ulEl ? ulEl.outerHTML : (entry.querySelector('p')?.innerHTML || '');
 
           setEditingExperience({ index, title, company, location, date, description });
           setShowExperienceEdit(true);
@@ -555,7 +565,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                   <div className='mt-4'>
                     <label className='mb-2.5 block text-black dark:text-white'>How can you describe yourself?</label>
                     <div className='quill-container'>
-                      <ReactQuill theme='snow' value={summaryEditValue} onChange={setSummaryEditValue} />
+                      <ReactQuill theme='snow' value={summaryEditValue} onChange={setSummaryEditValue} modules={quillModules} />
                     </div>
                   </div>
                   <div className='mt-6 flex justify-end gap-4'>
@@ -705,6 +715,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                             theme='snow'
                             value={editingExperience.description}
                             onChange={(value: any) => setEditingExperience({ ...editingExperience, description: value })}
+                            modules={quillModules}
                           />
                         </div>
                       </div>
@@ -830,6 +841,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                             theme='snow'
                             value={editingEducation.details}
                             onChange={(value: any) => setEditingEducation({ ...editingEducation, details: value })}
+                            modules={quillModules}
                           />
                         </div>
                       </div>

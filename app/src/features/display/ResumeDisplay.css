@@ -1,0 +1,9 @@
+#resume-content ul {
+  list-style-type: disc;
+  margin-left: 1.25rem; /* 20px approx */
+  padding-left: 0;
+}
+
+#resume-content li {
+  margin-bottom: 0.25rem; /* Slight spacing between bullets */
+} 

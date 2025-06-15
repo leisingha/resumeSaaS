@@ -7,6 +7,15 @@ import SwitcherOne from '../../admin/elements/forms/SwitcherOne';
 import { Trash2 } from 'lucide-react';
 
 import ReactQuill from 'react-quill';
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['clean'],
+  ],
+};
+
 // NOTE: Education and Experience are not yet saved to the backend. This will be implemented in a future step.
 // For now, we keep the UI and local state management for them.
 
@@ -556,6 +565,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
                   theme='snow'
                   value={edu.achievements || ''}
                   onChange={(value: any) => handleQuillChange(value, 'education', index)}
+                  modules={quillModules}
                 />
               </div>
             </div>
@@ -678,6 +688,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
                   theme='snow'
                   value={exp.workDescription || ''}
                   onChange={(value: any) => handleQuillChange(value, 'experience', index)}
+                  modules={quillModules}
                 />
               </div>
             </div>
