@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useAction } from 'wasp/client/operations';
-import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { getUserProfile, saveUserProfile, generateAiResumePoints } from 'wasp/client/operations';
 import UploadSection from '../upload/UploadSection';
 import SwitcherOne from '../../admin/elements/forms/SwitcherOne';
+import { Trash2 } from 'lucide-react';
+
+import ReactQuill from 'react-quill';
 // NOTE: Education and Experience are not yet saved to the backend. This will be implemented in a future step.
 // For now, we keep the UI and local state management for them.
 
@@ -52,7 +54,7 @@ interface ExperienceEntry {
   workDescription: string | null;
 }
 
-const ProfileForm = () => {
+const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: number) => void }) => {
   const { data: userProfile, isLoading: isProfileLoading } = useQuery(getUserProfile);
   const generateResumePointsAction = useAction(generateAiResumePoints);
   const [isAiLoading, setIsAiLoading] = useState({ education: -1, experience: -1 });
@@ -88,6 +90,27 @@ const ProfileForm = () => {
   const [currentAward, setCurrentAward] = useState('');
   
   useEffect(() => {
+    const calculateProfileProgress = () => {
+      let completed = 0;
+      const totalPoints = 10;
+
+      if (profileData.firstName) completed++;
+      if (profileData.lastName) completed++;
+      if (profileData.phone) completed++;
+      if (profileData.location) completed++;
+      if (educationEntries.length > 0 && educationEntries[0].school) completed++;
+      if (educationEntries.length > 0 && educationEntries[0].fieldOfStudy) completed++;
+      if (experienceEntries.length > 0 && experienceEntries[0].employer) completed++;
+      if (experienceEntries.length > 0 && experienceEntries[0].jobTitle) completed++;
+      if (languages.length > 0) completed++;
+      if (awards.length > 0) completed++;
+
+      return Math.round((completed / totalPoints) * 100);
+    };
+    setProfileProgress(calculateProfileProgress());
+  }, [profileData, educationEntries, experienceEntries, languages, awards, setProfileProgress]);
+
+  useEffect(() => {
     if (userProfile) {
       setProfileData({
         firstName: userProfile.firstName || '',
@@ -109,11 +132,11 @@ const ProfileForm = () => {
       setLanguages(
         (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
-      setShowLanguages(!!userProfile.languages);
+      if (userProfile.languages) setShowLanguages(true);
       setAwards(
         (userProfile.awards || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
-      setShowAwards(!!userProfile.awards);
+      if (userProfile.awards) setShowAwards(true);
     }
   }, [userProfile]);
 
@@ -122,7 +145,7 @@ const ProfileForm = () => {
     setProfileData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleQuillChange = (value: string, section: 'education' | 'experience', index: number) => {
+  const handleQuillChange = (value: any, section: 'education' | 'experience', index: number) => {
     if (section === 'education') {
       const updatedEntries = [...educationEntries];
       updatedEntries[index] = { ...updatedEntries[index], achievements: value };
@@ -331,11 +354,11 @@ const ProfileForm = () => {
       setLanguages(
         (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
-      setShowLanguages(!!userProfile.languages);
+      if (userProfile.languages) setShowLanguages(true);
       setAwards(
         (userProfile.awards || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
-      setShowAwards(!!userProfile.awards);
+      if (userProfile.awards) setShowAwards(true);
     }
     setFormErrors({});
   };
@@ -532,7 +555,7 @@ const ProfileForm = () => {
                 <ReactQuill
                   theme='snow'
                   value={edu.achievements || ''}
-                  onChange={(value) => handleQuillChange(value, 'education', index)}
+                  onChange={(value: any) => handleQuillChange(value, 'education', index)}
                 />
               </div>
             </div>
@@ -541,18 +564,6 @@ const ProfileForm = () => {
             + Add Education
           </button>
         </div>
-        <div className='md:col-span-2'>
-          <h3 className='text-md font-medium text-black dark:text-white mb-3'>Tips</h3>
-          <p className='text-xs text-gray-500 dark:text-gray-400'>
-            It pays to be picky about the academic accomplishments that you list on your resume. Employers want to see
-            a maximum of three education entries in a resume.* If you have more academic achievements, consider listing
-            them under one of your main education entries.
-            <br />
-            <br />
-            Listing your education shows that you meet any necessary prerequisites to employment and allows you to
-            showcase your book smarts if you're a little short on actual experience.
-          </p>
-        </div>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
@@ -560,16 +571,19 @@ const ProfileForm = () => {
           {/* Work Experience Section */}
           <h3 className={subSectionTitleClassName}>Work Experience</h3>
           {experienceEntries.map((exp, index) => (
-            <div key={exp.id} className='space-y-4 mb-4 relative'>
-              {experienceEntries.length > 1 && (
-                <button
-                  type='button'
-                  onClick={() => removeExperienceEntry(index)}
-                  className='absolute top-0 right-0 p-1 text-sm text-red-500 hover:text-red-700'
-                >
-                  Remove
-                </button>
-              )}
+            <div key={exp.id} className='space-y-4 mb-4 relative border-t border-stroke dark:border-strokedark pt-4 mt-4'>
+              <div className='flex justify-between items-center'>
+                <h4 className='font-semibold text-black dark:text-white'>Work Experience {index + 1}</h4>
+                {experienceEntries.length > 1 && (
+                  <button
+                    type='button'
+                    onClick={() => removeExperienceEntry(index)}
+                    className='p-1 text-red-500 hover:text-red-700'
+                  >
+                    <Trash2 className='w-5 h-5' />
+                  </button>
+                )}
+              </div>
               <div className='flex flex-col sm:flex-row gap-4'>
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`employer-${index}`} className={labelClassName}>
@@ -663,7 +677,7 @@ const ProfileForm = () => {
                 <ReactQuill
                   theme='snow'
                   value={exp.workDescription || ''}
-                  onChange={(value) => handleQuillChange(value, 'experience', index)}
+                  onChange={(value: any) => handleQuillChange(value, 'experience', index)}
                 />
               </div>
             </div>
@@ -671,15 +685,6 @@ const ProfileForm = () => {
           <button type='button' onClick={addExperienceEntry} className='text-sm text-primary hover:underline'>
             + Add Work Experience
           </button>
-        </div>
-        <div className='md:col-span-2'>
-          <h3 className='text-md font-medium text-black dark:text-white mb-3'>Tips</h3>
-          <p className='text-xs text-gray-500 dark:text-gray-400'>
-            Details can differentiate your resume. More than three out of four employers think that descriptions of
-            experience must always be present on a resume*. Show that you create value with your work by listing your
-            responsibilities and quantifiable achievements in the experience section of your resume to help you catch
-            their eye.
-          </p>
         </div>
       </div>
 

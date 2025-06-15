@@ -63,7 +63,7 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
   if (!firstName || !lastName || !phone) {
     throw new HttpError(400, 'Missing required fields: First Name, Last Name and Phone are required.');
   }
-
+  
   const existingProfile = await context.entities.UserProfile.findUnique({
     where: { userId: context.user.id },
     select: { education: { select: { id: true } }, experience: { select: { id: true } } },

@@ -6,7 +6,7 @@ import SuccessAlert from './features/common/SuccessAlert';
 import { useQuery, useAction } from 'wasp/client/operations';
 import { getUserProfile } from 'wasp/client/operations';
 import { generateDocument, updateGeneratedDocument } from 'wasp/client/operations';
-import type { GeneratedDocument } from 'wasp/entities';
+import type { GeneratedDocument, UserProfile, EducationEntry, ExperienceEntry } from 'wasp/entities';
 
 // Define types for customization options
 export interface CustomizationOptions {
@@ -28,6 +28,7 @@ const AppPage = () => {
   const [isAccordionOpen, setIsAccordionOpen] = useState(true);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [activeDocument, setActiveDocument] = useState<GeneratedDocument | null>(null);
+  const [profileProgress, setProfileProgress] = useState(0);
 
   const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>({
     template: 'classic',
@@ -142,7 +143,8 @@ const AppPage = () => {
       <AccordionLayout
         isAccordionOpen={isAccordionOpen}
         onAccordionToggle={() => setIsAccordionOpen(!isAccordionOpen)}
-        isProfileComplete={isProfileComplete}
+        profileProgress={profileProgress}
+        setProfileProgress={setProfileProgress}
       />
 
       <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>

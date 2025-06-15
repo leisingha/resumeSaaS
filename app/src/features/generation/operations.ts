@@ -213,7 +213,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
                 </div>
               </div>
               <ul style="margin-top: 5px; padding-left: 20px; line-height: 1.4;">
-                ${(exp.description || []).map((desc) => `<li>${desc}</li>`).join('')}
+                ${Array.isArray(exp.description) ? exp.description.map((desc) => `<li>${desc}</li>`).join('') : `<li>${exp.description}</li>`}
               </ul>
             </div>
           `
@@ -242,7 +242,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
                         </div>
                     </div>
                     <ul style="margin-top: 5px; padding-left: 20px; line-height: 1.4;">
-                        ${(edu.details || []).map((detail) => `<li>${detail}</li>`).join('')}
+                        ${Array.isArray(edu.details) ? edu.details.map((detail) => `<li>${detail}</li>`).join('') : `<li>${edu.details}</li>`}
                     </ul>
                 </div>
                 `
