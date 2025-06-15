@@ -17,9 +17,16 @@ type GenerateDocumentPayload = {
     targetJobTitle: string;
     targetCompany: string;
     keySkills: string;
-    tone: string;
+    tone: number;
   };
   documentType: 'resume' | 'coverLetter';
+};
+
+// Helper to convert numeric tone to a descriptive string for the AI
+const getToneLabel = (value: number) => {
+  if (value < 33) return 'Strict';
+  if (value < 66) return 'Balanced';
+  return 'Creative';
 };
 
 // Helper function to format profile data into a string for the prompt
@@ -145,6 +152,8 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
 
   const profileContext = formatProfileForPrompt(userProfile, email);
 
+  const toneLabel = getToneLabel(customizationOptions.tone);
+
   const systemPrompt = `
     You are an expert resume writer. Your task is to generate a professional resume in JSON format based on the user's profile data.
     The output MUST strictly adhere to the following JSON schema and contain a minimum of 260 words. The content should be dense, professional, and tailored to the target job.
@@ -165,6 +174,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
     - Awards and Certifications: List of awards with name, issuer, and date.
 
     Now, generate a resume for the following user profile. Emphasize keywords relevant to their experience and the target job title: "${customizationOptions.targetJobTitle}".
+    The tone of the resume should be: ${toneLabel}.
   `;
 
   try {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { CustomizationOptions, DocumentType } from '../../AppPage'; // Import the interface
+import ModernSlider from '../customization/ModernSlider';
 
 interface ResumeCustomizerProps {
   options: CustomizationOptions;
@@ -25,8 +26,8 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
     onOptionsChange({ ...options, [e.target.name]: e.target.value });
   };
 
-  const handleToneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onOptionsChange({ ...options, tone: e.target.value });
+  const handleToneChange = (value: number) => {
+    onOptionsChange({ ...options, tone: value });
   };
 
   const updateSkillsInOptions = (updatedSkillsList: string[]) => {
@@ -59,36 +60,6 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
       addSkill();
     }
   };
-
-  const toneValueLabels = ['Informal', 'Semi-Casual', 'Neutral', 'Semi-Formal', 'Formal'];
-  const TONE_SLIDER_MAX = 20; // Increased granularity (e.g., 21 steps: 0-20)
-
-  const handleToneSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const numericValue = parseInt(e.target.value, 10);
-    let selectedTone = toneValueLabels[2]; // Default to Neutral
-
-    // Map numericValue (0-20) back to one of the 5 labels
-    if (numericValue <= 4) selectedTone = toneValueLabels[0]; // Informal
-    else if (numericValue <= 8) selectedTone = toneValueLabels[1]; // Semi-Casual
-    else if (numericValue <= 12) selectedTone = toneValueLabels[2]; // Neutral
-    else if (numericValue <= 16) selectedTone = toneValueLabels[3]; // Semi-Formal
-    else selectedTone = toneValueLabels[4]; // Formal
-
-    onOptionsChange({ ...options, tone: selectedTone });
-  };
-  
-  // Calculate current slider value (0-20) from string option (options.tone)
-  const getCurrentSliderValue = () => {
-    const index = toneValueLabels.indexOf(options.tone);
-    if (index === -1) return 10; // Default to middle of Neutral if not found
-    // Map index (0-4) to a value in the 0-20 range (e.g., start of each segment)
-    return index * 5; // Simplified mapping: 0, 5, 10, 15, 20
-  };
-
-  const currentSliderDisplayValue = getCurrentSliderValue();
-
-  // Determine which label to highlight based on the actual options.tone string
-  const highlightedLabelIndex = toneValueLabels.indexOf(options.tone);
 
   return (
     <div className='bg-white dark:bg-boxdark shadow-md p-6 rounded-lg'>
@@ -239,32 +210,11 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
           </div>
 
           {/* Tone Selection */}
-          <div className="mb-4.5">
-            <label htmlFor="toneSlider" className="mb-2.5 block text-black dark:text-white">
-              Tone
-            </label>
-            <input
-              type="range"
-              id="toneSlider"
-              name="toneSlider"
-              min="0"
-              max={TONE_SLIDER_MAX}
-              value={currentSliderDisplayValue}
-              onChange={handleToneSliderChange}
-              className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary"
+          <div className='mb-4.5'>
+            <ModernSlider
+              value={options.tone}
+              onChange={handleToneChange}
             />
-            <div className="flex justify-between text-xs mt-1.5">
-              {toneValueLabels.map((label, index) => (
-                <span 
-                  key={index} 
-                  className={`px-2 py-0.5 rounded-md transition-all duration-150 ease-in-out ${highlightedLabelIndex === index 
-                    ? 'bg-primary text-white font-semibold' 
-                    : 'text-gray-500 dark:text-gray-400'
-                  }`}>
-                  {label}
-                </span>
-              ))}
-            </div>
           </div>
         </>
       )}
