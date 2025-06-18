@@ -12,6 +12,17 @@ const QuillEditor = ({ value, onChange, readOnly = false }: QuillEditorProps) =>
   const containerRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const isInitializedRef = useRef(false);
+  const onChangeRef = useRef(onChange);
+  const valueRef = useRef(value);
+
+  // Keep refs updated
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   const initializeQuill = useCallback(() => {
     if (!containerRef.current || isInitializedRef.current) return;
@@ -37,8 +48,8 @@ const QuillEditor = ({ value, onChange, readOnly = false }: QuillEditorProps) =>
     });
 
     // Set initial content
-    if (value) {
-      const delta = quillRef.current.clipboard.convert(value);
+    if (valueRef.current) {
+      const delta = quillRef.current.clipboard.convert(valueRef.current);
       quillRef.current.setContents(delta, 'silent');
     }
 
@@ -46,12 +57,12 @@ const QuillEditor = ({ value, onChange, readOnly = false }: QuillEditorProps) =>
     quillRef.current.on('text-change', (delta, oldDelta, source) => {
       if (source === 'user') {
         const html = quillRef.current?.root.innerHTML || '';
-        onChange(html === '<p><br></p>' ? '' : html);
+        onChangeRef.current(html === '<p><br></p>' ? '' : html);
       }
     });
 
     isInitializedRef.current = true;
-  }, [onChange, readOnly, value]);
+  }, [readOnly]); // Only readOnly as dependency
 
   useEffect(() => {
     const timeout = setTimeout(() => {
