@@ -10,7 +10,7 @@ import './ResumeDisplay.css';
 import { generateAiResumePoints } from 'wasp/client/operations';
 import { useAction } from 'wasp/client/operations';
 
-import ReactQuill from 'react-quill';
+import QuillEditor from '../common/forwarded-quill';
 
 interface ResumeDisplayProps {
   options: CustomizationOptions;
@@ -562,10 +562,12 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                   <Dialog.Title as='h3' className='text-lg font-medium leading-6 text-gray-900 dark:text-white'>
                     Edit Summary
                   </Dialog.Title>
-                  <div className='mt-4'>
-                    <label className='mb-2.5 block text-black dark:text-white'>How can you describe yourself?</label>
+                  <div className='mt-2'>
+                    <label htmlFor='summary-edit' className='block text-sm font-medium text-black dark:text-white'>
+                      Summary
+                    </label>
                     <div className='quill-container'>
-                      <ReactQuill theme='snow' value={summaryEditValue} onChange={setSummaryEditValue} modules={quillModules} />
+                      <QuillEditor value={summaryEditValue} onChange={setSummaryEditValue} />
                     </div>
                   </div>
                   <div className='mt-6 flex justify-end gap-4'>
@@ -696,9 +698,9 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                           className='w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
                         />
                       </div>
-                      <div>
-                        <div className='flex justify-between items-center mb-2.5'>
-                          <label className='block text-sm font-medium text-black dark:text-white'>
+                      <div className='mt-2'>
+                        <div className='flex justify-between items-center mb-1'>
+                          <label htmlFor='experience-description' className='block text-sm font-medium text-black dark:text-white'>
                             Work Description at the Company
                           </label>
                           <button
@@ -711,11 +713,11 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                           </button>
                         </div>
                         <div className='quill-container'>
-                          <ReactQuill
-                            theme='snow'
+                          <QuillEditor
                             value={editingExperience.description}
-                            onChange={(value: any) => setEditingExperience({ ...editingExperience, description: value })}
-                            modules={quillModules}
+                            onChange={(value) =>
+                              setEditingExperience({ ...editingExperience, description: value })
+                            }
                           />
                         </div>
                       </div>
@@ -822,9 +824,9 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                           {/* This can be a location field if needed in the future */}
                         </div>
                       </div>
-                      <div>
-                        <div className='flex justify-between items-center mb-2.5'>
-                          <label className='block text-sm font-medium text-black dark:text-white'>
+                      <div className='mt-2'>
+                        <div className='flex justify-between items-center mb-1'>
+                          <label htmlFor='education-details' className='block text-sm font-medium text-black dark:text-white'>
                             Key Achievements
                           </label>
                           <button
@@ -837,11 +839,11 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                           </button>
                         </div>
                         <div className='quill-container'>
-                          <ReactQuill
-                            theme='snow'
+                          <QuillEditor
                             value={editingEducation.details}
-                            onChange={(value: any) => setEditingEducation({ ...editingEducation, details: value })}
-                            modules={quillModules}
+                            onChange={(value) =>
+                              setEditingEducation({ ...editingEducation, details: value })
+                            }
                           />
                         </div>
                       </div>
