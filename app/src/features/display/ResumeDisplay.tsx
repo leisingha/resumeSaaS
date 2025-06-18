@@ -68,6 +68,9 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   } | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const generateResumePointsAction = useAction(generateAiResumePoints);
+  const [showSkillsEdit, setShowSkillsEdit] = useState(false);
+  const [editingSkills, setEditingSkills] = useState<string[]>([]);
+  const [currentSkill, setCurrentSkill] = useState('');
 
   useEffect(() => {
     if (generatedContent) {
@@ -114,33 +117,23 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     }
   }, [generatedContent]);
 
-  // Attach edit buttons to experience sections
+  // Combined effect to attach all edit buttons dynamically
   useEffect(() => {
     const resumeContent = document.getElementById('resume-content');
     if (!resumeContent) return;
 
-    const h2s = Array.from(resumeContent.getElementsByTagName('h2'));
-    const experienceH2 = h2s.find(h2 => h2.textContent?.toLowerCase().includes('experience'));
-    if (!experienceH2) return;
-
-    const experienceContainer = experienceH2.parentElement;
-    if (!experienceContainer) return;
-
-    // Find all direct children divs which are experience entries
-    const experienceEntries = Array.from(experienceContainer.children).filter(
-      (child) => child.tagName === 'DIV' && child.querySelector('h3')
-    ) as HTMLElement[];
-
-    experienceEntries.forEach((entry, index) => {
-      entry.style.position = 'relative';
+    // --- Summary Edit Button ---
+    const summaryH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('summary'));
+    const summaryP = summaryH2?.nextElementSibling as HTMLElement | null;
+    
+    if (summaryP) {
+      summaryP.style.position = 'relative';
 
       const handleMouseEnter = () => {
-        // Remove existing button before adding a new one
-        entry.querySelector('.edit-button-experience')?.remove();
-
+        summaryP.querySelector('.edit-button-summary')?.remove(); // Clean up just in case
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'edit-button-experience'; // Add a class to identify the button
+        btn.className = 'edit-button-summary';
         btn.style.position = 'absolute';
         btn.style.top = '8px';
         btn.style.right = '8px';
@@ -155,114 +148,190 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         btn.style.justifyContent = 'center';
         btn.style.cursor = 'pointer';
         btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-
-          // Parse data from the DOM to pre-fill the modal
-          const title = entry.querySelector('h3')?.textContent || '';
-          const companyLocation = entry.querySelector('p')?.textContent?.split(' - ') || ['', ''];
-          const company = companyLocation[0];
-          const location = companyLocation[1] || '';
-          const date = entry.querySelector('div[style*="text-align: right"] p')?.textContent || '';
-          const ulEl = entry.querySelector('ul');
-          const description = ulEl ? ulEl.outerHTML : (entry.querySelector('p')?.innerHTML || '');
-
-          setEditingExperience({ index, title, company, location, date, description });
-          setShowExperienceEdit(true);
-        };
-        entry.appendChild(btn);
+        btn.onclick = () => setShowSummaryEdit(true);
+        summaryP.appendChild(btn);
       };
 
       const handleMouseLeave = () => {
         setTimeout(() => {
-          if (!entry.matches(':hover')) {
-            entry.querySelector('.edit-button-experience')?.remove();
+          if (!summaryP.matches(':hover')) {
+            summaryP.querySelector('.edit-button-summary')?.remove();
           }
         }, 300);
       };
 
-      entry.addEventListener('mouseenter', handleMouseEnter);
-      entry.addEventListener('mouseleave', handleMouseLeave);
-      
-      // Cleanup function
-      return () => {
-        entry.removeEventListener('mouseenter', handleMouseEnter);
-        entry.removeEventListener('mouseleave', handleMouseLeave);
-      };
-    });
-  }, [generatedContent]);
+      summaryP.addEventListener('mouseenter', handleMouseEnter);
+      summaryP.addEventListener('mouseleave', handleMouseLeave);
+    }
 
-  // Attach edit buttons to education sections
-  useEffect(() => {
-    const resumeContent = document.getElementById('resume-content');
-    if (!resumeContent) return;
+    // --- Experience Edit Buttons ---
+    const experienceH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('experience'));
+    if (experienceH2 && experienceH2.parentElement) {
+      const experienceEntries = Array.from(experienceH2.parentElement.children).filter(
+        (child) => child.tagName === 'DIV' && child.querySelector('h3')
+      ) as HTMLElement[];
 
-    const h2s = Array.from(resumeContent.getElementsByTagName('h2'));
-    const educationH2 = h2s.find((h2) => h2.textContent?.toLowerCase().includes('education'));
-    if (!educationH2) return;
+      experienceEntries.forEach((entry, index) => {
+        entry.style.position = 'relative';
 
-    const educationContainer = educationH2.parentElement;
-    if (!educationContainer) return;
-
-    const educationEntries = Array.from(educationContainer.children).filter(
-      (child) => child.tagName === 'DIV' && child.querySelector('h3')
-    ) as HTMLElement[];
-
-    educationEntries.forEach((entry, index) => {
-      entry.style.position = 'relative';
-
-      const handleMouseEnter = () => {
-        entry.querySelector('.edit-button-education')?.remove();
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'edit-button-education';
-        btn.style.position = 'absolute';
-        btn.style.top = '8px';
-        btn.style.right = '8px';
-        btn.style.zIndex = '10';
-        btn.style.background = 'white';
-        btn.style.borderRadius = '8px';
-        btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-        btn.style.padding = '6px';
-        btn.style.border = '1px solid #e2e8f0';
-        btn.style.display = 'flex';
-        btn.style.alignItems = 'center';
-        btn.style.justifyContent = 'center';
-        btn.style.cursor = 'pointer';
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-
-          const degree = entry.querySelector('h3')?.textContent || '';
-          const school = entry.querySelector('p')?.textContent || '';
-          const date = entry.querySelector('div[style*="text-align: right"] p')?.textContent || '';
-          const details = entry.querySelector('ul')?.outerHTML || '';
-
-          setEditingEducation({ index, degree, school, date, details });
-          setShowEducationEdit(true);
+        const handleMouseEnter = () => {
+          entry.querySelector('.edit-button-experience')?.remove();
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'edit-button-experience';
+          btn.style.position = 'absolute';
+          btn.style.top = '8px';
+          btn.style.right = '8px';
+          btn.style.zIndex = '10';
+          btn.style.background = 'white';
+          btn.style.borderRadius = '8px';
+          btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+          btn.style.padding = '6px';
+          btn.style.border = '1px solid #e2e8f0';
+          btn.style.display = 'flex';
+          btn.style.alignItems = 'center';
+          btn.style.justifyContent = 'center';
+          btn.style.cursor = 'pointer';
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const title = entry.querySelector('h3')?.textContent || '';
+            const companyLocation = entry.querySelector('p')?.textContent?.split(' - ') || ['', ''];
+            const company = companyLocation[0];
+            const location = companyLocation[1] || '';
+            const date = entry.querySelector('div[style*="text-align: right"] p')?.textContent || '';
+            const ulEl = entry.querySelector('ul');
+            const description = ulEl ? ulEl.outerHTML : (entry.querySelector('p')?.innerHTML || '');
+            setEditingExperience({ index, title, company, location, date, description });
+            setShowExperienceEdit(true);
+          };
+          entry.appendChild(btn);
         };
-        entry.appendChild(btn);
-      };
+        const handleMouseLeave = () => {
+          setTimeout(() => {
+            if (!entry.matches(':hover')) {
+              entry.querySelector('.edit-button-experience')?.remove();
+            }
+          }, 300);
+        };
+        entry.addEventListener('mouseenter', handleMouseEnter);
+        entry.addEventListener('mouseleave', handleMouseLeave);
+      });
+    }
 
-      const handleMouseLeave = () => {
-        setTimeout(() => {
-          if (!entry.matches(':hover')) {
-            entry.querySelector('.edit-button-education')?.remove();
-          }
-        }, 300);
-      };
+    // --- Education Edit Buttons ---
+    const educationH2 = Array.from(resumeContent.getElementsByTagName('h2')).find((h2) => h2.textContent?.toLowerCase().includes('education'));
+    if (educationH2 && educationH2.parentElement) {
+       const educationEntries = Array.from(educationH2.parentElement.children).filter(
+        (child) => child.tagName === 'DIV' && child.querySelector('h3')
+      ) as HTMLElement[];
 
-      entry.addEventListener('mouseenter', handleMouseEnter);
-      entry.addEventListener('mouseleave', handleMouseLeave);
+      educationEntries.forEach((entry, index) => {
+        entry.style.position = 'relative';
+        const handleMouseEnter = () => {
+          entry.querySelector('.edit-button-education')?.remove();
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'edit-button-education';
+          btn.style.position = 'absolute';
+          btn.style.top = '8px';
+          btn.style.right = '8px';
+          btn.style.zIndex = '10';
+          btn.style.background = 'white';
+          btn.style.borderRadius = '8px';
+          btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+          btn.style.padding = '6px';
+          btn.style.border = '1px solid #e2e8f0';
+          btn.style.display = 'flex';
+          btn.style.alignItems = 'center';
+          btn.style.justifyContent = 'center';
+          btn.style.cursor = 'pointer';
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const degree = entry.querySelector('h3')?.textContent || '';
+            const school = entry.querySelector('p')?.textContent || '';
+            const date = entry.querySelector('div[style*="text-align: right"] p')?.textContent || '';
+            const details = entry.querySelector('ul')?.outerHTML || '';
+            setEditingEducation({ index, degree, school, date, details });
+            setShowEducationEdit(true);
+          };
+          entry.appendChild(btn);
+        };
+        const handleMouseLeave = () => {
+          setTimeout(() => {
+            if (!entry.matches(':hover')) {
+              entry.querySelector('.edit-button-education')?.remove();
+            }
+          }, 300);
+        };
+        entry.addEventListener('mouseenter', handleMouseEnter);
+        entry.addEventListener('mouseleave', handleMouseLeave);
+      });
+    }
 
-      return () => {
-        entry.removeEventListener('mouseenter', handleMouseEnter);
-        entry.removeEventListener('mouseleave', handleMouseLeave);
-      };
-    });
+    // --- Skills Edit Button ---
+    const skillsH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('skills'));
+    if (skillsH2 && skillsH2.parentElement) {
+      const skillsContainer = skillsH2.nextElementSibling as HTMLElement | null;
+      if (skillsContainer) {
+        skillsContainer.style.position = 'relative';
+
+        const handleMouseEnter = () => {
+          skillsContainer.querySelector('.edit-button-skills')?.remove();
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'edit-button-skills';
+          btn.style.position = 'absolute';
+          btn.style.top = '8px';
+          btn.style.right = '8px';
+          btn.style.zIndex = '10';
+          btn.style.background = 'white';
+          btn.style.borderRadius = '8px';
+          btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+          btn.style.padding = '6px';
+          btn.style.border = '1px solid #e2e8f0';
+          btn.style.display = 'flex';
+          btn.style.alignItems = 'center';
+          btn.style.justifyContent = 'center';
+          btn.style.cursor = 'pointer';
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            let skillsList: string[] = [];
+            if (skillsContainer) {
+              // Handle both UL (old format) and P (new format) for parsing
+              if (skillsContainer.tagName === 'UL') {
+                skillsList = Array.from(skillsContainer.getElementsByTagName('li')).map(li => li.textContent || '').filter(Boolean);
+              } else if (skillsContainer.tagName === 'P') {
+                skillsList = (skillsContainer.textContent || '').split(',').map(s => s.trim()).filter(Boolean);
+              }
+            }
+            
+            setEditingSkills(skillsList);
+            setShowSkillsEdit(true);
+          };
+          skillsContainer.appendChild(btn);
+        };
+
+        const handleMouseLeave = () => {
+          setTimeout(() => {
+            if (!skillsContainer.matches(':hover')) {
+              skillsContainer.querySelector('.edit-button-skills')?.remove();
+            }
+          }, 300);
+        };
+
+        skillsContainer.addEventListener('mouseenter', handleMouseEnter);
+        skillsContainer.addEventListener('mouseleave', handleMouseLeave);
+      }
+    }
+
+    // No specific cleanup needed as dangerouslySetInnerHTML re-renders everything
   }, [generatedContent]);
 
   const documentTitle = documentType === 'resume' ? 'Resume' : 'Cover Letter';
@@ -295,28 +364,38 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     setShowEditModal(false);
   };
 
-  // Save summary edit and update DOM
+  // Save summary edit and update the parent's state
   const handleSummarySave = () => {
-    setShowSummaryEdit(false);
-    const resumeContent = document.getElementById('resume-content');
-    if (!resumeContent) return;
+    if (!generatedContent) return;
 
+    // Create a temporary div to safely manipulate the HTML structure
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = summaryEditValue;
+    tempDiv.innerHTML = generatedContent;
 
-    // This ensures that the summary, which should be paragraphs, is preserved as such.
-    const summaryHtml = tempDiv.innerHTML;
-    
-    // Clear existing content after the summary H2
-    let nextElement = resumeContent.querySelector('h2:last-of-type')?.nextElementSibling;
-    while (nextElement && nextElement.tagName !== 'H2') {
-        const toRemove = nextElement;
-        nextElement = nextElement.nextElementSibling;
-        toRemove.remove();
+    // Find the specific summary H2
+    const summaryH2 = Array.from(tempDiv.getElementsByTagName('h2')).find(h2 => 
+        h2.textContent?.toLowerCase().includes('summary')
+    );
+
+    if (summaryH2) {
+        // Find the paragraph right after the summary H2
+        const summaryP = summaryH2.nextElementSibling;
+        if (summaryP) {
+            // Create a new paragraph with the updated content
+            const newSummaryP = document.createElement('p');
+            newSummaryP.innerHTML = summaryEditValue;
+
+            // Replace the old one
+            summaryP.parentNode?.replaceChild(newSummaryP, summaryP);
+        }
     }
 
-    // Insert new content
-    resumeContent.insertAdjacentHTML('beforeend', summaryHtml);
+    // Get the full, updated HTML content
+    const newContent = tempDiv.innerHTML;
+    // Pass the new content up to the parent component
+    onContentChange(newContent);
+    // Close the modal
+    setShowSummaryEdit(false);
   };
 
   // Save experience edit and update DOM
@@ -403,7 +482,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         const paragraphs = Array.from(tempDiv.querySelectorAll('p'));
         if (paragraphs.length > 0) {
           finalDetailsHtml = `<ul>${paragraphs.map((p) => `<li>${p.innerHTML}</li>`).join('')}</ul>`;
-        } else {
+        } else if (editingEducation.details) {
           finalDetailsHtml = `<ul><li>${editingEducation.details}</li></ul>`;
         }
       }
@@ -424,6 +503,32 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
     setShowEducationEdit(false);
     setEditingEducation(null);
+  };
+
+  const handleSkillsSave = () => {
+    if (!generatedContent) return;
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = generatedContent;
+
+    const skillsH2 = Array.from(tempDiv.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('skills'));
+    if (skillsH2) {
+      // Find and remove the old skills container (could be a p or ul)
+      const oldSkillsContainer = skillsH2.nextElementSibling;
+      if (oldSkillsContainer && (oldSkillsContainer.tagName === 'UL' || oldSkillsContainer.tagName === 'P')) {
+        oldSkillsContainer.remove();
+      }
+
+      // Create and insert the new skills list as a paragraph if there are skills
+      if (editingSkills.length > 0) {
+        const newSkillsP = document.createElement('p');
+        newSkillsP.textContent = editingSkills.join(', ');
+        skillsH2.insertAdjacentElement('afterend', newSkillsP);
+      }
+    }
+
+    onContentChange(tempDiv.innerHTML);
+    setShowSkillsEdit(false);
   };
 
   const handleGenerateWorkDescription = async () => {
@@ -514,14 +619,6 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
           <div
           dangerouslySetInnerHTML={{ __html: generatedContent || '<p>Your generated document will appear here...</p>' }}
         />
-          {/* Overlay edit button for summary section */}
-          {generatedContent && (
-            <SummaryEditOverlay
-              isHovered={isSummaryHovered}
-              setIsHovered={setIsSummaryHovered}
-              onEdit={() => setShowSummaryEdit(true)}
-            />
-          )}
         </div>
       </div>
 
@@ -871,90 +968,104 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
           </div>
         </Dialog>
       </Transition>
+
+      {/* Skills Edit Modal */}
+      <Transition appear show={showSkillsEdit} as={React.Fragment}>
+        <Dialog as='div' className='relative z-50' onClose={() => setShowSkillsEdit(false)}>
+          <Transition.Child
+            as={React.Fragment}
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-200'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
+          >
+            <div className='fixed inset-0 bg-black bg-opacity-50' />
+          </Transition.Child>
+
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
+              <Transition.Child
+                as={React.Fragment}
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-200'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
+              >
+                <Dialog.Panel className='w-full max-w-2xl transform rounded-2xl bg-white dark:bg-boxdark p-6 text-left align-middle shadow-xl transition-all'>
+                  <Dialog.Title as='h3' className='text-lg font-medium leading-6 text-gray-900 dark:text-white'>
+                    Edit Skills
+                  </Dialog.Title>
+                  <div className="mt-4">
+                    <div className="mb-4.5">
+                      <label className="mb-2.5 block text-black dark:text-white">
+                        Key Skills
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Add a skill and press Enter"
+                          value={currentSkill}
+                          onChange={(e) => setCurrentSkill(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const trimmedSkill = currentSkill.trim();
+                              if (trimmedSkill && !editingSkills.includes(trimmedSkill)) {
+                                setEditingSkills([...editingSkills, trimmedSkill]);
+                                setCurrentSkill('');
+                              }
+                            }
+                          }}
+                          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                        />
+                      </div>
+                      <div className="flex flex-wrap items-center mt-2">
+                        {editingSkills.map((skill, index) => (
+                          <span
+                            key={index}
+                            className="m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium text-black dark:text-white dark:border-strokedark dark:bg-white/30"
+                          >
+                            {skill}
+                            <button
+                              type="button"
+                              onClick={() => setEditingSkills(editingSkills.filter(s => s !== skill))}
+                              className="ml-2 cursor-pointer hover:text-danger"
+                            >
+                              &times;
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className='mt-6 flex justify-end gap-4'>
+                    <button
+                      type='button'
+                      className='inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                      onClick={() => setShowSkillsEdit(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type='button'
+                      className='inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90'
+                      onClick={handleSkillsSave}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </>
   );
-};
-
-// Floating edit button overlay for summary section
-const SummaryEditOverlay = ({
-  isHovered,
-  setIsHovered,
-  onEdit,
-}: {
-  isHovered: boolean;
-  setIsHovered: (v: boolean) => void;
-  onEdit: () => void;
-}) => {
-  // Position the overlay absolutely over the summary section
-  // We'll use JS to find the summary section and overlay the button
-  useEffect(() => {
-    const resumeContent = document.getElementById('resume-content');
-    if (!resumeContent) return;
-    const h2s = resumeContent.getElementsByTagName('h2');
-    let summaryH2: HTMLElement | null = null;
-    for (let h2 of h2s) {
-      if (h2.textContent?.toLowerCase().includes('summary')) {
-        summaryH2 = h2;
-        break;
-      }
-    }
-    if (!summaryH2) return;
-    const summaryP = summaryH2.nextElementSibling as HTMLElement | null;
-    if (!summaryP) return;
-    // Add a relative wrapper to the parent
-    summaryP.style.position = 'relative';
-    // Add hover listeners
-    const handleMouseEnter = () => setIsHovered(true);
-    const handleMouseLeave = () => setIsHovered(false);
-    summaryP.addEventListener('mouseenter', handleMouseEnter);
-    summaryP.addEventListener('mouseleave', handleMouseLeave);
-    return () => {
-      summaryP.removeEventListener('mouseenter', handleMouseEnter);
-      summaryP.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, [setIsHovered]);
-
-  // Render the floating button if hovered
-  useEffect(() => {
-    const resumeContent = document.getElementById('resume-content');
-    if (!resumeContent) return;
-    const h2s = resumeContent.getElementsByTagName('h2');
-    let summaryH2: HTMLElement | null = null;
-    for (let h2 of h2s) {
-      if (h2.textContent?.toLowerCase().includes('summary')) {
-        summaryH2 = h2;
-        break;
-      }
-    }
-    if (!summaryH2) return;
-    const summaryP = summaryH2.nextElementSibling as HTMLElement | null;
-    if (!summaryP) return;
-    let btn: HTMLButtonElement | null = null;
-    if (isHovered) {
-      btn = document.createElement('button');
-      btn.type = 'button';
-      btn.style.position = 'absolute';
-      btn.style.top = '8px';
-      btn.style.right = '8px';
-      btn.style.zIndex = '10';
-      btn.style.background = 'white';
-      btn.style.borderRadius = '8px';
-      btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-      btn.style.padding = '6px';
-      btn.style.border = '1px solid #e2e8f0';
-      btn.style.display = 'flex';
-      btn.style.alignItems = 'center';
-      btn.style.justifyContent = 'center';
-      btn.style.cursor = 'pointer';
-      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
-      btn.onmousedown = (e) => { e.stopPropagation(); e.preventDefault(); onEdit(); };
-      summaryP.appendChild(btn);
-    }
-    return () => {
-      if (btn && summaryP.contains(btn)) summaryP.removeChild(btn);
-    };
-  }, [isHovered, onEdit]);
-  return null;
 };
 
 export default ResumeDisplay; 

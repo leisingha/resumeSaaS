@@ -106,7 +106,6 @@ const AppPage = () => {
       });
       // Update local state after saving
       setActiveDocument({ ...activeDocument, content: newContent });
-      alert('Document saved successfully!');
     } catch (error: any) {
       console.error('Error saving document: ', error);
       alert('Error saving document: ' + (error.message || 'Something went wrong.'));
