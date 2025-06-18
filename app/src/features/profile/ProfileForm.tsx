@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useAction } from 'wasp/client/operations';
-import 'react-quill/dist/quill.snow.css';
 import { getUserProfile, saveUserProfile, generateAiResumePoints } from 'wasp/client/operations';
 import UploadSection from '../upload/UploadSection';
 import SwitcherOne from '../../admin/elements/forms/SwitcherOne';
 import { Trash2 } from 'lucide-react';
 
-import ReactQuill from 'react-quill';
-
-const quillModules = {
-  toolbar: [
-    ['bold', 'italic', 'underline'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['clean'],
-  ],
-};
+import QuillEditor from '../common/forwarded-quill';
 
 // NOTE: Education and Experience are not yet saved to the backend. This will be implemented in a future step.
 // For now, we keep the UI and local state management for them.
@@ -561,11 +552,9 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
                     {isAiLoading.education === index ? 'Generating...' : '✨ AI Writer'}
                   </button>
                 </div>
-                <ReactQuill
-                  theme='snow'
+                <QuillEditor
                   value={edu.achievements || ''}
-                  onChange={(value: any) => handleQuillChange(value, 'education', index)}
-                  modules={quillModules}
+                  onChange={(value) => handleQuillChange(value, 'education', index)}
                 />
               </div>
             </div>
@@ -684,11 +673,9 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
                     {isAiLoading.experience === index ? 'Generating...' : '✨ AI Writer'}
                   </button>
                 </div>
-                <ReactQuill
-                  theme='snow'
+                <QuillEditor
                   value={exp.workDescription || ''}
-                  onChange={(value: any) => handleQuillChange(value, 'experience', index)}
-                  modules={quillModules}
+                  onChange={(value) => handleQuillChange(value, 'experience', index)}
                 />
               </div>
             </div>
