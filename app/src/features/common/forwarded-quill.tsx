@@ -54,9 +54,12 @@ const QuillEditor = ({ value, onChange, readOnly = false }: QuillEditorProps) =>
   }, [onChange, readOnly, value]);
 
   useEffect(() => {
-    initializeQuill();
+    const timeout = setTimeout(() => {
+      initializeQuill();
+    }, 0);
 
     return () => {
+      clearTimeout(timeout);
       if (quillRef.current) {
         quillRef.current = null;
       }
