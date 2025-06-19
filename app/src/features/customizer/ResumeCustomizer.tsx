@@ -63,40 +63,6 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
 
   return (
     <div className='bg-white dark:bg-boxdark shadow-md p-6 rounded-lg'>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className='text-lg font-semibold text-black dark:text-white'>
-          {part === 'templateControls' 
-            ? 'Template Options' 
-            : 'Customise'}
-        </h2>
-        {part === 'detailControls' && onDocumentTypeChange && (
-          <div className="flex rounded-md border border-stroke dark:border-form-strokedark">
-            <button
-              type="button"
-              onClick={() => onDocumentTypeChange('resume')}
-              className={`py-2 px-4 text-sm font-medium transition focus:outline-none rounded-l-md
-                ${documentType === 'resume'
-                  ? 'bg-primary text-white'
-                  : 'bg-transparent text-black hover:bg-gray-2 dark:text-white dark:hover:bg-boxdark-2'}
-              `}
-            >
-              Resume
-            </button>
-            <button
-              type="button"
-              onClick={() => onDocumentTypeChange('coverLetter')}
-              className={`py-2 px-4 text-sm font-medium transition focus:outline-none rounded-r-md border-l border-stroke dark:border-form-strokedark
-                ${documentType === 'coverLetter'
-                  ? 'bg-primary text-white'
-                  : 'bg-transparent text-black hover:bg-gray-2 dark:text-white dark:hover:bg-boxdark-2'}
-              `}
-            >
-              Cover Letter
-            </button>
-          </div>
-        )}
-      </div>
-      
       {part === 'templateControls' && (
         <>
           {/* Template Selection */}
@@ -145,40 +111,41 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
 
       {part === 'detailControls' && (
         <>
-          {/* Target Job Title */}
-          <div className="mb-4.5">
-            <label className="mb-2.5 block text-black dark:text-white">
-              Target Job Title
-            </label>
-            <input
-              type="text"
-              name="targetJobTitle"
-              placeholder="e.g., Software Engineer"
-              value={options.targetJobTitle}
-              onChange={handleInputChange}
-              className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
-          </div>
+          {/* Target Job Title & Company */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="flex flex-col">
+              <label className="mb-2.5 block text-black dark:text-white">
+                🎯 Target Job Title
+              </label>
+              <input
+                type="text"
+                name="targetJobTitle"
+                placeholder="e.g., Software Engineer"
+                value={options.targetJobTitle}
+                onChange={handleInputChange}
+                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              />
+            </div>
 
-          {/* Target Company */}
-          <div className="mb-4.5">
-            <label className="mb-2.5 block text-black dark:text-white">
-              Target Company (Optional)
-            </label>
-            <input
-              type="text"
-              name="targetCompany"
-              placeholder="e.g., Google"
-              value={options.targetCompany}
-              onChange={handleInputChange}
-              className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
+            <div className="flex flex-col">
+              <label className="mb-2.5 block text-black dark:text-white">
+                🏢 Target Company <span className="text-sm text-gray-500 dark:text-gray-400">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                name="targetCompany"
+                placeholder="e.g., Google"
+                value={options.targetCompany}
+                onChange={handleInputChange}
+                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              />
+            </div>
           </div>
-
+          
           {/* Key Skills */}
-          <div className="mb-4.5">
+          <div className="mt-4 mb-4.5">
             <label className="mb-2.5 block text-black dark:text-white">
-              Key Skills
+              🔑 Key Skills
             </label>
             <div className="relative">
               <input

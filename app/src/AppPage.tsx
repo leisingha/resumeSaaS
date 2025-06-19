@@ -7,6 +7,7 @@ import { useQuery, useAction } from 'wasp/client/operations';
 import { getUserProfile } from 'wasp/client/operations';
 import { generateDocument, updateGeneratedDocument } from 'wasp/client/operations';
 import type { GeneratedDocument, UserProfile, EducationEntry, ExperienceEntry } from 'wasp/entities';
+import StyledButton from './features/common/StyledButton';
 
 // Define types for customization options
 export interface CustomizationOptions {
@@ -148,6 +149,11 @@ const AppPage = () => {
 
       <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>
         <div className='flex flex-col gap-6 md:col-span-3'>
+          <div className='flex items-center h-9'>
+            <h2 className='text-xl font-semibold text-black dark:text-white'>
+              Template Options
+            </h2>
+          </div>
           <ResumeCustomizer part='templateControls' options={customizationOptions} onOptionsChange={setCustomizationOptions} />
         </div>
 
@@ -164,6 +170,35 @@ const AppPage = () => {
             </div>
           ) : isDetailCustomizerVisible ? (
             <>
+              <div className="flex items-center justify-between h-9">
+                <h2 className='text-xl font-semibold text-black dark:text-white'>
+                  Customise
+                </h2>
+                <div className="p-1 flex rounded-lg bg-gray-100 dark:bg-strokedark">
+                  <button
+                    type="button"
+                    onClick={() => handleDocumentTypeChange('resume')}
+                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none
+                      ${documentType === 'resume'
+                        ? 'bg-white shadow-sm text-black dark:bg-white dark:text-black'
+                        : 'bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white'}
+                    `}
+                  >
+                    Resume
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDocumentTypeChange('coverLetter')}
+                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none
+                      ${documentType === 'coverLetter'
+                        ? 'bg-white shadow-sm text-black dark:bg-white dark:text-black'
+                        : 'bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white'}
+                    `}
+                  >
+                    Cover Letter
+                  </button>
+                </div>
+              </div>
               <ResumeCustomizer
                 part='detailControls'
                 options={customizationOptions}
@@ -174,12 +209,7 @@ const AppPage = () => {
               <div className='flex gap-3'>
                 {isResumeGenerated ? (
                   <>
-                    <button
-                      onClick={handleGenerateResume}
-                      className='flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90'
-                    >
-                      Regenerate
-                    </button>
+                    <StyledButton onClick={handleGenerateResume} text="✨ Regenerate" variant="gradient" />
                     <button
                       onClick={handleCancelAdjustCustomizations}
                       className='dark:border-strokedark flex w-full justify-center rounded border border-stroke p-3 font-medium text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700'
@@ -188,12 +218,7 @@ const AppPage = () => {
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={handleGenerateResume}
-                    className='flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90'
-                  >
-                    Generate
-                  </button>
+                  <StyledButton onClick={handleGenerateResume} text="✨ Generate" variant="gradient" />
                 )}
               </div>
             </>
@@ -212,12 +237,7 @@ const AppPage = () => {
                 onContentChange={handleEditSave}
                 documentType={documentType}
               />
-              <button
-                onClick={handleShowAdjustCustomizations}
-                className='-mt-2 flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90'
-              >
-                Adjust Customizations
-              </button>
+              <StyledButton onClick={handleShowAdjustCustomizations} text="Adjust Customizations" />
             </div>
           )}
         </div>

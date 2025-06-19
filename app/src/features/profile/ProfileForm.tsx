@@ -577,9 +577,9 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
                   <button
                     type='button'
                     onClick={() => removeExperienceEntry(index)}
-                    className='p-1 text-red-500 hover:text-red-700'
+                    className='p-1 text-sm text-red-500 hover:text-red-700'
                   >
-                    <Trash2 className='w-5 h-5' />
+                    Remove
                   </button>
                 )}
               </div>

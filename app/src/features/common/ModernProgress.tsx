@@ -56,51 +56,53 @@ export function ModernProgress({
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className={cn('relative', sizeMap[size], className)}>
-      <svg className='w-full h-full' viewBox={`0 0 ${size_px} ${size_px}`}>
-        {/* Background circle */}
-        <circle
-          className='text-gray-700/50'
-          strokeWidth={thickness}
-          stroke='currentColor'
-          fill='transparent'
-          r={radius}
-          cx={size_px / 2}
-          cy={size_px / 2}
-        />
-
-        {/* Progress circle with gradient */}
-        <motion.circle
-          className={color}
-          strokeWidth={thickness}
-          strokeDasharray={circumference}
-          strokeDashoffset={animated ? circumference : strokeDashoffset}
-          strokeLinecap='round'
-          stroke='url(#gradient)'
-          fill='transparent'
-          r={radius}
-          cx={size_px / 2}
-          cy={size_px / 2}
-          transform={`rotate(-90 ${size_px / 2} ${size_px / 2})`}
-          initial={animated ? { strokeDashoffset: circumference } : { strokeDashoffset }}
-          animate={{ strokeDashoffset }}
-          transition={{ duration: animated ? 1.5 : 0, ease: 'easeOut' }}
-        />
-
-        {/* Gradient definition */}
-        <defs>
-          <linearGradient id='gradient' x1='0%' y1='0%' x2='100%' y2='0%'>
-            <stop offset='0%' stopColor='rgb(139, 92, 246)' /> {/* violet-500 */}
-            <stop offset='100%' stopColor='rgb(34, 211, 238)' /> {/* cyan-400 */}
-          </linearGradient>
-        </defs>
-      </svg>
-
+    <div className='flex items-center gap-3'>
       {showLabel && (
-        <div className='absolute inset-0 flex items-center justify-center'>
-          <span className='text-white font-medium'>{Math.round(percentage)}%</span>
+        <div className='text-center'>
+          <div className='text-title-md2 font-bold text-primary-light'>{`${Math.round(percentage)}%`}</div>
+          <div className='text-sm text-gray-500 dark:text-gray-400'>Complete</div>
         </div>
       )}
+      <div className={cn('relative', sizeMap[size], className)}>
+        <svg className='w-full h-full' viewBox={`0 0 ${size_px} ${size_px}`}>
+          {/* Background circle */}
+          <circle
+            className='text-gray-700/50'
+            strokeWidth={thickness}
+            stroke='currentColor'
+            fill='transparent'
+            r={radius}
+            cx={size_px / 2}
+            cy={size_px / 2}
+          />
+
+          {/* Progress circle with gradient */}
+          <motion.circle
+            className={color}
+            strokeWidth={thickness}
+            strokeDasharray={circumference}
+            strokeDashoffset={animated ? circumference : strokeDashoffset}
+            strokeLinecap='round'
+            stroke='url(#gradient)'
+            fill='transparent'
+            r={radius}
+            cx={size_px / 2}
+            cy={size_px / 2}
+            transform={`rotate(-90 ${size_px / 2} ${size_px / 2})`}
+            initial={animated ? { strokeDashoffset: circumference } : { strokeDashoffset }}
+            animate={{ strokeDashoffset }}
+            transition={{ duration: animated ? 1.5 : 0, ease: 'easeOut' }}
+          />
+
+          {/* Gradient definition */}
+          <defs>
+            <linearGradient id='gradient' x1='0%' y1='0%' x2='100%' y2='0%'>
+              <stop offset='0%' stopColor='rgb(139, 92, 246)' /> {/* violet-500 */}
+              <stop offset='100%' stopColor='rgb(34, 211, 238)' /> {/* cyan-400 */}
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
     </div>
   );
 } 

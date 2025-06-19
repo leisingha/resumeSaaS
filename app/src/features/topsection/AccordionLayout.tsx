@@ -17,10 +17,15 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ title, children, isOpen, 
   return (
     <div> 
       <button onClick={onToggle} className='flex w-full items-center justify-between text-left py-2'>
-        <span className='text-lg font-medium text-black dark:text-white'>{title}</span>
+        <div>
+          <h2 className='text-xl font-semibold text-black dark:text-white'>{title}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Complete your profile to generate better results
+          </p>
+        </div>
 
         <div className='flex items-center gap-4'>
-          <ModernProgress value={progress} size='sm' thickness={4} />
+          <ModernProgress value={progress} size='sm' thickness={5} />
         <span className='text-black dark:text-white'>
           {isOpen ? (
             // SVG for "open" state (chevron pointing UP)

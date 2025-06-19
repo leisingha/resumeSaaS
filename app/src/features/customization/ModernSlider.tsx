@@ -15,10 +15,10 @@ export default function ModernSlider({
   const sliderRef = useRef<HTMLDivElement>(null)
 
   // Get label based on value
-  const getLabel = () => {
-    if (value < 33) return "Strict"
-    if (value < 66) return "Balanced"
-    return "Creative"
+  const getToneProfile = () => {
+    if (value < 33) return { title: "Strict", description: "Sticks closely to your provided info." };
+    if (value < 66) return { title: "Balanced", description: "Balances your info with creative additions." };
+    return { title: "Creative", description: "Takes more creative liberties with your info." };
   }
 
   // Handle mouse/touch interactions
@@ -86,11 +86,18 @@ export default function ModernSlider({
     }
   }, [isDragging, onChange])
 
+  const toneProfile = getToneProfile();
+
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 select-none">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-black dark:text-white mb-1">Tone</h2>
-        <div className="text-base font-medium text-gray-600 dark:text-gray-300">{getLabel()}</div>
+    <div className="w-full select-none">
+      <div className="flex items-center justify-between mb-2">
+        <label className="mb-0 block text-black dark:text-white">
+          Tone
+        </label>
+        <div className="text-right">
+          <div className="text-sm font-medium text-primary-light">{toneProfile.title}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{toneProfile.description}</div>
+        </div>
       </div>
 
       {/* Slider container with padding to accommodate thumb */}
