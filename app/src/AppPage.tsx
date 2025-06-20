@@ -17,6 +17,7 @@ export interface CustomizationOptions {
   targetCompany: string;
   keySkills: string; // Comma-separated
   tone: number; // e.g., 0-100
+  jobDescription: string;
   // TODO: Add fields for cover letter later, e.g., recipientName?: string, companyAddress?: string etc.
 }
 
@@ -38,6 +39,7 @@ const AppPage = () => {
     targetCompany: '',
     keySkills: '',
     tone: 50,
+    jobDescription: '',
   });
   const [documentType, setDocumentType] = useState<DocumentType>('resume');
   const [showSuccessAlert, setShowSuccessAlert] = useState<boolean>(false);

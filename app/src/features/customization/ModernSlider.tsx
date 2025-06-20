@@ -91,8 +91,8 @@ export default function ModernSlider({
   return (
     <div className="w-full select-none">
       <div className="flex items-center justify-between mb-2">
-        <label className="mb-0 block text-black dark:text-white">
-          Tone
+        <label className="mb-0 block font-bold text-black dark:text-white">
+          🧑‍🔬 Enhancement
         </label>
         <div className="text-right">
           <div className="text-sm font-medium text-primary-light">{toneProfile.title}</div>

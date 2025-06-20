@@ -13,6 +13,7 @@ interface ResumeCustomizerProps {
 const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsChange, part, documentType, onDocumentTypeChange }) => {
   const [currentSkill, setCurrentSkill] = useState('');
   const [skillsList, setSkillsList] = useState<string[]>(options.keySkills ? options.keySkills.split(',').map(s => s.trim()).filter(s => s) : []);
+  const [isJobDescriptionVisible, setIsJobDescriptionVisible] = useState(false);
 
   const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onOptionsChange({ ...options, template: e.target.value });
@@ -111,7 +112,7 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
 
       {part === 'detailControls' && (
         <>
-          {/* Target Job Title & Company */}
+          {/* Target Job Title & Skills */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col">
               <label className="mb-2.5 block text-black dark:text-white">
@@ -129,55 +130,74 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
 
             <div className="flex flex-col">
               <label className="mb-2.5 block text-black dark:text-white">
-                🏢 Target Company <span className="text-sm text-gray-500 dark:text-gray-400">(Optional)</span>
+                🔦 Skills to Highlight <span className="text-sm text-gray-500 dark:text-gray-400">(Optional)</span>
               </label>
-              <input
-                type="text"
-                name="targetCompany"
-                placeholder="e.g., Google"
-                value={options.targetCompany}
-                onChange={handleInputChange}
-                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Add a skill and press Enter"
+                  value={currentSkill}
+                  onChange={handleSkillInputChange}
+                  onKeyDown={handleSkillInputKeyDown}
+                  className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                />
+              </div>
+              <div className="flex flex-wrap items-center mt-2">
+                {skillsList.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30 dark:text-white"
+                  >
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => removeSkill(skill)}
+                      className="ml-2 cursor-pointer hover:text-danger"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M9.35355 3.35355C9.54882 3.15829 9.54882 2.84171 9.35355 2.64645C9.15829 2.45118 8.84171 2.45118 8.64645 2.64645L6 5.29289L3.35355 2.64645C3.15829 2.45118 2.84171 2.45118 2.64645 2.64645C2.45118 2.84171 2.45118 3.15829 2.64645 3.35355L5.29289 6L2.64645 8.64645C2.45118 8.84171 2.45118 9.15829 2.64645 9.35355C2.84171 9.54882 3.15829 9.54882 3.35355 9.35355L6 6.70711L8.64645 9.35355C8.84171 9.54882 9.15829 9.54882 9.35355 9.35355C9.54882 9.15829 9.54882 8.84171 9.35355 8.64645L6.70711 6L9.35355 3.35355Z" fill="currentColor"></path></svg>
+                    </button>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
           
-          {/* Key Skills */}
+          {/* Job Description */}
           <div className="mt-4 mb-4.5">
-            <label className="mb-2.5 block text-black dark:text-white">
-              🔑 Key Skills
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Add a skill and press Enter or comma"
-                value={currentSkill}
-                onChange={handleSkillInputChange}
-                onKeyDown={handleSkillInputKeyDown}
-                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              />
-            </div>
-            <div className="flex flex-wrap items-center mt-2">
-              {skillsList.map((skill, index) => (
-                <span
-                  key={index}
-                  className="m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30 dark:text-white"
-                >
-                  {skill}
-                  <button
-                    type="button"
-                    onClick={() => removeSkill(skill)}
-                    className="ml-2 cursor-pointer hover:text-danger"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M9.35355 3.35355C9.54882 3.15829 9.54882 2.84171 9.35355 2.64645C9.15829 2.45118 8.84171 2.45118 8.64645 2.64645L6 5.29289L3.35355 2.64645C3.15829 2.45118 2.84171 2.45118 2.64645 2.64645C2.45118 2.84171 2.45118 3.15829 2.64645 3.35355L5.29289 6L2.64645 8.64645C2.45118 8.84171 2.45118 9.15829 2.64645 9.35355C2.84171 9.54882 3.15829 9.54882 3.35355 9.35355L6 6.70711L8.64645 9.35355C8.84171 9.54882 9.15829 9.54882 9.35355 9.35355C9.54882 9.15829 9.54882 8.84171 9.35355 8.64645L6.70711 6L9.35355 3.35355Z" fill="currentColor"></path></svg>
-                  </button>
-                </span>
-              ))}
-            </div>
+            <button
+              type="button"
+              className="w-full flex justify-between items-center mb-2.5 text-black dark:text-white"
+              onClick={() => setIsJobDescriptionVisible(!isJobDescriptionVisible)}
+            >
+              <div className="flex items-center">
+                <span className="font-medium">📝 Job Description</span>
+                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">(Recommended)</span>
+              </div>
+              <svg
+                className={`transition-transform duration-200 ${isJobDescriptionVisible ? 'rotate-180' : ''}`}
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            {isJobDescriptionVisible && (
+                <textarea
+                  name="jobDescription"
+                  rows={6}
+                  placeholder="Paste the job description here..."
+                  value={options.jobDescription}
+                  onChange={handleInputChange}
+                  className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                />
+            )}
           </div>
 
           {/* Tone Selection */}
-          <div className='mb-4.5'>
+          <div className='mt-4 mb-4.5'>
             <ModernSlider
               value={options.tone}
               onChange={handleToneChange}
