@@ -83,11 +83,11 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
   ]);
   const [formErrors, setFormErrors] = useState<Partial<typeof profileData>>({});
   const [showLanguages, setShowLanguages] = useState(false);
-  const [showAwards, setShowAwards] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [languages, setLanguages] = useState<string[]>([]);
+  const [achievements, setAchievements] = useState<string[]>([]);
   const [currentLanguage, setCurrentLanguage] = useState('');
-  const [awards, setAwards] = useState<string[]>([]);
-  const [currentAward, setCurrentAward] = useState('');
+  const [currentAchievement, setCurrentAchievement] = useState('');
   
   useEffect(() => {
     const calculateProfileProgress = () => {
@@ -103,12 +103,12 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
       if (experienceEntries.length > 0 && experienceEntries[0].employer) completed++;
       if (experienceEntries.length > 0 && experienceEntries[0].jobTitle) completed++;
       if (languages.length > 0) completed++;
-      if (awards.length > 0) completed++;
+      if (achievements.length > 0) completed++;
 
       return Math.round((completed / totalPoints) * 100);
     };
     setProfileProgress(calculateProfileProgress());
-  }, [profileData, educationEntries, experienceEntries, languages, awards, setProfileProgress]);
+  }, [profileData, educationEntries, experienceEntries, languages, achievements, setProfileProgress]);
 
   useEffect(() => {
     if (userProfile) {
@@ -133,10 +133,10 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
         (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
       if (userProfile.languages) setShowLanguages(true);
-      setAwards(
+      setAchievements(
         (userProfile.awards || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
-      if (userProfile.awards) setShowAwards(true);
+      if (userProfile.awards) setShowAchievements(true);
     }
   }, [userProfile]);
 
@@ -223,23 +223,23 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
     setLanguages(languages.filter((lang) => lang !== langToRemove));
   };
 
-  const handleAwardInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleAchievementInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      addAward();
+      addAchievement();
     }
   };
 
-  const addAward = () => {
-    const trimmedAward = currentAward.trim();
-    if (trimmedAward && !awards.includes(trimmedAward)) {
-      setAwards([...awards, trimmedAward]);
-      setCurrentAward('');
+  const addAchievement = () => {
+    const trimmedAchievement = currentAchievement.trim();
+    if (trimmedAchievement && !achievements.includes(trimmedAchievement)) {
+      setAchievements([...achievements, trimmedAchievement]);
+      setCurrentAchievement('');
     }
   };
 
-  const removeAward = (awardToRemove: string) => {
-    setAwards(awards.filter((award) => award !== awardToRemove));
+  const removeAchievement = (awardToRemove: string) => {
+    setAchievements(achievements.filter((award) => award !== awardToRemove));
   };
 
   const validateForm = () => {
@@ -320,7 +320,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
           })
         ),
         languages: languages.join(', '),
-        awards: awards.join(', '),
+        awards: achievements.join(', '),
       });
       // You can add a success alert here
       alert('Profile Saved Successfully!');
@@ -355,10 +355,10 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
         (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
       if (userProfile.languages) setShowLanguages(true);
-      setAwards(
+      setAchievements(
         (userProfile.awards || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
-      if (userProfile.awards) setShowAwards(true);
+      if (userProfile.awards) setShowAchievements(true);
     }
     setFormErrors({});
   };
@@ -382,7 +382,9 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
     <form onSubmit={handleSaveProfile} className='p-1.5 space-y-5.5'>
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
-          <h3 className={subSectionTitleClassName}>Contact Info</h3>
+          <h3 className={subSectionTitleClassName}>
+            <span className='text-xl mr-2'>🪪</span>Contact Info
+          </h3>
           {/* Personal Details */}
           <div className='flex flex-col gap-5.5 sm:flex-row'>
             <div className='w-full sm:w-1/2'>
@@ -466,7 +468,9 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
           {/* Education Section */}
-          <h3 className={subSectionTitleClassName}>Education</h3>
+          <h3 className={subSectionTitleClassName}>
+            <span className='text-xl mr-2'>🎓</span>Education
+          </h3>
           {educationEntries.map((edu, index) => (
             <div key={edu.id} className='space-y-4 mb-4 relative'>
               {educationEntries.length > 1 && (
@@ -568,11 +572,13 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
           {/* Work Experience Section */}
-          <h3 className={subSectionTitleClassName}>Work Experience</h3>
+          <h3 className={subSectionTitleClassName}>
+            <span className='text-xl mr-2'>💼</span>Work Experience
+          </h3>
           {experienceEntries.map((exp, index) => (
             <div key={exp.id} className='space-y-4 mb-4 relative border-t border-stroke dark:border-strokedark pt-4 mt-4'>
               <div className='flex justify-between items-center'>
-                <h4 className='font-semibold text-black dark:text-white'>Work Experience {index + 1}</h4>
+                <h4 className='font-semibold text-black dark:text-white'>📎 Work Experience {index + 1}</h4>
                 {experienceEntries.length > 1 && (
                   <button
                     type='button'
@@ -691,7 +697,9 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
           {/* Languages Section */}
           <div className='space-y-2'>
             <div className='flex items-center'>
-              <h3 className='text-md font-semibold text-black dark:text-white mr-4'>Languages</h3>
+              <h3 className='text-md font-semibold text-black dark:text-white mr-4'>
+                <span className='text-xl mr-2'>🗣️</span>Languages
+              </h3>
               <SmallSwitcher isOn={showLanguages} onChange={setShowLanguages} />
             </div>
             {showLanguages && (
@@ -703,8 +711,20 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
                     value={currentLanguage}
                     onChange={(e) => setCurrentLanguage(e.target.value)}
                     onKeyDown={handleLanguageInputKeyDown}
-                    className={newStandardInputClass}
+                    className={`${newStandardInputClass} pr-12`}
                   />
+                  <button
+                    type='button'
+                    onClick={addLanguage}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-md transition-opacity duration-200 ${
+                      currentLanguage
+                        ? 'opacity-100 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
+                        : 'opacity-0 pointer-events-none'
+                    }`}
+                    aria-label='Add language'
+                  >
+                    <span className='text-gray-600 dark:text-gray-300 text-xl'>+</span>
+                  </button>
                 </div>
                 <div className='flex flex-wrap items-center mt-2'>
                   {languages.map((lang, index) => (
@@ -727,26 +747,40 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
             )}
           </div>
 
-          {/* Awards & Certifications Section */}
+          {/* Achievements Section */}
           <div className='space-y-2'>
             <div className='flex items-center'>
-              <h3 className='text-md font-semibold text-black dark:text-white mr-4'>Awards & Certifications</h3>
-              <SmallSwitcher isOn={showAwards} onChange={setShowAwards} />
+              <h3 className='text-md font-semibold text-black dark:text-white mr-4'>
+                <span className='text-xl mr-2'>🏆</span>Achievements
+              </h3>
+              <SmallSwitcher isOn={showAchievements} onChange={setShowAchievements} />
             </div>
-            {showAwards && (
+            {showAchievements && (
               <div className='mt-2.5'>
                 <div className='relative'>
                   <input
                     type='text'
-                    placeholder='Add an award and press Enter'
-                    value={currentAward}
-                    onChange={(e) => setCurrentAward(e.target.value)}
-                    onKeyDown={handleAwardInputKeyDown}
-                    className={newStandardInputClass}
+                    placeholder='Add an achievement and press Enter'
+                    value={currentAchievement}
+                    onChange={(e) => setCurrentAchievement(e.target.value)}
+                    onKeyDown={handleAchievementInputKeyDown}
+                    className={`${newStandardInputClass} pr-12`}
                   />
+                  <button
+                    type='button'
+                    onClick={addAchievement}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-md transition-opacity duration-200 ${
+                      currentAchievement
+                        ? 'opacity-100 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
+                        : 'opacity-0 pointer-events-none'
+                    }`}
+                    aria-label='Add achievement'
+                  >
+                    <span className='text-gray-600 dark:text-gray-300 text-xl'>+</span>
+                  </button>
                 </div>
                 <div className='flex flex-wrap items-center mt-2'>
-                  {awards.map((award, index) => (
+                  {achievements.map((award, index) => (
                     <span
                       key={index}
                       className='m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30'
@@ -754,7 +788,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
                       {award}
                       <button
                         type='button'
-                        onClick={() => removeAward(award)}
+                        onClick={() => removeAchievement(award)}
                         className='ml-2 cursor-pointer hover:text-danger'
                       >
                         &times;

@@ -130,7 +130,7 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
 
             <div className="flex flex-col">
               <label className="mb-2.5 block text-black dark:text-white">
-                🔦 Skills to Highlight <span className="text-sm text-gray-500 dark:text-gray-400">(Optional)</span>
+                🔦 Skills to Highlight <span className="text-sm text-gray-500 dark:text-gray-400">(optional)</span>
               </label>
               <div className="relative">
                 <input
@@ -139,8 +139,20 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
                   value={currentSkill}
                   onChange={handleSkillInputChange}
                   onKeyDown={handleSkillInputKeyDown}
-                  className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                  className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary pr-12"
                 />
+                <button
+                  type='button'
+                  onClick={addSkill}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-md transition-opacity duration-200 ${
+                    currentSkill
+                      ? 'opacity-100 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
+                      : 'opacity-0 pointer-events-none'
+                  }`}
+                  aria-label='Add skill'
+                >
+                  <span className='text-gray-600 dark:text-gray-300 text-xl'>+</span>
+                </button>
               </div>
               <div className="flex flex-wrap items-center mt-2">
                 {skillsList.map((skill, index) => (
