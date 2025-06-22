@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import type { CustomizationOptions, DocumentType } from '../../AppPage'; // Import the interface
 import ModernSlider from '../customization/ModernSlider';
 
+const colorOptions = [
+  { name: 'black', hex: '#2D3748' },
+  { name: 'gold', hex: '#B7791F' },
+  { name: 'teal', hex: '#319795' },
+  { name: 'blue', hex: '#3B82F6' },
+  { name: 'purple', hex: '#805AD5' },
+  { name: 'pink', hex: '#D53F8C' },
+];
+
 interface ResumeCustomizerProps {
   options: CustomizationOptions;
   onOptionsChange: (newOptions: CustomizationOptions) => void;
@@ -15,16 +24,12 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
   const [skillsList, setSkillsList] = useState<string[]>(options.keySkills ? options.keySkills.split(',').map(s => s.trim()).filter(s => s) : []);
   const [isJobDescriptionVisible, setIsJobDescriptionVisible] = useState(false);
 
-  const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onOptionsChange({ ...options, template: e.target.value });
-  };
-
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onOptionsChange({ ...options, colorScheme: e.target.value });
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onOptionsChange({ ...options, [e.target.name]: e.target.value });
+  };
+
+  const handleColorChange = (color: string) => {
+    onOptionsChange({ ...options, colorScheme: color });
   };
 
   const handleToneChange = (value: number) => {
@@ -63,49 +68,45 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
   };
 
   return (
-    <div className='bg-white dark:bg-boxdark shadow-md p-6 rounded-lg'>
+    <div className='bg-white dark:bg-boxdark shadow-md p-4 rounded-lg'>
       {part === 'templateControls' && (
         <>
-          {/* Template Selection */}
-          <div className="mb-4.5">
-            <label className="mb-2.5 block text-black dark:text-white">
-              Template
-            </label>
-            <div className="relative">
-              <select 
-                value={options.template}
-                onChange={handleTemplateChange}
-                className="relative z-10 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              >
-                <option value="classic">Classic</option>
-                <option value="modern">Modern</option>
-                <option value="creative">Creative</option>
-              </select>
-              <span className="absolute top-1/2 right-4 z-20 -translate-y-1/2 pointer-events-none">
-                <svg className="fill-current text-gray-500 dark:text-gray-400" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g opacity="0.8"><path fillRule="evenodd" clipRule="evenodd" d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"></path></g></svg>
-              </span>
-            </div>
+          <div className='flex items-center gap-3 text-black dark:text-white'>
+            <span className='text-xl'>🎨</span>
+            <span>Templates</span>
           </div>
-
-          {/* Color Scheme Selection */}
-          <div className="mb-4.5">
-            <label className="mb-2.5 block text-black dark:text-white">
-              Color Scheme
-            </label>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2">
-                <input type="radio" name="colorScheme" value="blue" checked={options.colorScheme === 'blue'} onChange={handleColorChange} className="form-radio" />
-                Blue Tone
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="colorScheme" value="green" checked={options.colorScheme === 'green'} onChange={handleColorChange} className="form-radio" />
-                Green Tone
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="colorScheme" value="mono" checked={options.colorScheme === 'mono'} onChange={handleColorChange} className="form-radio" />
-                Monochrome
-              </label>
-            </div>
+          <div className='flex justify-center items-center gap-2 mt-4'>
+            {colorOptions.map((color) => {
+              const isSelected = options.colorScheme === color.hex;
+              return (
+                <button
+                  key={color.name}
+                  type='button'
+                  onClick={() => handleColorChange(color.hex)}
+                  title={color.name}
+                  className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none ${
+                    isSelected ? 'bg-violet-200 dark:bg-violet-800' : 'bg-transparent'
+                  }`}
+                >
+                  <div
+                    className='w-4 h-4 rounded-full flex items-center justify-center'
+                    style={{ backgroundColor: color.hex }}
+                  >
+                    {isSelected && (
+                      <svg
+                        className='w-3 h-3 text-white'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                        strokeWidth='4'
+                      >
+                        <path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' />
+                      </svg>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </>
       )}

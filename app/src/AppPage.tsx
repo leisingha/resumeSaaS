@@ -8,6 +8,8 @@ import { getUserProfile } from 'wasp/client/operations';
 import { generateDocument, updateGeneratedDocument } from 'wasp/client/operations';
 import type { GeneratedDocument, UserProfile, EducationEntry, ExperienceEntry } from 'wasp/entities';
 import StyledButton from './features/common/StyledButton';
+import ResumeReviewIllustration from './features/common/ResumeReviewIllustration';
+import ManageSectionsPanel, { Section } from './features/customizer/ManageSectionsPanel';
 
 // Define types for customization options
 export interface CustomizationOptions {
@@ -34,7 +36,7 @@ const AppPage = () => {
 
   const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>({
     template: 'classic',
-    colorScheme: 'blue',
+    colorScheme: '#805AD5',
     targetJobTitle: '',
     targetCompany: '',
     keySkills: '',
@@ -47,6 +49,17 @@ const AppPage = () => {
 
   const generatedResumeContent = activeDocument?.content || null;
   const isResumeGenerated = !!activeDocument;
+
+  const [isManageSectionsOpen, setIsManageSectionsOpen] = useState(false);
+  const [sections, setSections] = useState<Section[]>([
+    { id: 'summary', label: 'Summary', visible: false, hasHandle: false },
+    { id: 'experience', label: 'Experience', visible: true, hasHandle: true },
+    { id: 'education', label: 'Education', visible: true, hasHandle: true },
+    { id: 'languages', label: 'Languages', visible: false, hasHandle: true },
+    { id: 'skills', label: 'Skills', visible: true, hasHandle: true },
+    { id: 'certificates', label: 'Certificates', visible: false, hasHandle: true },
+    { id: 'awards', label: 'Awards', visible: false, hasHandle: true },
+  ]);
 
   useEffect(() => {
     if (userProfile) {
@@ -137,8 +150,18 @@ const AppPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [isDetailCustomizerVisible, setIsDetailCustomizerVisible] = useState<boolean>(true);
 
+  const handleSectionToggle = (id: string) => {
+    setSections(sections.map((sec) => (sec.id === id ? { ...sec, visible: !sec.visible } : sec)));
+  };
+
   return (
     <div className='mx-auto flex max-w-5xl flex-col gap-6 p-4 md:p-6 2xl:p-10'>
+      <ManageSectionsPanel
+        isOpen={isManageSectionsOpen}
+        onClose={() => setIsManageSectionsOpen(false)}
+        sections={sections}
+        onSectionToggle={handleSectionToggle}
+      />
       {showSuccessAlert && (
         <SuccessAlert message={alertMessage} onClose={() => setShowSuccessAlert(false)} />
       )}
@@ -151,12 +174,34 @@ const AppPage = () => {
 
       <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>
         <div className='flex flex-col gap-6 md:col-span-3'>
-          <div className='flex items-center h-9'>
-            <h2 className='text-xl font-semibold text-black dark:text-white'>
-              Template Options
-            </h2>
-          </div>
+          <div className='h-9' />
           <ResumeCustomizer part='templateControls' options={customizationOptions} onOptionsChange={setCustomizationOptions} />
+          <button
+            type='button'
+            onClick={() => setIsManageSectionsOpen(true)}
+            disabled={!isResumeGenerated}
+            className='flex w-full items-center gap-3 rounded-lg bg-white py-3 px-4 text-black shadow-sm transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 dark:bg-boxdark dark:text-white'
+          >
+            <span className='text-xl'>🧩</span>
+            <span>Manage Sections</span>
+          </button>
+          <div className='rounded-lg bg-white p-4 shadow-sm dark:bg-boxdark'>
+            <div className='flex items-center'>
+              <div className='flex-grow'>
+                <h3 className='text-md leading-tight text-black dark:text-white'>
+                  Get professional
+                  <br />
+                  resume help
+                </h3>
+              </div>
+              <div className='flex-shrink-0'>
+                <ResumeReviewIllustration />
+              </div>
+            </div>
+            <button className='mt-4 w-full rounded-lg border border-stroke py-2 font-medium text-blue-600 transition hover:bg-blue-50 focus:outline-none dark:border-strokedark dark:text-blue-400 dark:hover:bg-blue-900/20'>
+              Request Resume Review
+            </button>
+          </div>
         </div>
 
         <div className='flex flex-col gap-6 md:col-span-9'>
