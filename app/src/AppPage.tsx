@@ -52,7 +52,7 @@ const AppPage = () => {
 
   const [isManageSectionsOpen, setIsManageSectionsOpen] = useState(false);
   const [sections, setSections] = useState<Section[]>([
-    { id: 'summary', label: 'Summary', visible: false, hasHandle: false },
+    { id: 'summary', label: 'Summary', visible: true, hasHandle: false },
     { id: 'experience', label: 'Experience', visible: true, hasHandle: true },
     { id: 'education', label: 'Education', visible: true, hasHandle: true },
     { id: 'languages', label: 'Languages', visible: false, hasHandle: true },
@@ -283,6 +283,7 @@ const AppPage = () => {
                 setShowEditModal={setShowEditModal}
                 onContentChange={handleEditSave}
                 documentType={documentType}
+                sections={sections}
               />
               <StyledButton onClick={handleShowAdjustCustomizations} text="Adjust Customizations" />
             </div>

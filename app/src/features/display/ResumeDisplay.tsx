@@ -9,6 +9,7 @@ import 'react-quill/dist/quill.snow.css';
 import './ResumeDisplay.css';
 import { generateAiResumePoints } from 'wasp/client/operations';
 import { useAction } from 'wasp/client/operations';
+import type { Section } from '../customizer/ManageSectionsPanel';
 
 import QuillEditor from '../common/forwarded-quill';
 
@@ -22,6 +23,7 @@ interface ResumeDisplayProps {
   setShowEditModal: (show: boolean) => void;
   onContentChange: (newContent: string) => void;
   documentType: 'resume' | 'coverLetter';
+  sections: Section[];
 }
 
 const quillModules = {
@@ -42,6 +44,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   setShowEditModal,
   onContentChange,
   documentType,
+  sections,
 }) => {
   const [editedContent, setEditedContent] = useState(generatedContent || '');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -125,6 +128,14 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     // --- Summary Edit Button ---
     const summaryH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('summary'));
     const summaryP = summaryH2?.nextElementSibling as HTMLElement | null;
+    
+    const summarySectionState = sections.find((s) => s.id === 'summary');
+    if (summaryH2) {
+      summaryH2.style.display = summarySectionState?.visible ? '' : 'none';
+    }
+    if (summaryP) {
+      summaryP.style.display = summarySectionState?.visible ? '' : 'none';
+    }
     
     if (summaryP) {
       summaryP.style.position = 'relative';
@@ -300,21 +311,10 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
           btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
           btn.onclick = (e) => {
             e.stopPropagation();
-            e.preventDefault();
-            
-            let skillsList: string[] = [];
-            if (skillsContainer) {
-              // Handle both UL (old format) and P (new format) for parsing
-              if (skillsContainer.tagName === 'UL') {
-                skillsList = Array.from(skillsContainer.getElementsByTagName('li')).map(li => li.textContent || '').filter(Boolean);
-              } else if (skillsContainer.tagName === 'P') {
-                skillsList = (skillsContainer.textContent || '').split(',').map(s => s.trim()).filter(Boolean);
-              }
-            }
-            
+            const skillsList = Array.from(skillsContainer.querySelectorAll('span')).map(span => span.textContent?.trim()).filter(Boolean) as string[];
             setEditingSkills(skillsList);
             setShowSkillsEdit(true);
-          };
+          }
           skillsContainer.appendChild(btn);
         };
 
@@ -332,7 +332,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     }
 
     // No specific cleanup needed as dangerouslySetInnerHTML re-renders everything
-  }, [generatedContent]);
+  }, [generatedContent, sections]);
 
   const documentTitle = documentType === 'resume' ? 'Resume' : 'Cover Letter';
 
