@@ -178,15 +178,34 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
     const htmlContent = `
       <div style="background-color: white; padding: 43px 48px 48px; font-family: serif; font-size: 10pt; color: #333;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="font-size: 24pt; font-weight: bold; margin: 0;">${userProfile.firstName} ${
-      userProfile.lastName
-    }</h1>
+          <h1 style="font-size: 24pt; font-weight: bold; margin: 0;">${userProfile.firstName} ${userProfile.lastName}</h1>
           <p style="font-size: 10pt; margin: 5px 0;">${userProfile.phone} | ${email} | ${userProfile.location}</p>
         </div>
 
         <div>
           <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Summary</h2>
           <p style="line-height: 1.4;">${jsonResponse.summary || ''}</p>
+        </div>
+        
+        <div>
+            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Education</h2>
+            ${(jsonResponse.education || [])
+              .map(
+                (edu) => `
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${edu.degree}</h3>
+                            <p style="margin: 2px 0;">${edu.school}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="margin: 0;">${edu.date}</p>
+                        </div>
+                    </div>
+                </div>
+                `
+              )
+              .join('')}
         </div>
         
         <div>
@@ -219,24 +238,8 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
         </div>
 
         <div>
-            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Education</h2>
-            ${(jsonResponse.education || [])
-              .map(
-                (edu) => `
-                <div style="margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div>
-                            <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${edu.degree}</h3>
-                            <p style="margin: 2px 0;">${edu.school}</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <p style="margin: 0;">${edu.date}</p>
-                        </div>
-                    </div>
-                </div>
-                `
-              )
-              .join('')}
+            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Projects & Achievements</h2>
+            <div>${userProfile.awards || ''}</div>
         </div>
         
         <div>
@@ -244,10 +247,6 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
             <p style="line-height: 1.4;">${(jsonResponse.languages || []).map((lang) => lang.language).join(', ')}</p>
         </div>
 
-        <div>
-            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Projects & Achievements</h2>
-            <div>${userProfile.awards || ''}</div>
-        </div>
       </div>
     `;
 

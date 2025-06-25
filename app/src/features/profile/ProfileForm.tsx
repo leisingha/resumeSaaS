@@ -81,8 +81,6 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
     },
   ]);
   const [formErrors, setFormErrors] = useState<Partial<typeof profileData>>({});
-  const [showLanguages, setShowLanguages] = useState(false);
-  const [showAchievements, setShowAchievements] = useState(false);
   const [languages, setLanguages] = useState<string[]>([]);
   const [achievements, setAchievements] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState('');
@@ -130,9 +128,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
       setLanguages(
         (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
-      if (userProfile.languages) setShowLanguages(true);
       setAchievements(userProfile.awards || '');
-      if (userProfile.awards) setShowAchievements(true);
     }
   }, [userProfile]);
 
@@ -332,9 +328,7 @@ Education History: ${educationContext}`;
       setLanguages(
         (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
-      if (userProfile.languages) setShowLanguages(true);
       setAchievements(userProfile.awards || '');
-      if (userProfile.awards) setShowAchievements(true);
     }
     setFormErrors({});
   };
@@ -658,23 +652,20 @@ Education History: ${educationContext}`;
               <h3 className='text-md font-semibold text-black dark:text-white mr-4'>
                 <span className='text-xl mr-2'>🏆</span>Projects & Achievements
               </h3>
-              <SmallSwitcher isOn={showAchievements} onChange={setShowAchievements} />
             </div>
-            {showAchievements && (
-              <div className='mt-2.5 quill-container'>
-                <div className='flex justify-end items-center mb-1'>
-                  <button
-                    type='button'
-                    onClick={handleGenerateProjectsAchievements}
-                    className='text-sm text-primary hover:underline'
-                    disabled={isAiLoading.achievements}
-                  >
-                    {isAiLoading.achievements ? 'Generating...' : '✨ AI Writer'}
-                  </button>
-                </div>
-                <QuillEditor value={achievements} onChange={(value) => handleQuillChange(value, 'achievements')} />
+            <div className='mt-2.5 quill-container'>
+              <div className='flex justify-end items-center mb-1'>
+                <button
+                  type='button'
+                  onClick={handleGenerateProjectsAchievements}
+                  className='text-sm text-primary hover:underline'
+                  disabled={isAiLoading.achievements}
+                >
+                  {isAiLoading.achievements ? 'Generating...' : '✨ AI Writer'}
+                </button>
               </div>
-            )}
+              <QuillEditor value={achievements} onChange={(value) => handleQuillChange(value, 'achievements')} />
+            </div>
           </div>
           {/* Languages Section */}
           <div className='space-y-2'>
@@ -682,51 +673,48 @@ Education History: ${educationContext}`;
               <h3 className='text-md font-semibold text-black dark:text-white mr-4'>
                 <span className='text-xl mr-2'>🗣️</span>Languages
               </h3>
-              <SmallSwitcher isOn={showLanguages} onChange={setShowLanguages} />
             </div>
-            {showLanguages && (
-              <div className='mt-2.5'>
-                <div className='relative'>
-                  <input
-                    type='text'
-                    placeholder='Add a language and press Enter'
-                    value={currentLanguage}
-                    onChange={(e) => setCurrentLanguage(e.target.value)}
-                    onKeyDown={handleLanguageInputKeyDown}
-                    className={`${newStandardInputClass} pr-12`}
-                  />
-                  <button
-                    type='button'
-                    onClick={addLanguage}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-md transition-opacity duration-200 ${
-                      currentLanguage
-                        ? 'opacity-100 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
-                        : 'opacity-0 pointer-events-none'
-                    }`}
-                    aria-label='Add language'
-                  >
-                    <span className='text-gray-600 dark:text-gray-300 text-xl'>+</span>
-                  </button>
-                </div>
-                <div className='flex flex-wrap items-center mt-2'>
-                  {languages.map((lang, index) => (
-                    <span
-                      key={index}
-                      className='m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30'
-                    >
-                      {lang}
-                      <button
-                        type='button'
-                        onClick={() => removeLanguage(lang)}
-                        className='ml-2 cursor-pointer hover:text-danger'
-                      >
-                        &times;
-                      </button>
-                    </span>
-                  ))}
-                </div>
+            <div className='mt-2.5'>
+              <div className='relative'>
+                <input
+                  type='text'
+                  placeholder='Add a language and press Enter'
+                  value={currentLanguage}
+                  onChange={(e) => setCurrentLanguage(e.target.value)}
+                  onKeyDown={handleLanguageInputKeyDown}
+                  className={`${newStandardInputClass} pr-12`}
+                />
+                <button
+                  type='button'
+                  onClick={addLanguage}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-md transition-opacity duration-200 ${
+                    currentLanguage
+                      ? 'opacity-100 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
+                      : 'opacity-0 pointer-events-none'
+                  }`}
+                  aria-label='Add language'
+                >
+                  <span className='text-gray-600 dark:text-gray-300 text-xl'>+</span>
+                </button>
               </div>
-            )}
+              <div className='flex flex-wrap items-center mt-2'>
+                {languages.map((lang, index) => (
+                  <span
+                    key={index}
+                    className='m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30'
+                  >
+                    {lang}
+                    <button
+                      type='button'
+                      onClick={() => removeLanguage(lang)}
+                      className='ml-2 cursor-pointer hover:text-danger'
+                    >
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
