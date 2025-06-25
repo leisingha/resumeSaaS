@@ -34,13 +34,12 @@ model UserProfile {
 }
 
 model EducationEntry {
-  id             String      @id @default(uuid())
+  id             String    @id @default(cuid())
   school         String?
   fieldOfStudy   String?
   graduationDate String?
   location       String?
-  achievements   String?     @db.Text
-  userProfile    UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  userProfile    UserProfile @relation(fields: [userProfileId], references: [id])
   userProfileId  String
 }
 

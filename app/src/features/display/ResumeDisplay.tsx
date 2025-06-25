@@ -67,7 +67,6 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     degree: string;
     school: string;
     date: string;
-    details: string;
   } | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const generateResumePointsAction = useAction(generateAiResumePoints);
@@ -278,8 +277,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
             const degree = entry.querySelector('h3')?.textContent || '';
             const school = entry.querySelector('p')?.textContent || '';
             const date = entry.querySelector('div[style*="text-align: right"] p')?.textContent || '';
-            const details = entry.querySelector('ul')?.outerHTML || '';
-            setEditingEducation({ index, degree, school, date, details });
+            setEditingEducation({ index, degree, school, date });
             setShowEducationEdit(true);
           };
           entry.appendChild(btn);
@@ -593,34 +591,16 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     const entryToUpdate = educationEntries[editingEducation.index] as HTMLElement;
 
     if (entryToUpdate) {
-      let finalDetailsHtml = '';
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = editingEducation.details;
-
-      const isAlreadyList = tempDiv.querySelector('ul, ol');
-
-      if (isAlreadyList) {
-        finalDetailsHtml = isAlreadyList.outerHTML;
-      } else {
-        const paragraphs = Array.from(tempDiv.querySelectorAll('p'));
-        if (paragraphs.length > 0) {
-          finalDetailsHtml = `<ul>${paragraphs.map((p) => `<li>${p.innerHTML}</li>`).join('')}</ul>`;
-        } else if (editingEducation.details) {
-          finalDetailsHtml = `<ul><li>${editingEducation.details}</li></ul>`;
-        }
-      }
-
       entryToUpdate.innerHTML = `
         <div style="display: flex; justify-content: space-between;">
-          <div>
-            <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${editingEducation.degree}</h3>
-            <p style="margin: 2px 0;">${editingEducation.school}</p>
-          </div>
-          <div style="text-align: right;">
-            <p style="margin: 0;">${editingEducation.date}</p>
-          </div>
+            <div>
+                <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${editingEducation.degree}</h3>
+                <p style="margin: 2px 0;">${editingEducation.school}</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="margin: 0;">${editingEducation.date}</p>
+            </div>
         </div>
-        ${finalDetailsHtml.replace('<ul', '<ul style="margin-top: 5px; padding-left: 20px; line-height: 1.4;"')}
       `;
     }
 
@@ -692,26 +672,6 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         setEditingExperience({
           ...editingExperience,
           description: (editingExperience.description || '') + result.content,
-        });
-      }
-    } catch (error: any) {
-      alert('Error generating AI content: ' + error.message);
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
-  const handleGenerateEducationAchievements = async () => {
-    if (!editingEducation) return;
-    const { degree, school } = editingEducation;
-    const context = `Degree: ${degree}, School: ${school}`;
-    setIsAiLoading(true);
-    try {
-      const result = await generateResumePointsAction({ context });
-      if (result?.content) {
-        setEditingEducation({
-          ...editingEducation,
-          details: (editingEducation.details || '') + result.content,
         });
       }
     } catch (error: any) {
@@ -1069,29 +1029,6 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                         </div>
                          <div className='w-full sm:w-1/2'>
                           {/* This can be a location field if needed in the future */}
-                        </div>
-                      </div>
-                      <div className='mt-2'>
-                        <div className='flex justify-between items-center mb-1'>
-                          <label htmlFor='education-details' className='block text-sm font-medium text-black dark:text-white'>
-                            Key Achievements
-                          </label>
-                          <button
-                            type='button'
-                            onClick={handleGenerateEducationAchievements}
-                            className='text-sm text-primary hover:underline'
-                            disabled={isAiLoading}
-                          >
-                            {isAiLoading ? 'Generating...' : '✨ AI Writer'}
-                          </button>
-                        </div>
-                        <div className='quill-container'>
-                          <QuillEditor
-                            value={editingEducation.details}
-                            onChange={(value) =>
-                              setEditingEducation({ ...editingEducation, details: value })
-                            }
-                          />
                         </div>
                       </div>
                     </div>

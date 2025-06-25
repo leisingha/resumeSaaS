@@ -47,7 +47,6 @@ const formatProfileForPrompt = (
       fieldOfStudy: e.fieldOfStudy,
       graduationDate: e.graduationDate,
       location: e.location,
-      achievements: e.achievements,
     })),
     experience: profile.experience.map((e) => ({
       employer: e.employer,
@@ -79,10 +78,7 @@ const resumeJsonSchema = `
     {
       "degree": "string",
       "school": "string",
-      "date": "string",
-      "details": [
-        "string"
-      ]
+      "date": "string"
     }
   ],
   "skills": [
@@ -92,13 +88,6 @@ const resumeJsonSchema = `
     {
       "language": "string",
       "proficiency": "string"
-    }
-  ],
-  "awardsAndCertifications": [
-    {
-      "name": "string",
-      "issuer": "string",
-      "date": "string"
     }
   ]
 }
@@ -117,17 +106,11 @@ type ResumeData = {
     degree: string;
     school: string;
     date: string;
-    details: string[];
   }[];
   skills: string[];
   languages: {
     language: string;
     proficiency: string;
-  }[];
-  awardsAndCertifications: {
-    name: string;
-    issuer: string;
-    date: string;
   }[];
 };
 
@@ -171,7 +154,6 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
     - Education: List of degrees with school, graduation date, and details like GPA or clubs.
     - Skills: List of relevant skills.
     - Languages: List of languages and proficiency.
-    - Awards and Certifications: List of awards with name, issuer, and date.
 
     Now, generate a resume for the following user profile. Emphasize keywords relevant to their experience and the target job title: "${customizationOptions.targetJobTitle}".
     The tone of the resume should be: ${toneLabel}.
@@ -251,9 +233,6 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
                             <p style="margin: 0;">${edu.date}</p>
                         </div>
                     </div>
-                    <ul style="margin-top: 5px; padding-left: 20px; line-height: 1.4;">
-                        ${Array.isArray(edu.details) ? edu.details.map((detail) => `<li>${detail}</li>`).join('') : `<li>${edu.details}</li>`}
-                    </ul>
                 </div>
                 `
               )
@@ -266,13 +245,8 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
         </div>
 
         <div>
-            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Awards and Certifications</h2>
-            ${(jsonResponse.awardsAndCertifications || [])
-              .map(
-                (award) =>
-                  `<p style="margin: 2px 0;"><strong>${award.name}</strong> from ${award.issuer} (${award.date})</p>`
-              )
-              .join('')}
+            <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Projects & Achievements</h2>
+            <div>${userProfile.awards || ''}</div>
         </div>
       </div>
     `;

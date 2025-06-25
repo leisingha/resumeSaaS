@@ -88,12 +88,11 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
       languages,
       awards,
       education: {
-        create: education.map(({ school, fieldOfStudy, graduationDate, location, achievements }) => ({
+        create: education.map(({ school, fieldOfStudy, graduationDate, location }) => ({
           school,
           fieldOfStudy,
           graduationDate,
           location,
-          achievements,
         })),
       },
       experience: {
@@ -116,10 +115,10 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
       awards,
       education: {
         deleteMany: { id: { in: educationIdsToDelete } },
-        upsert: education.map(({ id, school, fieldOfStudy, graduationDate, location, achievements }) => ({
+        upsert: education.map(({ id, school, fieldOfStudy, graduationDate, location }) => ({
           where: { id: id || '' },
-          create: { school, fieldOfStudy, graduationDate, location, achievements },
-          update: { school, fieldOfStudy, graduationDate, location, achievements },
+          create: { school, fieldOfStudy, graduationDate, location },
+          update: { school, fieldOfStudy, graduationDate, location },
         })),
       },
       experience: {

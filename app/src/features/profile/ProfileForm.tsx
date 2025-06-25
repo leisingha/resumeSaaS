@@ -41,7 +41,6 @@ interface EducationEntry {
   fieldOfStudy: string | null;
   graduationDate: string | null;
   location: string | null;
-  achievements: string | null;
 }
 
 interface ExperienceEntry {
@@ -57,7 +56,7 @@ interface ExperienceEntry {
 const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: number) => void }) => {
   const { data: userProfile, isLoading: isProfileLoading } = useQuery(getUserProfile);
   const generateResumePointsAction = useAction(generateAiResumePoints);
-  const [isAiLoading, setIsAiLoading] = useState({ education: -1, experience: -1 });
+  const [isAiLoading, setIsAiLoading] = useState({ experience: -1, achievements: false });
 
   const [isSaving, setIsSaving] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -68,7 +67,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
     email: '', // This will be populated from the query but is not editable
   });
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([
-    { id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', location: '', achievements: '' },
+    { id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', location: '' },
   ]);
   const [experienceEntries, setExperienceEntries] = useState<ExperienceEntry[]>([
     {
@@ -85,9 +84,8 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
   const [showLanguages, setShowLanguages] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [languages, setLanguages] = useState<string[]>([]);
-  const [achievements, setAchievements] = useState<string[]>([]);
+  const [achievements, setAchievements] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState('');
-  const [currentAchievement, setCurrentAchievement] = useState('');
   
   useEffect(() => {
     const calculateProfileProgress = () => {
@@ -103,7 +101,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
       if (experienceEntries.length > 0 && experienceEntries[0].employer) completed++;
       if (experienceEntries.length > 0 && experienceEntries[0].jobTitle) completed++;
       if (languages.length > 0) completed++;
-      if (achievements.length > 0) completed++;
+      if (achievements) completed++;
 
       return Math.round((completed / totalPoints) * 100);
     };
@@ -122,7 +120,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
       setEducationEntries(
         userProfile.education.length > 0
           ? userProfile.education.map((edu) => ({ ...edu }))
-          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '', achievements: '' }]
+          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '' }]
       );
       setExperienceEntries(
         userProfile.experience.length > 0
@@ -133,9 +131,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
         (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
       if (userProfile.languages) setShowLanguages(true);
-      setAchievements(
-        (userProfile.awards || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
-      );
+      setAchievements(userProfile.awards || '');
       if (userProfile.awards) setShowAchievements(true);
     }
   }, [userProfile]);
@@ -145,15 +141,13 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
     setProfileData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleQuillChange = (value: any, section: 'education' | 'experience', index: number) => {
-    if (section === 'education') {
-      const updatedEntries = [...educationEntries];
-      updatedEntries[index] = { ...updatedEntries[index], achievements: value };
-      setEducationEntries(updatedEntries);
-    } else {
+  const handleQuillChange = (value: any, section: 'experience' | 'achievements', index?: number) => {
+    if (section === 'experience' && index !== undefined) {
       const updatedEntries = [...experienceEntries];
       updatedEntries[index] = { ...updatedEntries[index], workDescription: value };
       setExperienceEntries(updatedEntries);
+    } else if (section === 'achievements') {
+      setAchievements(value);
     }
   };
 
@@ -177,7 +171,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
   const addEducationEntry = () => {
     setEducationEntries([
       ...educationEntries,
-      { id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', location: '', achievements: '' },
+      { id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', location: '' },
     ]);
   };
 
@@ -223,25 +217,6 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
     setLanguages(languages.filter((lang) => lang !== langToRemove));
   };
 
-  const handleAchievementInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addAchievement();
-    }
-  };
-
-  const addAchievement = () => {
-    const trimmedAchievement = currentAchievement.trim();
-    if (trimmedAchievement && !achievements.includes(trimmedAchievement)) {
-      setAchievements([...achievements, trimmedAchievement]);
-      setCurrentAchievement('');
-    }
-  };
-
-  const removeAchievement = (awardToRemove: string) => {
-    setAchievements(achievements.filter((award) => award !== awardToRemove));
-  };
-
   const validateForm = () => {
     const errors: Partial<typeof profileData> = {};
     if (!profileData.firstName.trim()) errors.firstName = 'First Name is required.';
@@ -252,21 +227,25 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
     return Object.keys(errors).length === 0;
   };
 
-  const handleGenerateAchievements = async (index: number) => {
-    const edu = educationEntries[index];
-    const context = `School: ${edu.school}, Field of Study: ${edu.fieldOfStudy}, Location: ${edu.location}`;
-    setIsAiLoading({ ...isAiLoading, education: index });
+  const handleGenerateProjectsAchievements = async () => {
+    const educationContext =
+      educationEntries
+        .map((edu) => `School: ${edu.school || 'N/A'}, Field of Study: ${edu.fieldOfStudy || 'N/A'}`)
+        .join('; ') || 'No education history provided.';
+
+    const context = `Based on the following education history, generate 3 bullet points for a 'Projects & Achievements' section of a resume. The points should be creative and relevant to the field of study. Please provide 2 project ideas and 1 potential academic or personal award.
+
+Education History: ${educationContext}`;
+    setIsAiLoading({ ...isAiLoading, achievements: true });
     try {
       const result = await generateResumePointsAction({ context });
       if (result?.content) {
-        const updatedEntries = [...educationEntries];
-        updatedEntries[index].achievements = (updatedEntries[index].achievements || '') + result.content;
-        setEducationEntries(updatedEntries);
+        setAchievements((prev) => (prev || '') + result.content);
       }
     } catch (error: any) {
       alert('Error generating AI content: ' + error.message);
     } finally {
-      setIsAiLoading({ ...isAiLoading, education: -1 });
+      setIsAiLoading({ ...isAiLoading, achievements: false });
     }
   };
 
@@ -300,13 +279,12 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
         lastName: profileData.lastName,
         phone: profileData.phone,
         location: profileData.location,
-        education: educationEntries.map(({ id, school, fieldOfStudy, graduationDate, location, achievements }) => ({
+        education: educationEntries.map(({ id, school, fieldOfStudy, graduationDate, location }) => ({
           id,
           school,
           fieldOfStudy,
           graduationDate,
           location,
-          achievements,
         })),
         experience: experienceEntries.map(
           ({ id, employer, jobTitle, startDate, endDate, location, workDescription }) => ({
@@ -320,7 +298,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
           })
         ),
         languages: languages.join(', '),
-        awards: achievements.join(', '),
+        awards: achievements,
       });
       // You can add a success alert here
       alert('Profile Saved Successfully!');
@@ -344,7 +322,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
       setEducationEntries(
         userProfile.education.length > 0
           ? userProfile.education.map((edu) => ({ ...edu }))
-          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '', achievements: '' }]
+          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '' }]
       );
       setExperienceEntries(
         userProfile.experience.length > 0
@@ -355,9 +333,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
         (userProfile.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
       );
       if (userProfile.languages) setShowLanguages(true);
-      setAchievements(
-        (userProfile.awards || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
-      );
+      setAchievements(userProfile.awards || '');
       if (userProfile.awards) setShowAchievements(true);
     }
     setFormErrors({});
@@ -542,25 +518,6 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
                   />
                 </div>
               </div>
-              <div className='quill-container'>
-                <div className='flex justify-between items-center'>
-                  <label htmlFor={`achievements-${index}`} className={labelClassName}>
-                    Key Achievements
-                  </label>
-                  <button
-                    type='button'
-                    onClick={() => handleGenerateAchievements(index)}
-                    className='text-sm text-primary hover:underline'
-                    disabled={isAiLoading.education === index}
-                  >
-                    {isAiLoading.education === index ? 'Generating...' : '✨ AI Writer'}
-                  </button>
-                </div>
-                <QuillEditor
-                  value={edu.achievements || ''}
-                  onChange={(value) => handleQuillChange(value, 'education', index)}
-                />
-              </div>
             </div>
           ))}
           <button type='button' onClick={addEducationEntry} className='text-sm text-primary hover:underline'>
@@ -616,7 +573,8 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
                     onChange={(e) => handleDynamicChange(e, 'experience', index)}
                     className={newStandardInputClass}
                     placeholder='e.g., Software Engineer'
-                  />
+                  >
+                  </input>
                 </div>
               </div>
               <div className='flex flex-col sm:flex-row gap-4'>
@@ -751,51 +709,23 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
           <div className='space-y-2'>
             <div className='flex items-center'>
               <h3 className='text-md font-semibold text-black dark:text-white mr-4'>
-                <span className='text-xl mr-2'>🏆</span>Achievements
+                <span className='text-xl mr-2'>🏆</span>Projects & Achievements
               </h3>
               <SmallSwitcher isOn={showAchievements} onChange={setShowAchievements} />
             </div>
             {showAchievements && (
-              <div className='mt-2.5'>
-                <div className='relative'>
-                  <input
-                    type='text'
-                    placeholder='Add an achievement and press Enter'
-                    value={currentAchievement}
-                    onChange={(e) => setCurrentAchievement(e.target.value)}
-                    onKeyDown={handleAchievementInputKeyDown}
-                    className={`${newStandardInputClass} pr-12`}
-                  />
+              <div className='mt-2.5 quill-container'>
+                <div className='flex justify-end items-center mb-1'>
                   <button
                     type='button'
-                    onClick={addAchievement}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-md transition-opacity duration-200 ${
-                      currentAchievement
-                        ? 'opacity-100 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
-                        : 'opacity-0 pointer-events-none'
-                    }`}
-                    aria-label='Add achievement'
+                    onClick={handleGenerateProjectsAchievements}
+                    className='text-sm text-primary hover:underline'
+                    disabled={isAiLoading.achievements}
                   >
-                    <span className='text-gray-600 dark:text-gray-300 text-xl'>+</span>
+                    {isAiLoading.achievements ? 'Generating...' : '✨ AI Writer'}
                   </button>
                 </div>
-                <div className='flex flex-wrap items-center mt-2'>
-                  {achievements.map((award, index) => (
-                    <span
-                      key={index}
-                      className='m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30'
-                    >
-                      {award}
-                      <button
-                        type='button'
-                        onClick={() => removeAchievement(award)}
-                        className='ml-2 cursor-pointer hover:text-danger'
-                      >
-                        &times;
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                <QuillEditor value={achievements} onChange={(value) => handleQuillChange(value, 'achievements')} />
               </div>
             )}
           </div>
