@@ -262,9 +262,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
         
         <div>
             <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Languages</h2>
-            ${(jsonResponse.languages || [])
-              .map((lang) => `<p style="margin: 2px 0;"><strong>${lang.language}:</strong> ${lang.proficiency}</p>`)
-              .join('')}
+            <p style="line-height: 1.4;">${(jsonResponse.languages || []).map((lang) => lang.language).join(', ')}</p>
         </div>
 
         <div>
