@@ -68,7 +68,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     school: string;
     date: string;
   } | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState({ experience: false, projects: false });
   const generateResumePointsAction = useAction(generateAiResumePoints);
   const [showSkillsEdit, setShowSkillsEdit] = useState(false);
   const [editingSkills, setEditingSkills] = useState<string[]>([]);
@@ -76,6 +76,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   const [showLanguagesEdit, setShowLanguagesEdit] = useState(false);
   const [editingLanguages, setEditingLanguages] = useState<string[]>([]);
   const [currentLanguage, setCurrentLanguage] = useState('');
+  const [showProjectsEdit, setShowProjectsEdit] = useState(false);
+  const [editingProjectsContent, setEditingProjectsContent] = useState('');
 
   useEffect(() => {
     if (generatedContent) {
@@ -452,6 +454,53 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       }
     }
 
+    // --- Projects & Achievements Edit Button ---
+    const projectsH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('projects & achievements'));
+    if (projectsH2 && projectsH2.parentElement) {
+      const projectsContainer = projectsH2.nextElementSibling as HTMLElement | null;
+      if (projectsContainer) {
+        projectsContainer.style.position = 'relative';
+
+        const handleMouseEnter = () => {
+          projectsContainer.querySelector('.edit-button-projects')?.remove();
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'edit-button-projects';
+          btn.style.position = 'absolute';
+          btn.style.top = '8px';
+          btn.style.right = '8px';
+          btn.style.zIndex = '10';
+          btn.style.background = 'white';
+          btn.style.borderRadius = '8px';
+          btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+          btn.style.padding = '6px';
+          btn.style.border = '1px solid #e2e8f0';
+          btn.style.display = 'flex';
+          btn.style.alignItems = 'center';
+          btn.style.justifyContent = 'center';
+          btn.style.cursor = 'pointer';
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            setEditingProjectsContent(projectsContainer.innerHTML);
+            setShowProjectsEdit(true);
+          }
+          projectsContainer.appendChild(btn);
+        };
+
+        const handleMouseLeave = () => {
+          setTimeout(() => {
+            if (!projectsContainer.matches(':hover')) {
+              projectsContainer.querySelector('.edit-button-projects')?.remove();
+            }
+          }, 300);
+        };
+
+        projectsContainer.addEventListener('mouseenter', handleMouseEnter);
+        projectsContainer.addEventListener('mouseleave', handleMouseLeave);
+      }
+    }
+
     // No specific cleanup needed as dangerouslySetInnerHTML re-renders everything
   }, [generatedContent, sections]);
 
@@ -661,11 +710,55 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     setShowLanguagesEdit(false);
   };
 
+  const handleProjectsSave = () => {
+    if (!generatedContent) return;
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = generatedContent;
+
+    const projectsH2 = Array.from(tempDiv.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('projects & achievements'));
+    if (projectsH2) {
+      const projectsContainer = projectsH2.nextElementSibling;
+      if (projectsContainer) {
+        projectsContainer.innerHTML = editingProjectsContent;
+      }
+    }
+
+    onContentChange(tempDiv.innerHTML);
+    setShowProjectsEdit(false);
+  };
+
+  const handleGenerateProjectsContent = async () => {
+    setIsAiLoading({ ...isAiLoading, projects: true });
+    try {
+        const resumeContent = document.getElementById('resume-content');
+        if (!resumeContent) {
+            throw new Error("Could not find resume content to build context.");
+        }
+
+        const experienceTitles = Array.from(resumeContent.querySelectorAll('h3'))
+                                     .map(h3 => h3.textContent?.trim())
+                                     .filter(Boolean)
+                                     .join(', ');
+
+        const context = `Based on job titles and degrees like: ${experienceTitles}, suggest three bullet points for a 'Projects & Achievements' section, providing 2 project ideas and 1 award or accomplishment. The points should be creative and relevant to the user's likely field.`;
+
+        const result = await generateResumePointsAction({ context });
+        if (result?.content) {
+            setEditingProjectsContent(prev => (prev || '') + result.content);
+        }
+    } catch (error: any) {
+        alert('Error generating AI content: ' + error.message);
+    } finally {
+        setIsAiLoading({ ...isAiLoading, projects: false });
+    }
+  };
+
   const handleGenerateWorkDescription = async () => {
     if (!editingExperience) return;
     const { title, company, location } = editingExperience;
     const context = `Job Title: ${title}, Employer: ${company}, Location: ${location}`;
-    setIsAiLoading(true);
+    setIsAiLoading({ ...isAiLoading, experience: true });
     try {
       const result = await generateResumePointsAction({ context });
       if (result?.content) {
@@ -677,7 +770,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     } catch (error: any) {
       alert('Error generating AI content: ' + error.message);
     } finally {
-      setIsAiLoading(false);
+      setIsAiLoading({ ...isAiLoading, experience: false });
     }
   };
 
@@ -914,9 +1007,9 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                             type='button'
                             onClick={handleGenerateWorkDescription}
                             className='text-sm text-primary hover:underline'
-                            disabled={isAiLoading}
+                            disabled={isAiLoading.experience}
                           >
-                            {isAiLoading ? 'Generating...' : '✨ AI Writer'}
+                            {isAiLoading.experience ? 'Generating...' : '✨ AI Writer'}
                           </button>
                         </div>
                         <div className='quill-container'>
@@ -1273,6 +1366,72 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                       type='button'
                       className='inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90'
                       onClick={handleLanguagesSave}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Projects & Achievements Edit Modal */}
+      <Transition appear show={showProjectsEdit} as={React.Fragment}>
+        <Dialog as='div' className='relative z-50' onClose={() => setShowProjectsEdit(false)}>
+          <Transition.Child
+            as={React.Fragment}
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-200'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
+          >
+            <div className='fixed inset-0 bg-black bg-opacity-50' />
+          </Transition.Child>
+
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
+              <Transition.Child
+                as={React.Fragment}
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-200'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
+              >
+                <Dialog.Panel className='w-full max-w-2xl transform rounded-2xl bg-white dark:bg-boxdark p-6 text-left align-middle shadow-xl transition-all'>
+                  <Dialog.Title as='h3' className='text-lg font-medium leading-6 text-gray-900 dark:text-white'>
+                    Edit Projects & Achievements
+                  </Dialog.Title>
+                  <div className='mt-4 quill-container'>
+                    <div className='flex justify-end items-center mb-1'>
+                        <button
+                          type='button'
+                          onClick={handleGenerateProjectsContent}
+                          className='text-sm text-primary hover:underline'
+                          disabled={isAiLoading.projects}
+                        >
+                          {isAiLoading.projects ? 'Generating...' : '✨ AI Writer'}
+                        </button>
+                    </div>
+                    <QuillEditor value={editingProjectsContent} onChange={setEditingProjectsContent} />
+                  </div>
+                  <div className='mt-6 flex justify-end gap-4'>
+                    <button
+                      type='button'
+                      className='inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                      onClick={() => setShowProjectsEdit(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type='button'
+                      className='inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90'
+                      onClick={handleProjectsSave}
                     >
                       Save
                     </button>
