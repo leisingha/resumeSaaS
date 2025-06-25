@@ -321,7 +321,38 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
           btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
           btn.onclick = (e) => {
             e.stopPropagation();
-            const skillsList = Array.from(skillsContainer.querySelectorAll('span')).map(span => span.textContent?.trim()).filter(Boolean) as string[];
+            
+            // Try different selectors to extract skills from various formats
+            let skillsList: string[] = [];
+            
+            // Try spans first
+            const spans = Array.from(skillsContainer.querySelectorAll('span')).map(span => span.textContent?.trim()).filter(Boolean) as string[];
+            if (spans.length > 0) {
+              skillsList = spans;
+            } else {
+              // Try extracting from paragraph text (comma-separated)
+              const paragraphs = Array.from(skillsContainer.querySelectorAll('p'));
+              if (paragraphs.length > 0) {
+                const pText = paragraphs[0].textContent?.trim() || '';
+                if (pText) {
+                  skillsList = pText.split(',').map(skill => skill.trim()).filter(Boolean);
+                }
+              } else {
+                // Try extracting from list items
+                const listItems = Array.from(skillsContainer.querySelectorAll('li')).map(li => li.textContent?.trim()).filter(Boolean) as string[];
+                if (listItems.length > 0) {
+                  skillsList = listItems;
+                } else {
+                  // Fallback: get all text content and try to split
+                  const allText = skillsContainer.textContent?.trim() || '';
+                  if (allText) {
+                    skillsList = allText.split(',').map(skill => skill.trim()).filter(Boolean);
+                  }
+                }
+              }
+            }
+            
+            console.log('Extracted skills:', skillsList);
             setEditingSkills(skillsList);
             setShowSkillsEdit(true);
           }
@@ -1012,7 +1043,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                   <div className="mt-4">
                     <div className="mb-4.5">
                       <label className="mb-2.5 block text-black dark:text-white">
-                        Key Skills
+                        Skills
                       </label>
                       <div className="relative">
                         <input
@@ -1021,7 +1052,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                           value={currentSkill}
                           onChange={(e) => setCurrentSkill(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
+                            if (e.key === 'Enter' || e.key === ',') {
                               e.preventDefault();
                               const trimmedSkill = currentSkill.trim();
                               if (trimmedSkill && !editingSkills.includes(trimmedSkill)) {
@@ -1030,14 +1061,32 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                               }
                             }
                           }}
-                          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary pr-12"
                         />
+                        <button
+                          type='button'
+                          onClick={() => {
+                            const trimmedSkill = currentSkill.trim();
+                            if (trimmedSkill && !editingSkills.includes(trimmedSkill)) {
+                              setEditingSkills([...editingSkills, trimmedSkill]);
+                              setCurrentSkill('');
+                            }
+                          }}
+                          className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-md transition-opacity duration-200 ${
+                            currentSkill
+                              ? 'opacity-100 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
+                              : 'opacity-0 pointer-events-none'
+                          }`}
+                          aria-label='Add skill'
+                        >
+                          <span className='text-gray-600 dark:text-gray-300 text-xl'>+</span>
+                        </button>
                       </div>
                       <div className="flex flex-wrap items-center mt-2">
                         {editingSkills.map((skill, index) => (
                           <span
                             key={index}
-                            className="m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium text-black dark:text-white dark:border-strokedark dark:bg-white/30"
+                            className="m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30 dark:text-white"
                           >
                             {skill}
                             <button
@@ -1045,7 +1094,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                               onClick={() => setEditingSkills(editingSkills.filter(s => s !== skill))}
                               className="ml-2 cursor-pointer hover:text-danger"
                             >
-                              &times;
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M9.35355 3.35355C9.54882 3.15829 9.54882 2.84171 9.35355 2.64645C9.15829 2.45118 8.84171 2.45118 8.64645 2.64645L6 5.29289L3.35355 2.64645C3.15829 2.45118 2.84171 2.45118 2.64645 2.64645C2.45118 2.84171 2.45118 3.15829 2.64645 3.35355L5.29289 6L2.64645 8.64645C2.45118 8.84171 2.45118 9.15829 2.64645 9.35355C2.84171 9.54882 3.15829 9.54882 3.35355 9.35355L6 6.70711L8.64645 9.35355C8.84171 9.54882 9.15829 9.54882 9.35355 9.35355C9.54882 9.15829 9.54882 8.84171 9.35355 8.64645L6.70711 6L9.35355 3.35355Z" fill="currentColor"></path></svg>
                             </button>
                           </span>
                         ))}
