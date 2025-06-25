@@ -87,15 +87,19 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       const contentNode = contentRef.current;
 
       if (containerNode && contentNode && contentNode.firstChild) {
+        const A4_ASPECT_RATIO = 297 / 210;
         const containerWidth = containerNode.offsetWidth;
+
+        // Enforce A4 aspect ratio on the container
+        containerNode.style.height = `${containerWidth * A4_ASPECT_RATIO}px`;
+
         const contentElement = contentNode.firstChild as HTMLElement;
         const contentWidth = contentElement.offsetWidth;
 
         if (contentWidth > 0 && containerWidth > 0) {
           const scale = containerWidth / contentWidth;
           contentNode.style.transform = `scale(${scale})`;
-          const contentHeight = contentElement.offsetHeight;
-          containerNode.style.height = `${contentHeight * scale}px`;
+          // The container height is now set based on aspect ratio, not content.
         }
       }
     };
@@ -234,11 +238,17 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     // --- Education Edit Buttons ---
     const educationH2 = Array.from(resumeContent.getElementsByTagName('h2')).find((h2) => h2.textContent?.toLowerCase().includes('education'));
     if (educationH2 && educationH2.parentElement) {
+      const educationSectionState = sections.find((s) => s.id === 'education');
+      const isVisible = educationSectionState?.visible;
+
+      educationH2.style.display = isVisible ? '' : 'none';
+
        const educationEntries = Array.from(educationH2.parentElement.children).filter(
         (child) => child.tagName === 'DIV' && child.querySelector('h3')
       ) as HTMLElement[];
 
       educationEntries.forEach((entry, index) => {
+        entry.style.display = isVisible ? '' : 'none';
         entry.style.position = 'relative';
         const handleMouseEnter = () => {
           entry.querySelector('.edit-button-education')?.remove();
@@ -607,8 +617,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
       {/* Content Area */}
       <div
+        className='relative w-full overflow-hidden rounded-lg shadow-lg bg-white'
         ref={containerRef}
-        className='w-full overflow-hidden rounded-lg border border-stroke dark:border-strokedark'
       >
         <div
           ref={contentRef}
