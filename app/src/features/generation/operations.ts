@@ -176,7 +176,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
 
     // Convert the JSON response to a structured HTML document
     const htmlContent = `
-      <div style="background-color: white; padding: 0.5in; font-family: serif; font-size: 10pt; color: #333;">
+      <div style="background-color: white; padding: 43px 48px 48px; font-family: serif; font-size: 10pt; color: #333;">
         <div style="text-align: center; margin-bottom: 20px;">
           <h1 style="font-size: 24pt; font-weight: bold; margin: 0;">${userProfile.firstName} ${
       userProfile.lastName

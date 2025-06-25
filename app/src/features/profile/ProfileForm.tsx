@@ -652,6 +652,30 @@ Education History: ${educationContext}`;
 
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
         <div className='md:col-span-3 space-y-5.5'>
+          {/* Achievements Section */}
+          <div className='space-y-2'>
+            <div className='flex items-center'>
+              <h3 className='text-md font-semibold text-black dark:text-white mr-4'>
+                <span className='text-xl mr-2'>🏆</span>Projects & Achievements
+              </h3>
+              <SmallSwitcher isOn={showAchievements} onChange={setShowAchievements} />
+            </div>
+            {showAchievements && (
+              <div className='mt-2.5 quill-container'>
+                <div className='flex justify-end items-center mb-1'>
+                  <button
+                    type='button'
+                    onClick={handleGenerateProjectsAchievements}
+                    className='text-sm text-primary hover:underline'
+                    disabled={isAiLoading.achievements}
+                  >
+                    {isAiLoading.achievements ? 'Generating...' : '✨ AI Writer'}
+                  </button>
+                </div>
+                <QuillEditor value={achievements} onChange={(value) => handleQuillChange(value, 'achievements')} />
+              </div>
+            )}
+          </div>
           {/* Languages Section */}
           <div className='space-y-2'>
             <div className='flex items-center'>
@@ -701,31 +725,6 @@ Education History: ${educationContext}`;
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Achievements Section */}
-          <div className='space-y-2'>
-            <div className='flex items-center'>
-              <h3 className='text-md font-semibold text-black dark:text-white mr-4'>
-                <span className='text-xl mr-2'>🏆</span>Projects & Achievements
-              </h3>
-              <SmallSwitcher isOn={showAchievements} onChange={setShowAchievements} />
-            </div>
-            {showAchievements && (
-              <div className='mt-2.5 quill-container'>
-                <div className='flex justify-end items-center mb-1'>
-                  <button
-                    type='button'
-                    onClick={handleGenerateProjectsAchievements}
-                    className='text-sm text-primary hover:underline'
-                    disabled={isAiLoading.achievements}
-                  >
-                    {isAiLoading.achievements ? 'Generating...' : '✨ AI Writer'}
-                  </button>
-                </div>
-                <QuillEditor value={achievements} onChange={(value) => handleQuillChange(value, 'achievements')} />
               </div>
             )}
           </div>
