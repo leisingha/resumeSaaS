@@ -36,7 +36,7 @@ const AppPage = () => {
 
   const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>({
     template: 'classic',
-    colorScheme: '#805AD5',
+    colorScheme: '#2D3748',
     targetJobTitle: '',
     targetCompany: '',
     keySkills: '',
@@ -57,8 +57,7 @@ const AppPage = () => {
     { id: 'education', label: 'Education', visible: true, hasHandle: true },
     { id: 'languages', label: 'Languages', visible: false, hasHandle: true },
     { id: 'skills', label: 'Skills', visible: true, hasHandle: true },
-    { id: 'certificates', label: 'Certificates', visible: false, hasHandle: true },
-    { id: 'awards', label: 'Awards', visible: false, hasHandle: true },
+    { id: 'projects', label: 'Projects & Achievements', visible: true, hasHandle: true },
   ]);
 
   useEffect(() => {
@@ -175,7 +174,12 @@ const AppPage = () => {
       <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>
         <div className='flex flex-col gap-6 md:col-span-3'>
           <div className='h-9' />
-          <ResumeCustomizer part='templateControls' options={customizationOptions} onOptionsChange={setCustomizationOptions} />
+          <ResumeCustomizer
+            part='templateControls'
+            options={customizationOptions}
+            onOptionsChange={setCustomizationOptions}
+            isResumeGenerated={isResumeGenerated}
+          />
           <button
             type='button'
             onClick={() => setIsManageSectionsOpen(true)}

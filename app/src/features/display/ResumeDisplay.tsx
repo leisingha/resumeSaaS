@@ -117,6 +117,32 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     };
   }, [generatedContent]);
 
+  useEffect(() => {
+    const resumeContent = document.getElementById('resume-content');
+    if (!resumeContent) return;
+
+    // Remove any existing color style tag to prevent multiple insertions
+    const existingStyle = resumeContent.querySelector('#resume-color-style');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+
+    // Create and inject a new style tag
+    const style = document.createElement('style');
+    style.id = 'resume-color-style';
+    style.innerHTML = `
+      #resume-content h1,
+      #resume-content h2,
+      #resume-content h3,
+      #resume-content p,
+      #resume-content li,
+      #resume-content span {
+        color: ${options.colorScheme} !important;
+      }
+    `;
+    resumeContent.prepend(style);
+  }, [generatedContent, options.colorScheme]);
+
   // Find summary section in the rendered HTML
   useEffect(() => {
     if (!generatedContent) return;
@@ -187,11 +213,17 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     // --- Experience Edit Buttons ---
     const experienceH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('experience'));
     if (experienceH2 && experienceH2.parentElement) {
+      const experienceSectionState = sections.find((s) => s.id === 'experience');
+      const isVisible = experienceSectionState?.visible;
+
+      experienceH2.style.display = isVisible ? '' : 'none';
+
       const experienceEntries = Array.from(experienceH2.parentElement.children).filter(
         (child) => child.tagName === 'DIV' && child.querySelector('h3')
       ) as HTMLElement[];
 
       experienceEntries.forEach((entry, index) => {
+        entry.style.display = isVisible ? '' : 'none';
         entry.style.position = 'relative';
 
         const handleMouseEnter = () => {
@@ -303,8 +335,13 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     // --- Skills Edit Button ---
     const skillsH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('skills'));
     if (skillsH2 && skillsH2.parentElement) {
+      const skillsSectionState = sections.find((s) => s.id === 'skills');
+      const isVisible = skillsSectionState?.visible;
+
+      skillsH2.style.display = isVisible ? '' : 'none';
       const skillsContainer = skillsH2.nextElementSibling as HTMLElement | null;
       if (skillsContainer) {
+        skillsContainer.style.display = isVisible ? '' : 'none';
         skillsContainer.style.position = 'relative';
 
         const handleMouseEnter = () => {
@@ -382,8 +419,13 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     // --- Languages Edit Button ---
     const languagesH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('languages'));
     if (languagesH2 && languagesH2.parentElement) {
+      const languageSectionState = sections.find((s) => s.id === 'languages');
+      const isVisible = languageSectionState?.visible;
+
+      languagesH2.style.display = isVisible ? '' : 'none';
       const languagesContainer = languagesH2.nextElementSibling as HTMLElement | null;
       if (languagesContainer) {
+        languagesContainer.style.display = isVisible ? '' : 'none';
         languagesContainer.style.position = 'relative';
 
         const handleMouseEnter = () => {
@@ -461,8 +503,13 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     // --- Projects & Achievements Edit Button ---
     const projectsH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('projects & achievements'));
     if (projectsH2 && projectsH2.parentElement) {
+      const projectsSectionState = sections.find((s) => s.id === 'projects');
+      const isVisible = projectsSectionState?.visible;
+
+      projectsH2.style.display = isVisible ? '' : 'none';
       const projectsContainer = projectsH2.nextElementSibling as HTMLElement | null;
       if (projectsContainer) {
+        projectsContainer.style.display = isVisible ? '' : 'none';
         projectsContainer.style.position = 'relative';
 
         const handleMouseEnter = () => {
@@ -725,7 +772,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
     const projectsH2 = Array.from(tempDiv.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('projects & achievements'));
     if (projectsH2) {
-      const projectsContainer = projectsH2.nextElementSibling;
+      const projectsContainer = projectsH2.nextElementSibling as HTMLElement | null;
       if (projectsContainer) {
         projectsContainer.innerHTML = editingProjectsContent;
       }

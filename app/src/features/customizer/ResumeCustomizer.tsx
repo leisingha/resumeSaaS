@@ -17,9 +17,10 @@ interface ResumeCustomizerProps {
   part: 'templateControls' | 'detailControls';
   documentType?: DocumentType; // Make optional as it's only for detailControls
   onDocumentTypeChange?: (type: DocumentType) => void; // Make optional
+  isResumeGenerated?: boolean;
 }
 
-const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsChange, part, documentType, onDocumentTypeChange }) => {
+const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsChange, part, documentType, onDocumentTypeChange, isResumeGenerated }) => {
   const [currentSkill, setCurrentSkill] = useState('');
   const [skillsList, setSkillsList] = useState<string[]>(options.keySkills ? options.keySkills.split(',').map(s => s.trim()).filter(s => s) : []);
   const [isJobDescriptionVisible, setIsJobDescriptionVisible] = useState(false);
@@ -84,7 +85,8 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
                   type='button'
                   onClick={() => handleColorChange(color.hex)}
                   title={color.name}
-                  className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none ${
+                  disabled={!isResumeGenerated}
+                  className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
                     isSelected ? 'bg-violet-200 dark:bg-violet-800' : 'bg-transparent'
                   }`}
                 >
