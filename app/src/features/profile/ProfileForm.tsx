@@ -499,7 +499,7 @@ Education History: ${educationContext}`;
                 </div>
                 <div className='w-full sm:w-1/2'>
                   <label htmlFor={`gpa-${index}`} className={labelClassName}>
-                    GPA
+                    GPA <span className='text-sm text-gray-500 dark:text-gray-400'>(optional)</span>
                   </label>
                   <input
                     type='text'

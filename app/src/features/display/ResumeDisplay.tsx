@@ -67,6 +67,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     degree: string;
     school: string;
     date: string;
+    gpa: string;
   } | null>(null);
   const [isAiLoading, setIsAiLoading] = useState({ experience: false, projects: false });
   const generateResumePointsAction = useAction(generateAiResumePoints);
@@ -277,9 +278,12 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
             e.stopPropagation();
             e.preventDefault();
             const degree = entry.querySelector('h3')?.textContent || '';
-            const school = entry.querySelector('p')?.textContent || '';
+            const pElement = entry.querySelector('p');
+            const school = pElement?.childNodes[0]?.textContent?.trim() || '';
+            const gpaSpan = pElement?.querySelector('span');
+            const gpa = gpaSpan?.textContent?.trim() || '';
             const date = entry.querySelector('div[style*="text-align: right"] p')?.textContent || '';
-            setEditingEducation({ index, degree, school, date });
+            setEditingEducation({ index, degree, school, date, gpa });
             setShowEducationEdit(true);
           };
           entry.appendChild(btn);
@@ -640,11 +644,14 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     const entryToUpdate = educationEntries[editingEducation.index] as HTMLElement;
 
     if (entryToUpdate) {
+      const gpaHtml = editingEducation.gpa
+        ? ` <span style="margin-left: 1rem; color: #555;">${editingEducation.gpa}</span>`
+        : '';
       entryToUpdate.innerHTML = `
         <div style="display: flex; justify-content: space-between;">
             <div>
                 <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${editingEducation.degree}</h3>
-                <p style="margin: 2px 0;">${editingEducation.school}</p>
+                <p style="margin: 2px 0;">${editingEducation.school}${gpaHtml}</p>
             </div>
             <div style="text-align: right;">
                 <p style="margin: 0;">${editingEducation.date}</p>
@@ -1047,7 +1054,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       </Transition>
 
       {/* Education Edit Modal */}
-      <Transition appear show={showEducationEdit} as={React.Fragment}>
+      <Transition show={showEducationEdit} as={React.Fragment}>
         <Dialog as='div' className='relative z-50' onClose={() => setShowEducationEdit(false)}>
           <Transition.Child
             as={React.Fragment}
@@ -1072,71 +1079,74 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full max-w-2xl transform rounded-2xl bg-white dark:bg-boxdark p-6 text-left align-middle shadow-xl transition-all'>
+                <Dialog.Panel className='w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all dark:bg-boxdark'>
                   <Dialog.Title as='h3' className='text-lg font-medium leading-6 text-gray-900 dark:text-white'>
                     Edit Education
                   </Dialog.Title>
-                  {editingEducation && (
-                    <div className='mt-4 space-y-4'>
-                      <div className='flex flex-col sm:flex-row gap-4'>
-                        <div className='w-full sm:w-1/2'>
-                          <label className='mb-2.5 block text-sm font-medium text-black dark:text-white'>
-                            Degree
-                          </label>
-                          <input
-                            type='text'
-                            value={editingEducation.degree}
-                            onChange={(e) =>
-                              setEditingEducation({ ...editingEducation, degree: e.target.value })
-                            }
-                            className='w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
-                          />
-                        </div>
-                        <div className='w-full sm:w-1/2'>
-                          <label className='mb-2.5 block text-sm font-medium text-black dark:text-white'>
-                            School
-                          </label>
-                          <input
-                            type='text'
-                            value={editingEducation.school}
-                            onChange={(e) =>
-                              setEditingEducation({ ...editingEducation, school: e.target.value })
-                            }
-                            className='w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
-                          />
-                        </div>
-                      </div>
-                      <div className='flex flex-col sm:flex-row gap-4'>
-                        <div className='w-full sm:w-1/2'>
-                          <label className='mb-2.5 block text-sm font-medium text-black dark:text-white'>
-                            Date
-                          </label>
-                          <input
-                            type='text'
-                            value={editingEducation.date}
-                            onChange={(e) =>
-                              setEditingEducation({ ...editingEducation, date: e.target.value })
-                            }
-                            className='w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
-                          />
-                        </div>
-                         <div className='w-full sm:w-1/2'>
-                          {/* This can be a location field if needed in the future */}
-                        </div>
-                      </div>
+                  <div className='mt-4 space-y-4'>
+                    <div>
+                      <label className='mb-2.5 block text-sm font-medium text-black dark:text-white'>School</label>
+                      <input
+                        type='text'
+                        value={editingEducation?.school || ''}
+                        onChange={(e) =>
+                          setEditingEducation((prev) => (prev ? { ...prev, school: e.target.value } : null))
+                        }
+                        className='w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
+                      />
                     </div>
-                  )}
+                    <div>
+                      <label className='mb-2.5 block text-sm font-medium text-black dark:text-white'>
+                        Field of Study
+                      </label>
+                      <input
+                        type='text'
+                        value={editingEducation?.degree || ''}
+                        onChange={(e) =>
+                          setEditingEducation((prev) => (prev ? { ...prev, degree: e.target.value } : null))
+                        }
+                        className='w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
+                      />
+                    </div>
+                    <div>
+                      <label className='mb-2.5 block text-sm font-medium text-black dark:text-white'>
+                        Graduation Date
+                      </label>
+                      <input
+                        type='text'
+                        value={editingEducation?.date || ''}
+                        onChange={(e) =>
+                          setEditingEducation((prev) => (prev ? { ...prev, date: e.target.value } : null))
+                        }
+                        className='w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
+                      />
+                    </div>
+                    <div>
+                      <label className='mb-2.5 block text-sm font-medium text-black dark:text-white'>
+                        GPA (optional)
+                      </label>
+                      <input
+                        type='text'
+                        value={editingEducation?.gpa || ''}
+                        onChange={(e) =>
+                          setEditingEducation((prev) => (prev ? { ...prev, gpa: e.target.value } : null))
+                        }
+                        className='w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
+                      />
+                    </div>
+                  </div>
+
                   <div className='mt-6 flex justify-end gap-4'>
                     <button
                       type='button'
-                      className='inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                      className='inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
                       onClick={() => setShowEducationEdit(false)}
                     >
                       Cancel
                     </button>
                     <button
                       type='button'
-                      className='inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 focus:outline-none'
+                      className='inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
                       onClick={handleEducationSave}
                     >
                       Save

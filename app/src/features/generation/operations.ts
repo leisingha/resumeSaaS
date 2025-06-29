@@ -198,8 +198,10 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
                     <div style="display: flex; justify-content: space-between;">
                         <div>
                             <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${edu.degree}</h3>
-                            <p style="margin: 2px 0;">${edu.school}</p>
-                            ${edu.gpa ? `<p style="margin: 2px 0;">GPA: ${edu.gpa}</p>` : ''}
+                            <p style="margin: 2px 0;">
+                              ${edu.school}
+                              ${edu.gpa ? `<span style="margin-left: 10px;">GPA: ${edu.gpa}</span>` : ''}
+                            </p>
                         </div>
                         <div style="text-align: right;">
                             <p style="margin: 0;">${edu.date}</p>
