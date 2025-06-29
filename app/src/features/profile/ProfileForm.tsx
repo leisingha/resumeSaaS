@@ -40,7 +40,7 @@ interface EducationEntry {
   school: string | null;
   fieldOfStudy: string | null;
   graduationDate: string | null;
-  location: string | null;
+  gpa: string | null;
 }
 
 interface ExperienceEntry {
@@ -67,7 +67,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
     email: '', // This will be populated from the query but is not editable
   });
   const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([
-    { id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', location: '' },
+    { id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', gpa: '' },
   ]);
   const [experienceEntries, setExperienceEntries] = useState<ExperienceEntry[]>([
     {
@@ -117,8 +117,8 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
       });
       setEducationEntries(
         userProfile.education.length > 0
-          ? userProfile.education.map((edu) => ({ ...edu }))
-          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '' }]
+          ? userProfile.education.map((edu) => ({ ...edu, gpa: edu.gpa || '' }))
+          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', gpa: '' }]
       );
       setExperienceEntries(
         userProfile.experience.length > 0
@@ -167,7 +167,7 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
   const addEducationEntry = () => {
     setEducationEntries([
       ...educationEntries,
-      { id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', location: '' },
+      { id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', gpa: '' },
     ]);
   };
 
@@ -275,12 +275,12 @@ Education History: ${educationContext}`;
         lastName: profileData.lastName,
         phone: profileData.phone,
         location: profileData.location,
-        education: educationEntries.map(({ id, school, fieldOfStudy, graduationDate, location }) => ({
+        education: educationEntries.map(({ id, school, fieldOfStudy, graduationDate, gpa }) => ({
           id,
           school,
           fieldOfStudy,
           graduationDate,
-          location,
+          gpa,
         })),
         experience: experienceEntries.map(
           ({ id, employer, jobTitle, startDate, endDate, location, workDescription }) => ({
@@ -317,8 +317,8 @@ Education History: ${educationContext}`;
       });
       setEducationEntries(
         userProfile.education.length > 0
-          ? userProfile.education.map((edu) => ({ ...edu }))
-          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', location: '' }]
+          ? userProfile.education.map((edu) => ({ ...edu, gpa: edu.gpa || '' }))
+          : [{ id: '', school: '', fieldOfStudy: '', graduationDate: '', gpa: '' }]
       );
       setExperienceEntries(
         userProfile.experience.length > 0
@@ -498,24 +498,24 @@ Education History: ${educationContext}`;
                   />
                 </div>
                 <div className='w-full sm:w-1/2'>
-                  <label htmlFor={`location-${index}`} className={labelClassName}>
-                    Location
+                  <label htmlFor={`gpa-${index}`} className={labelClassName}>
+                    GPA
                   </label>
                   <input
                     type='text'
-                    id={`location-${index}`}
-                    name='location'
-                    value={edu.location || ''}
+                    id={`gpa-${index}`}
+                    name='gpa'
+                    value={edu.gpa || ''}
                     onChange={(e) => handleDynamicChange(e, 'education', index)}
                     className={newStandardInputClass}
-                    placeholder='e.g., City, State'
+                    placeholder='e.g., 3.8/4.0'
                   />
                 </div>
               </div>
             </div>
           ))}
-          <button type='button' onClick={addEducationEntry} className='text-sm text-primary hover:underline'>
-            + Add Education
+          <button type='button' onClick={addEducationEntry} className='text-sm text-blue-500 hover:text-blue-700'>
+            + Add Another School
           </button>
         </div>
       </div>

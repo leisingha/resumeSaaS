@@ -46,7 +46,7 @@ const formatProfileForPrompt = (
       school: e.school,
       fieldOfStudy: e.fieldOfStudy,
       graduationDate: e.graduationDate,
-      location: e.location,
+      gpa: e.gpa,
     })),
     experience: profile.experience.map((e) => ({
       employer: e.employer,
@@ -78,7 +78,8 @@ const resumeJsonSchema = `
     {
       "degree": "string",
       "school": "string",
-      "date": "string"
+      "date": "string",
+      "gpa": "string (optional)"
     }
   ],
   "skills": [
@@ -106,6 +107,7 @@ type ResumeData = {
     degree: string;
     school: string;
     date: string;
+    gpa?: string;
   }[];
   skills: string[];
   languages: {
@@ -151,7 +153,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
     - Contact Info (e.g., (555) 555-5555 | james.appleseed@resume.com | 1234 Main St. San Francisco, CA)
     - Summary: A 2-3 sentence professional summary.
     - Experience: List of jobs with title, company, dates, and 2-3 bullet points with quantifiable achievements.
-    - Education: List of degrees with school, graduation date, and details like GPA or clubs.
+    - Education: List of degrees with school and graduation date. If a GPA is provided in the user's data, it MUST be included.
     - Skills: List of relevant skills.
     - Languages: List of languages and proficiency.
 
@@ -197,6 +199,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
                         <div>
                             <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${edu.degree}</h3>
                             <p style="margin: 2px 0;">${edu.school}</p>
+                            ${edu.gpa ? `<p style="margin: 2px 0;">GPA: ${edu.gpa}</p>` : ''}
                         </div>
                         <div style="text-align: right;">
                             <p style="margin: 0;">${edu.date}</p>

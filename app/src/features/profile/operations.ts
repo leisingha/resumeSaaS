@@ -63,20 +63,21 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
   if (!firstName || !lastName || !phone) {
     throw new HttpError(400, 'Missing required fields: First Name, Last Name and Phone are required.');
   }
+
+  // To ensure data consistency, we'll first remove all existing entries
+  // and then create the new ones based on the client's payload.
   
-  const existingProfile = await context.entities.UserProfile.findUnique({
-    where: { userId: context.user.id },
-    select: { education: { select: { id: true } }, experience: { select: { id: true } } },
+  // Delete existing education entries
+  await context.entities.EducationEntry.deleteMany({
+    where: { userProfile: { userId: context.user.id } },
+  });
+  
+  // Delete existing experience entries
+  await context.entities.ExperienceEntry.deleteMany({
+    where: { userProfile: { userId: context.user.id } },
   });
 
-  const clientEducationIds = education.map((e) => e.id).filter(Boolean);
-  const educationIdsToDelete =
-    existingProfile?.education.map((e) => e.id).filter((id) => !clientEducationIds.includes(id)) || [];
-
-  const clientExperienceIds = experience.map((e) => e.id).filter(Boolean);
-  const experienceIdsToDelete =
-    existingProfile?.experience.map((e) => e.id).filter((id) => !clientExperienceIds.includes(id)) || [];
-
+  // Now, upsert the profile with the new education and experience entries
   return context.entities.UserProfile.upsert({
     where: { userId: context.user.id },
     create: {
@@ -88,11 +89,11 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
       languages,
       awards,
       education: {
-        create: education.map(({ school, fieldOfStudy, graduationDate, location }) => ({
+        create: education.map(({ school, fieldOfStudy, graduationDate, gpa }) => ({
           school,
           fieldOfStudy,
           graduationDate,
-          location,
+          gpa,
         })),
       },
       experience: {
@@ -114,19 +115,21 @@ export const saveUserProfile: SaveUserProfile<SaveProfilePayload, UserProfile> =
       languages,
       awards,
       education: {
-        deleteMany: { id: { in: educationIdsToDelete } },
-        upsert: education.map(({ id, school, fieldOfStudy, graduationDate, location }) => ({
-          where: { id: id || '' },
-          create: { school, fieldOfStudy, graduationDate, location },
-          update: { school, fieldOfStudy, graduationDate, location },
+        create: education.map(({ school, fieldOfStudy, graduationDate, gpa }) => ({
+          school,
+          fieldOfStudy,
+          graduationDate,
+          gpa,
         })),
       },
       experience: {
-        deleteMany: { id: { in: experienceIdsToDelete } },
-        upsert: experience.map(({ id, employer, jobTitle, startDate, endDate, location, workDescription }) => ({
-          where: { id: id || '' },
-          create: { employer, jobTitle, startDate, endDate, location, workDescription },
-          update: { employer, jobTitle, startDate, endDate, location, workDescription },
+        create: experience.map(({ employer, jobTitle, startDate, endDate, location, workDescription }) => ({
+          employer,
+          jobTitle,
+          startDate,
+          endDate,
+          location,
+          workDescription,
         })),
       },
     },
