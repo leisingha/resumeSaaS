@@ -166,7 +166,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
       throw new HttpError(500, 'OpenAI API key is not set.');
     }
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+      model: 'gpt-4.1-nano',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: profileContext },
