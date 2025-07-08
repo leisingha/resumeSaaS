@@ -1,9 +1,19 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone, DropzoneOptions } from 'react-dropzone';
+import { useAction, useQuery } from 'wasp/client/operations';
+import { createFile, getAllFilesByUser } from 'wasp/client/operations';
 
 const UploadSection = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const createFileAction = useAction(createFile);
+  const { data: userFiles, refetch: refetchFiles } = useQuery(getAllFilesByUser);
+
+  // Filter for PDF files only
+  const pdfFiles = userFiles?.filter(file => file.type === 'application/pdf') || [];
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -18,28 +28,66 @@ const UploadSection = () => {
     onDragLeave: () => setIsDragging(false),
     multiple: false,
     accept: { 
-      'application/pdf': ['.pdf'], 
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+      'application/pdf': ['.pdf']
     }
   };
 
   // @ts-ignore 
   const { getRootProps, getInputProps, isDragActive, acceptedFiles, fileRejections } = useDropzone(dropzoneOptions);
 
-  const handleUploadClick = () => {
-    if (selectedFile) {
-      console.log('Uploading file:', selectedFile);
-      alert(`File "${selectedFile.name}" selected. See console for details. Actual upload to be implemented.`);
-    } else {
+  const handleUploadClick = async () => {
+    if (!selectedFile) {
       alert('Please select a file first.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      // Step 1: Get presigned URL from backend
+      const { s3UploadUrl, s3UploadFields } = await createFileAction({
+        fileName: selectedFile.name,
+        fileType: 'application/pdf' as const,
+      });
+
+      // Step 2: Upload to S3
+      const formData = new FormData();
+      Object.entries(s3UploadFields).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+      formData.append('file', selectedFile);
+
+      const uploadResponse = await fetch(s3UploadUrl, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file to S3');
+      }
+
+      // Step 3: Refresh the file list and reset form
+      await refetchFiles();
+      setSelectedFile(null);
+      setUploadProgress(100);
+      
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadProgress(0);
+      }, 1000);
+
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      alert('Error uploading file: ' + (error.message || 'Something went wrong.'));
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
   const handleCancelClick = () => {
     setSelectedFile(null);
-    // If using react-dropzone state directly, you might need to clear its internal state if it holds onto rejected files visually
-    // For example, if you displayed acceptedFiles from useDropzone hook directly.
+    setUploadProgress(0);
   };
 
   const effectiveIsDragActive = isDragActive || isDragging;
@@ -52,7 +100,7 @@ const UploadSection = () => {
         })}
       >
         {/* @ts-ignore - Re-adding to suppress type error for getInputProps spread */}
-        <input {...getInputProps()} />
+        <input {...getInputProps()} disabled={isUploading} />
         <div className='flex flex-col items-center justify-center space-y-2'>
           <span className={`flex h-12 w-12 items-center justify-center rounded-full ${effectiveIsDragActive ? 'bg-primary text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'} transition-colors duration-150 ease-in-out`}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -66,23 +114,31 @@ const UploadSection = () => {
               <p className='text-sm font-medium text-black dark:text-white'>
                 <span className='text-primary'>Click to upload</span> or drag and drop
               </p>
-              <p className='text-xs text-gray-500 dark:text-gray-400'>PDF, DOC, DOCX (MAX. 5MB)</p> 
+              <p className='text-xs text-gray-500 dark:text-gray-400'>PDF only (MAX. 5MB)</p> 
             </>
           )}
           {fileRejections.length > 0 && (
             <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              File type not accepted. Please upload PDF, DOC, or DOCX.
+              File type not accepted. Please upload PDF only.
             </p>
+          )}
+          {isUploading && (
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
           )}
         </div>
       </div>
 
-      <div className='flex justify-end gap-3'>
+      <div className='flex justify-end gap-3 mb-4'>
         <button
           className='flex justify-center rounded-md border border-stroke py-2 px-4 text-sm font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white disabled:opacity-50'
           type='button'
           onClick={handleCancelClick}
-          disabled={!selectedFile}
+          disabled={!selectedFile || isUploading}
         >
           Cancel
         </button>
@@ -90,11 +146,31 @@ const UploadSection = () => {
           className='flex justify-center rounded-md bg-primary py-2 px-4 text-sm font-medium text-gray hover:bg-opacity-90 disabled:opacity-50'
           type='button'
           onClick={handleUploadClick}
-          disabled={!selectedFile}
+          disabled={!selectedFile || isUploading}
         >
-          Upload Resume
+          {isUploading ? 'Uploading...' : 'Upload Resume'}
         </button>
       </div>
+
+      {/* Display uploaded PDF files */}
+      {pdfFiles.length > 0 && (
+        <div className='border-t border-stroke dark:border-strokedark pt-4'>
+          <h4 className='text-sm font-medium text-black dark:text-white mb-3'>Uploaded Resumes</h4>
+          <div className='space-y-2'>
+            {pdfFiles.map((file) => (
+              <div key={file.id} className='flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg'>
+                <div className='flex items-center gap-2'>
+                  <span className='text-red-500'>📄</span>
+                  <span className='text-sm text-black dark:text-white'>{file.name}</span>
+                </div>
+                <span className='text-xs text-gray-500 dark:text-gray-400'>
+                  {new Date(file.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
