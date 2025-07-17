@@ -23,6 +23,7 @@ export const createFile: CreateFile<
   {
     s3UploadUrl: string;
     s3UploadFields: Record<string, string>;
+    key: string;
   }
 > = async (rawArgs, context) => {
   if (!context.user) {
@@ -50,6 +51,7 @@ export const createFile: CreateFile<
   return {
     s3UploadUrl,
     s3UploadFields,
+    key,
   };
 };
 

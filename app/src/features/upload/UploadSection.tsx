@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone, DropzoneOptions } from 'react-dropzone';
-import { useAction, useQuery } from 'wasp/client/operations';
-import { createFile, getAllFilesByUser } from 'wasp/client/operations';
+import { useAction } from 'wasp/client/operations';
+import { createFile, parseResumeAndPopulateProfile } from 'wasp/client/operations';
 
 const UploadSection = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -10,10 +10,7 @@ const UploadSection = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const createFileAction = useAction(createFile);
-  const { data: userFiles, refetch: refetchFiles } = useQuery(getAllFilesByUser);
-
-  // Filter for PDF files only
-  const pdfFiles = userFiles?.filter(file => file.type === 'application/pdf') || [];
+  const parseResumeAction = useAction(parseResumeAndPopulateProfile);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -45,8 +42,8 @@ const UploadSection = () => {
     setUploadProgress(0);
 
     try {
-      // Step 1: Get presigned URL from backend
-      const { s3UploadUrl, s3UploadFields } = await createFileAction({
+      // Step 1: Get presigned URL and S3 key from backend
+      const { s3UploadUrl, s3UploadFields, key } = await createFileAction({
         fileName: selectedFile.name,
         fileType: 'application/pdf' as const,
       });
@@ -67,8 +64,13 @@ const UploadSection = () => {
         throw new Error('Failed to upload file to S3');
       }
 
-      // Step 3: Refresh the file list and reset form
-      await refetchFiles();
+      // Step 3: Trigger the resume parsing action
+      console.log('File upload successful. Triggering resume parsing...');
+      await parseResumeAction({ key });
+      console.log('Resume parsing action completed.');
+
+
+      // Step 4: Reset form
       setSelectedFile(null);
       setUploadProgress(100);
       
@@ -151,26 +153,6 @@ const UploadSection = () => {
           {isUploading ? 'Uploading...' : 'Upload Resume'}
         </button>
       </div>
-
-      {/* Display uploaded PDF files */}
-      {pdfFiles.length > 0 && (
-        <div className='border-t border-stroke dark:border-strokedark pt-4'>
-          <h4 className='text-sm font-medium text-black dark:text-white mb-3'>Uploaded Resumes</h4>
-          <div className='space-y-2'>
-            {pdfFiles.map((file) => (
-              <div key={file.id} className='flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg'>
-                <div className='flex items-center gap-2'>
-                  <span className='text-red-500'>📄</span>
-                  <span className='text-sm text-black dark:text-white'>{file.name}</span>
-                </div>
-                <span className='text-xs text-gray-500 dark:text-gray-400'>
-                  {new Date(file.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

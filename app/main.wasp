@@ -197,6 +197,11 @@ action saveUserProfile {
   fn: import { saveUserProfile } from "@src/features/profile/operations",
   entities: [UserProfile, EducationEntry, ExperienceEntry]
 }
+
+action parseResumeAndPopulateProfile {
+  fn: import { parseResumeAndPopulateProfile } from "@src/features/profile/operations",
+  entities: [UserProfile, EducationEntry, ExperienceEntry, User]
+}
 //#endregion
 
 //#region Generation

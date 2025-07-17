@@ -43,6 +43,21 @@ export const getDownloadFileSignedURLFromS3 = async ({ key }: { key: string }) =
   return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 };
 
+export const downloadFileFromS3 = async (key: string): Promise<Buffer> => {
+  const command = new GetObjectCommand({
+    Bucket: process.env.AWS_S3_FILES_BUCKET!,
+    Key: key,
+  });
+
+  const { Body } = await s3Client.send(command);
+
+  if (!Body) {
+    throw new Error(`No file found for key: ${key}`);
+  }
+
+  return Buffer.from(await Body.transformToByteArray());
+};
+
 function getS3Key(fileName: string, userId: string) {
   const ext = path.extname(fileName).slice(1);
   return `${userId}/${randomUUID()}.${ext}`;
