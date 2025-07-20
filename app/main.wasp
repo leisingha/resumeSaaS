@@ -200,7 +200,7 @@ action saveUserProfile {
 
 action parseResumeAndPopulateProfile {
   fn: import { parseResumeAndPopulateProfile } from "@src/features/profile/operations",
-  entities: [UserProfile, EducationEntry, ExperienceEntry, User]
+  entities: []
 }
 //#endregion
 

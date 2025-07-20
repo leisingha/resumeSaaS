@@ -53,61 +53,42 @@ interface ExperienceEntry {
   workDescription: string | null;
 }
 
-const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: number) => void }) => {
+const ProfileForm = ({
+  setProfileProgress,
+  onResumeParsed,
+  profileData,
+  educationEntries,
+  experienceEntries,
+  languages,
+  achievements,
+  setProfileData,
+  setEducationEntries,
+  setExperienceEntries,
+  setLanguages,
+  setAchievements,
+}: {
+  setProfileProgress: (progress: number) => void;
+  onResumeParsed: (data: any) => void;
+  profileData: any;
+  educationEntries: any[];
+  experienceEntries: any[];
+  languages: string[];
+  achievements: string;
+  setProfileData: (data: any) => void;
+  setEducationEntries: (data: any[]) => void;
+  setExperienceEntries: (data: any[]) => void;
+  setLanguages: (data: string[]) => void;
+  setAchievements: (data: string) => void;
+}) => {
   const { data: userProfile, isLoading: isProfileLoading } = useQuery(getUserProfile);
   const generateResumePointsAction = useAction(generateAiResumePoints);
   const [isAiLoading, setIsAiLoading] = useState({ experience: -1, achievements: false });
-
   const [isSaving, setIsSaving] = useState(false);
-  const [profileData, setProfileData] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    location: '',
-    email: '', // This will be populated from the query but is not editable
-  });
-  const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([
-    { id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', gpa: '' },
-  ]);
-  const [experienceEntries, setExperienceEntries] = useState<ExperienceEntry[]>([
-    {
-      id: Date.now().toString() + '_exp',
-      employer: '',
-      jobTitle: '',
-      startDate: '',
-      endDate: '',
-      location: '',
-      workDescription: '',
-    },
-  ]);
   const [formErrors, setFormErrors] = useState<Partial<typeof profileData>>({});
-  const [languages, setLanguages] = useState<string[]>([]);
-  const [achievements, setAchievements] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState('');
-  
-  useEffect(() => {
-    const calculateProfileProgress = () => {
-      let completed = 0;
-      const totalPoints = 10;
-
-      if (profileData.firstName) completed++;
-      if (profileData.lastName) completed++;
-      if (profileData.phone) completed++;
-      if (profileData.location) completed++;
-      if (educationEntries.length > 0 && educationEntries[0].school) completed++;
-      if (educationEntries.length > 0 && educationEntries[0].fieldOfStudy) completed++;
-      if (experienceEntries.length > 0 && experienceEntries[0].employer) completed++;
-      if (experienceEntries.length > 0 && experienceEntries[0].jobTitle) completed++;
-      if (languages.length > 0) completed++;
-      if (achievements) completed++;
-
-      return Math.round((completed / totalPoints) * 100);
-    };
-    setProfileProgress(calculateProfileProgress());
-  }, [profileData, educationEntries, experienceEntries, languages, achievements, setProfileProgress]);
 
   useEffect(() => {
-    if (userProfile) {
+    if (userProfile && !profileData.firstName) { // Only set from query if not already populated
       setProfileData({
         firstName: userProfile.firstName || '',
         lastName: userProfile.lastName || '',
@@ -130,14 +111,59 @@ const ProfileForm = ({ setProfileProgress }: { setProfileProgress: (progress: nu
       );
       setAchievements(userProfile.awards || '');
     }
-  }, [userProfile]);
+  }, [userProfile, profileData.firstName, setProfileData, setEducationEntries, setExperienceEntries, setLanguages, setAchievements]);
+
+  useEffect(() => {
+    const calculateProfileProgress = () => {
+      let completed = 0;
+      const totalPoints = 10;
+
+      if (profileData.firstName) completed++;
+      if (profileData.lastName) completed++;
+      if (profileData.phone) completed++;
+      if (profileData.location) completed++;
+      if (educationEntries.length > 0 && educationEntries[0].school) completed++;
+      if (educationEntries.length > 0 && educationEntries[0].fieldOfStudy) completed++;
+      if (experienceEntries.length > 0 && experienceEntries[0].employer) completed++;
+      if (experienceEntries.length > 0 && experienceEntries[0].jobTitle) completed++;
+      if (languages.length > 0) completed++;
+      if (achievements) completed++;
+
+      return Math.round((completed / totalPoints) * 100);
+    };
+    setProfileProgress(calculateProfileProgress());
+  }, [profileData, educationEntries, experienceEntries, languages, achievements, setProfileProgress]);
+
+  const handleResumeParsed = (parsedData: any) => {
+    setProfileData({
+      firstName: parsedData.firstName || '',
+      lastName: parsedData.lastName || '',
+      phone: parsedData.phone || '',
+      location: parsedData.location || '',
+      email: profileData.email, // Keep existing email
+    });
+    setEducationEntries(
+      parsedData.education && parsedData.education.length > 0
+        ? parsedData.education.map((edu: any) => ({ ...edu, id: Date.now().toString() }))
+        : [{ id: Date.now().toString(), school: '', fieldOfStudy: '', graduationDate: '', gpa: '' }]
+    );
+    setExperienceEntries(
+      parsedData.experience && parsedData.experience.length > 0
+        ? parsedData.experience.map((exp: any) => ({ ...exp, id: Date.now().toString() + '_exp' }))
+        : [{ id: Date.now().toString() + '_exp', employer: '', jobTitle: '', startDate: '', endDate: '', location: '', workDescription: '' }]
+    );
+    setLanguages(
+      (parsedData.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s)
+    );
+    setAchievements(parsedData.awards || '');
+  };
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProfileData((prev) => ({ ...prev, [name]: value }));
+    setProfileData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handleQuillChange = (value: any, section: 'experience' | 'achievements', index?: number) => {
+  const handleQuillChange = (value: string, section: 'experience' | 'achievements', index?: number) => {
     if (section === 'experience' && index !== undefined) {
       const updatedEntries = [...experienceEntries];
       updatedEntries[index] = { ...updatedEntries[index], workDescription: value };
@@ -236,7 +262,8 @@ Education History: ${educationContext}`;
     try {
       const result = await generateResumePointsAction({ context });
       if (result?.content) {
-        setAchievements((prev) => (prev || '') + result.content);
+        const newContent = (achievements || '') + result.content;
+        setAchievements(newContent);
       }
     } catch (error: any) {
       alert('Error generating AI content: ' + error.message);
@@ -432,7 +459,7 @@ Education History: ${educationContext}`;
           </div>
         </div>
         <div className='md:col-span-2'>
-          <UploadSection />
+          <UploadSection onResumeParsed={onResumeParsed} />
         </div>
       </div>
       <div className='grid grid-cols-1 md:grid-cols-5 gap-6'>

@@ -65,6 +65,17 @@ interface AccordionLayoutProps {
   onAccordionToggle: () => void;
   profileProgress: number;
   setProfileProgress: (progress: number) => void;
+  onProfileDataParsed: (data: any) => void;
+  profileData: any;
+  educationEntries: any[];
+  experienceEntries: any[];
+  languages: string[];
+  achievements: string;
+  setProfileData: (data: any) => void;
+  setEducationEntries: (data: any[]) => void;
+  setExperienceEntries: (data: any[]) => void;
+  setLanguages: (data: string[]) => void;
+  setAchievements: (data: string) => void;
 }
 
 const AccordionLayout: React.FC<AccordionLayoutProps> = ({
@@ -72,6 +83,8 @@ const AccordionLayout: React.FC<AccordionLayoutProps> = ({
   onAccordionToggle,
   profileProgress,
   setProfileProgress,
+  onProfileDataParsed,
+  ...rest
 }) => {
   return (
     <div className='rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark p-4'>
@@ -81,7 +94,7 @@ const AccordionLayout: React.FC<AccordionLayoutProps> = ({
         onToggle={onAccordionToggle}
         progress={profileProgress}
       >
-        <ProfileForm setProfileProgress={setProfileProgress} />
+        <ProfileForm setProfileProgress={setProfileProgress} onResumeParsed={onProfileDataParsed} {...rest} />
       </AccordionItem>
     </div>
   );

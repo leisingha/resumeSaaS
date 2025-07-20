@@ -160,14 +160,27 @@ export const parseResumeAndPopulateProfile = async (args: { key: string }, conte
 
   let resumeText = '';
   try {
-    const pdf = (await import('pdf-parse')).default;
+    // This is a workaround for a known issue with pdfjs-dist on the server.
+    // It prevents a crash by polyfilling a missing browser-specific API.
+    (global as any).DOMMatrix = class {};
+    
+    // @ts-ignore
+    const pdfjsLib = await import('pdfjs-dist');
     const fileBuffer = await downloadFileFromS3(key);
-    const parsedPdf = await pdf(fileBuffer);
-    resumeText = parsedPdf.text;
+    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(fileBuffer) });
+    const pdf = await loadingTask.promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const strings = content.items.map((item: any) => item.str);
+      text += strings.join(' ') + '\n';
+    }
+    resumeText = text;
     console.log('[parseResumeAndPopulateProfile] Successfully parsed PDF text.');
   } catch (error: any) {
     console.error('[parseResumeAndPopulateProfile] Error parsing PDF:', error);
-    throw new HttpError(500, 'Failed to parse resume. The file may be corrupted or unreadable.');
+    throw new HttpError(500, `Failed to parse resume: ${error.message}`);
   }
 
   try {
@@ -216,53 +229,10 @@ export const parseResumeAndPopulateProfile = async (args: { key: string }, conte
     const jsonResponse = JSON.parse(completion.choices[0].message.content || '{}');
     console.log('[parseResumeAndPopulateProfile] Successfully received structured data from OpenAI.');
 
-    // Step 4: Update the database within a transaction
-    try {
-      await context.entities.$transaction(async (tx: any) => {
-        // Find the user's profile
-        const userProfile = await tx.UserProfile.findUnique({
-          where: { userId: context.user.id },
-        });
-
-        if (!userProfile) {
-          throw new Error('User profile not found.');
-        }
-
-        // Clear existing education and experience entries
-        await tx.EducationEntry.deleteMany({ where: { userProfileId: userProfile.id } });
-        await tx.ExperienceEntry.deleteMany({ where: { userProfileId: userProfile.id } });
-
-        // Update the profile with new data
-        await tx.UserProfile.update({
-          where: { id: userProfile.id },
-          data: {
-            firstName: jsonResponse.firstName,
-            lastName: jsonResponse.lastName,
-            phone: jsonResponse.phone,
-            location: jsonResponse.location,
-            languages: jsonResponse.languages,
-            awards: jsonResponse.awards,
-            education: {
-              create: jsonResponse.education || [],
-            },
-            experience: {
-              create: jsonResponse.experience || [],
-            },
-          },
-        });
-      });
-      console.log('[parseResumeAndPopulateProfile] Successfully updated user profile in database.');
-    } catch (error: any) {
-      console.error('[parseResumeAndPopulateProfile] Error updating database:', error);
-      throw new HttpError(500, 'Failed to save parsed data to profile.');
-    }
-
-    return {
-      success: true,
-      message: 'Profile successfully updated from resume.',
-    };
+    // Action now returns the parsed data instead of saving it.
+    return jsonResponse;
   } catch (error: any) {
     console.error('[parseResumeAndPopulateProfile] Error calling OpenAI:', error);
-    throw new HttpError(500, 'Failed to analyze resume with AI.');
+    throw new HttpError(500, `Failed to analyze resume with AI: ${error.message}`);
   }
 }; 

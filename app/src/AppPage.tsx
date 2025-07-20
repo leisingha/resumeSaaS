@@ -34,6 +34,19 @@ const AppPage = () => {
   const [activeDocument, setActiveDocument] = useState<GeneratedDocument | null>(null);
   const [profileProgress, setProfileProgress] = useState(0);
 
+  // Lifted state from ProfileForm
+  const [profileData, setProfileData] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    location: '',
+    email: '',
+  });
+  const [educationEntries, setEducationEntries] = useState<Omit<EducationEntry, 'userProfileId'>[]>([]);
+  const [experienceEntries, setExperienceEntries] = useState<Omit<ExperienceEntry, 'userProfileId'>[]>([]);
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [achievements, setAchievements] = useState('');
+
   const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>({
     template: 'classic',
     colorScheme: '#2D3748',
@@ -153,6 +166,20 @@ const AppPage = () => {
     setSections(sections.map((sec) => (sec.id === id ? { ...sec, visible: !sec.visible } : sec)));
   };
 
+  const handleProfileDataParsed = (data: any) => {
+    setProfileData({
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      phone: data.phone || '',
+      location: data.location || '',
+      email: profileData.email, // Keep existing email
+    });
+    setEducationEntries(data.education || []);
+    setExperienceEntries(data.experience || []);
+    setLanguages((data.languages || '').split(',').map((s: string) => s.trim()).filter((s: string) => s));
+    setAchievements(data.awards || '');
+  };
+
   return (
     <div className='mx-auto flex max-w-5xl flex-col gap-6 p-4 md:p-6 2xl:p-10'>
       <ManageSectionsPanel
@@ -169,6 +196,17 @@ const AppPage = () => {
         onAccordionToggle={() => setIsAccordionOpen(!isAccordionOpen)}
         profileProgress={profileProgress}
         setProfileProgress={setProfileProgress}
+        onProfileDataParsed={handleProfileDataParsed}
+        profileData={profileData}
+        educationEntries={educationEntries}
+        experienceEntries={experienceEntries}
+        languages={languages}
+        achievements={achievements}
+        setProfileData={setProfileData}
+        setEducationEntries={setEducationEntries}
+        setExperienceEntries={setExperienceEntries}
+        setLanguages={setLanguages}
+        setAchievements={setAchievements}
       />
 
       <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>

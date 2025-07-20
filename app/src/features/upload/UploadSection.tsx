@@ -3,7 +3,11 @@ import { useDropzone, DropzoneOptions } from 'react-dropzone';
 import { useAction } from 'wasp/client/operations';
 import { createFile, parseResumeAndPopulateProfile } from 'wasp/client/operations';
 
-const UploadSection = () => {
+interface UploadSectionProps {
+  onResumeParsed: (data: any) => void;
+}
+
+const UploadSection: React.FC<UploadSectionProps> = ({ onResumeParsed }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -66,9 +70,11 @@ const UploadSection = () => {
 
       // Step 3: Trigger the resume parsing action
       console.log('File upload successful. Triggering resume parsing...');
-      await parseResumeAction({ key });
+      const parsedData = await parseResumeAction({ key });
       console.log('Resume parsing action completed.');
-
+      if (parsedData) {
+        onResumeParsed(parsedData);
+      }
 
       // Step 4: Reset form
       setSelectedFile(null);
