@@ -621,12 +621,12 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
   // Save experience edit and update DOM
   const handleExperienceSave = () => {
-    if (!editingExperience) return;
+    if (!editingExperience || !generatedContent) return;
 
-    const resumeContent = document.getElementById('resume-content');
-    if (!resumeContent) return;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = generatedContent;
 
-    const experienceH2 = Array.from(resumeContent.getElementsByTagName('h2')).find((h2) =>
+    const experienceH2 = Array.from(tempDiv.getElementsByTagName('h2')).find((h2) =>
       h2.textContent?.toLowerCase().includes('experience')
     );
     if (!experienceH2 || !experienceH2.parentElement) return;
@@ -639,15 +639,15 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
     if (entryToUpdate) {
       let finalDescriptionHtml = '';
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = editingExperience.description;
+      const descTempDiv = document.createElement('div');
+      descTempDiv.innerHTML = editingExperience.description;
       
-      const isAlreadyList = tempDiv.querySelector('ul, ol');
+      const isAlreadyList = descTempDiv.querySelector('ul, ol');
 
       if (isAlreadyList) {
         finalDescriptionHtml = isAlreadyList.outerHTML;
       } else {
-        const paragraphs = Array.from(tempDiv.querySelectorAll('p'));
+        const paragraphs = Array.from(descTempDiv.querySelectorAll('p'));
         if (paragraphs.length > 0) {
           finalDescriptionHtml = `<ul>${paragraphs.map(p => `<li>${p.innerHTML}</li>`).join('')}</ul>`;
         } else {
@@ -668,18 +668,19 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         ${finalDescriptionHtml.replace('<ul', '<ul style="margin-top: 5px; padding-left: 20px; line-height: 1.4;"')}
       `;
     }
-
+    
+    onContentChange(tempDiv.innerHTML);
     setShowExperienceEdit(false);
     setEditingExperience(null);
   };
 
   const handleEducationSave = () => {
-    if (!editingEducation) return;
+    if (!editingEducation || !generatedContent) return;
 
-    const resumeContent = document.getElementById('resume-content');
-    if (!resumeContent) return;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = generatedContent;
 
-    const educationH2 = Array.from(resumeContent.getElementsByTagName('h2')).find((h2) =>
+    const educationH2 = Array.from(tempDiv.getElementsByTagName('h2')).find((h2) =>
       h2.textContent?.toLowerCase().includes('education')
     );
     if (!educationH2 || !educationH2.parentElement) return;
@@ -707,6 +708,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       `;
     }
 
+    onContentChange(tempDiv.innerHTML);
     setShowEducationEdit(false);
     setEditingEducation(null);
   };
