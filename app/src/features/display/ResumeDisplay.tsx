@@ -96,13 +96,22 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         const containerWidth = containerNode.offsetWidth;
 
         // Enforce A4 aspect ratio on the container
-        containerNode.style.height = `${containerWidth * A4_ASPECT_RATIO}px`;
+        const totalHeight = containerWidth * A4_ASPECT_RATIO;
+        containerNode.style.height = `${totalHeight}px`;
+        
+        // Set the clipping container height to account for vertical padding (43px + 48px = 91px)
+        const clippingContainer = containerNode.querySelector('div[style*="overflow: hidden"]') as HTMLElement;
+        if (clippingContainer) {
+          clippingContainer.style.height = `${totalHeight - 91}px`;
+        }
 
         const contentElement = contentNode.firstChild as HTMLElement;
         const contentWidth = contentElement.offsetWidth;
 
         if (contentWidth > 0 && containerWidth > 0) {
-          const scale = containerWidth / contentWidth;
+          // Account for container padding: 48px left + 48px right = 96px total horizontal padding
+          const availableWidth = containerWidth - 96;
+          const scale = availableWidth / contentWidth;
           contentNode.style.transform = `scale(${scale})`;
           // The container height is now set based on aspect ratio, not content.
         }
@@ -868,16 +877,28 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       <div
         className='relative w-full overflow-hidden rounded-lg shadow-lg bg-white'
         ref={containerRef}
+        style={{ padding: '43px 48px 48px 48px' }}
       >
+        {/* Clipping container that defines the exact boundary for content */}
         <div
-          ref={contentRef}
-          id='resume-content'
-          style={{ transformOrigin: 'top left', position: 'relative' }}
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            overflow: 'hidden', 
+            position: 'relative'
+          }}
         >
-          {/* Render the resume HTML */}
           <div
-          dangerouslySetInnerHTML={{ __html: generatedContent || '<p>Your generated document will appear here...</p>' }}
-        />
+            ref={contentRef}
+            id='resume-content'
+            style={{ transformOrigin: 'top left', position: 'relative', padding: '0' }}
+          >
+            {/* Render the resume HTML */}
+            <div
+              style={{ padding: '0' }}
+              dangerouslySetInnerHTML={{ __html: generatedContent || '<p>Your generated document will appear here...</p>' }}
+            />
+          </div>
         </div>
       </div>
 
