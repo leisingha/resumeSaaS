@@ -99,18 +99,18 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         const totalHeight = containerWidth * A4_ASPECT_RATIO;
         containerNode.style.height = `${totalHeight}px`;
         
-        // Set the clipping container height to account for vertical padding (43px + 48px = 91px)
+        // Set the clipping container height to account for vertical padding (30px + 40px = 70px)
         const clippingContainer = containerNode.querySelector('div[style*="overflow: hidden"]') as HTMLElement;
         if (clippingContainer) {
-          clippingContainer.style.height = `${totalHeight - 91}px`;
+          clippingContainer.style.height = `${totalHeight - 70}px`;
         }
 
         const contentElement = contentNode.firstChild as HTMLElement;
         const contentWidth = contentElement.offsetWidth;
 
         if (contentWidth > 0 && containerWidth > 0) {
-          // Account for container padding: 48px left + 48px right = 96px total horizontal padding
-          const availableWidth = containerWidth - 96;
+          // Account for container padding: 40px left + 40px right = 80px total horizontal padding
+          const availableWidth = containerWidth - 80;
           const scale = availableWidth / contentWidth;
           contentNode.style.transform = `scale(${scale})`;
           // The container height is now set based on aspect ratio, not content.
@@ -877,7 +877,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       <div
         className='relative w-full overflow-hidden rounded-lg shadow-lg bg-white'
         ref={containerRef}
-        style={{ padding: '43px 48px 48px 48px' }}
+        style={{ padding: '30px 40px 40px 40px' }}
       >
         {/* Clipping container that defines the exact boundary for content */}
         <div
