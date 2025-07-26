@@ -151,8 +151,8 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
     Example Resume Structure:
     - Name (e.g., James Appleseed)
     - Contact Info (e.g., (555) 555-5555 | james.appleseed@resume.com | 1234 Main St. San Francisco, CA)
-    - Summary: A 2-3 sentence professional summary.
-    - Experience: List of jobs with title, company, dates, and 2-3 bullet points with quantifiable achievements.
+    - Summary: A max 3 sentence professional summary.
+    - Experience: List of jobs with title, company, dates, and max 3 bullet points with quantifiable achievements.
     - Education: List of degrees with school and graduation date. If a GPA is provided in the user's data, it MUST be included.
     - Skills: List of relevant skills.
     - Languages: List of languages and proficiency.
