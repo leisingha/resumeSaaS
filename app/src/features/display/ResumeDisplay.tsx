@@ -24,6 +24,7 @@ interface ResumeDisplayProps {
   onContentChange: (newContent: string) => void;
   documentType: 'resume' | 'coverLetter';
   sections: Section[];
+  onOverflowDetected: (message: string, details: string) => void;
 }
 
 const quillModules = {
@@ -45,6 +46,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   onContentChange,
   documentType,
   sections,
+  onOverflowDetected,
 }) => {
   const [editedContent, setEditedContent] = useState(generatedContent || '');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -125,6 +127,53 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       window.removeEventListener('resize', calculateScale);
     };
   }, [generatedContent]);
+
+  // Overflow detection effect
+  useEffect(() => {
+    const detectOverflow = () => {
+      const containerNode = containerRef.current;
+      const contentNode = contentRef.current;
+
+      if (containerNode && contentNode && generatedContent) {
+        // Get the clipping container
+        const clippingContainer = containerNode.querySelector('div[style*="overflow: hidden"]') as HTMLElement;
+        if (!clippingContainer) return;
+
+        // Get the resume-content div which contains the actual resume HTML
+        const resumeContent = document.getElementById('resume-content');
+        if (!resumeContent) return;
+
+        const clippingHeight = clippingContainer.offsetHeight;
+        
+        // Get the actual content div inside resume-content (the one with dangerouslySetInnerHTML)
+        const actualContent = resumeContent.querySelector('div[style*="padding: 0"]') as HTMLElement;
+        if (!actualContent) return;
+
+        // Get the natural height of the content without any scaling
+        const contentHeight = actualContent.scrollHeight;
+        
+        // Get the current scale factor applied to the contentNode
+        const transform = contentNode.style.transform;
+        const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
+        const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+        
+        // Calculate the scaled height
+        const scaledContentHeight = contentHeight * scale;
+
+        // Check if scaled content height exceeds the available clipping height
+        if (scaledContentHeight > clippingHeight) {
+          onOverflowDetected(
+            'Resume content exceeds page limits!',
+            'Content is too long. Consider reducing text or hiding sections via "Manage Sections".'
+          );
+        }
+      }
+    };
+
+    // Run overflow detection after a short delay to ensure layout is complete
+    const timer = setTimeout(detectOverflow, 1000);
+    return () => clearTimeout(timer);
+  }, [generatedContent, onOverflowDetected]);
 
   useEffect(() => {
     const resumeContent = document.getElementById('resume-content');

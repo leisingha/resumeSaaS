@@ -3,6 +3,7 @@ import AccordionLayout from './features/topsection/AccordionLayout';
 import ResumeCustomizer from './features/customizer/ResumeCustomizer';
 import ResumeDisplay from './features/display/ResumeDisplay';
 import SuccessAlert from './features/common/SuccessAlert';
+import WarningAlert from './features/common/WarningAlert';
 import { useQuery, useAction } from 'wasp/client/operations';
 import { getUserProfile } from 'wasp/client/operations';
 import { generateDocument, updateGeneratedDocument } from 'wasp/client/operations';
@@ -59,6 +60,9 @@ const AppPage = () => {
   const [documentType, setDocumentType] = useState<DocumentType>('resume');
   const [showSuccessAlert, setShowSuccessAlert] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>('');
+  const [showWarningAlert, setShowWarningAlert] = useState<boolean>(false);
+  const [warningMessage, setWarningMessage] = useState<string>('');
+  const [warningDetails, setWarningDetails] = useState<string>('');
 
   const generatedResumeContent = activeDocument?.content || null;
   const isResumeGenerated = !!activeDocument;
@@ -90,6 +94,10 @@ const AppPage = () => {
 
   const handleGenerateResume = async () => {
     setIsGenerating(true);
+    // Clear any existing alerts
+    setShowWarningAlert(false);
+    setShowSuccessAlert(false);
+    
     try {
       const newDocument = await generateDocument({
         customizationOptions: {
@@ -125,6 +133,16 @@ const AppPage = () => {
     return () => clearTimeout(timer);
   }, [showSuccessAlert]);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showWarningAlert) {
+      timer = setTimeout(() => {
+        setShowWarningAlert(false);
+      }, 5000); // Show warning alert for 5 seconds
+    }
+    return () => clearTimeout(timer);
+  }, [showWarningAlert]);
+
   const handleEditSave = async (newContent: string) => {
     if (!activeDocument) return;
     try {
@@ -144,6 +162,15 @@ const AppPage = () => {
     setDocumentType(type);
     setActiveDocument(null);
     setIsDetailCustomizerVisible(true);
+    setShowSuccessAlert(false);
+    setShowWarningAlert(false);
+  };
+
+  const handleOverflowDetected = (message: string, details: string) => {
+    setWarningMessage(message);
+    setWarningDetails(details);
+    setShowWarningAlert(true);
+    // Hide success alert if it's currently showing
     setShowSuccessAlert(false);
   };
 
@@ -190,6 +217,13 @@ const AppPage = () => {
       />
       {showSuccessAlert && (
         <SuccessAlert message={alertMessage} onClose={() => setShowSuccessAlert(false)} />
+      )}
+      {showWarningAlert && (
+        <WarningAlert 
+          message={warningMessage} 
+          details={warningDetails}
+          onClose={() => setShowWarningAlert(false)} 
+        />
       )}
       <AccordionLayout
         isAccordionOpen={isAccordionOpen}
@@ -326,6 +360,7 @@ const AppPage = () => {
                 onContentChange={handleEditSave}
                 documentType={documentType}
                 sections={sections}
+                onOverflowDetected={handleOverflowDetected}
               />
               <StyledButton onClick={handleShowAdjustCustomizations} text="Adjust Customizations" />
             </div>
