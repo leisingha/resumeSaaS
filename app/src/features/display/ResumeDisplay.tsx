@@ -49,6 +49,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   onOverflowDetected,
 }) => {
   const [editedContent, setEditedContent] = useState(generatedContent || '');
+  const [isOverflowing, setIsOverflowing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [showSummaryEdit, setShowSummaryEdit] = useState(false);
@@ -85,6 +86,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   useEffect(() => {
     if (generatedContent) {
       setEditedContent(generatedContent);
+      setIsOverflowing(false); // Reset overflow on new content
     }
   }, [generatedContent]);
 
@@ -162,6 +164,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
         // Check if scaled content height exceeds the available clipping height
         if (scaledContentHeight > clippingHeight) {
+          setIsOverflowing(true);
           onOverflowDetected(
             'Resume content exceeds page limits!',
             'Content is too long. Consider reducing text or hiding sections via "Manage Sections".'
@@ -615,13 +618,6 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
   const documentTitle = documentType === 'resume' ? 'Resume' : 'Cover Letter';
 
-  const handleCopyToClipboard = () => {
-    if (generatedContent) {
-      navigator.clipboard.writeText(generatedContent);
-      alert('Copied to clipboard!');
-    }
-  };
-
   const handleDownloadPdf = () => {
     const input = document.getElementById('resume-content');
     if (input) {
@@ -902,20 +898,9 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         </div>
         <div className='flex items-center space-x-3'>
           <button
-            onClick={handleCopyToClipboard}
-            className='px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
-          >
-            Copy
-          </button>
-          <button
-            onClick={() => setShowEditModal(true)}
-            className='px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
-          >
-            Edit
-          </button>
-          <button
             onClick={handleDownloadPdf}
-            className='px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+            disabled={isOverflowing}
+            className='px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
           >
             Download
           </button>
