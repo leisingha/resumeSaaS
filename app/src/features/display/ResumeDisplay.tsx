@@ -50,6 +50,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 }) => {
   const [editedContent, setEditedContent] = useState(generatedContent || '');
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const [hasShownOverflowAlert, setHasShownOverflowAlert] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [showSummaryEdit, setShowSummaryEdit] = useState(false);
@@ -87,6 +88,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     if (generatedContent) {
       setEditedContent(generatedContent);
       setIsOverflowing(false); // Reset overflow on new content
+      setHasShownOverflowAlert(false); // Reset alert state on new content
     }
   }, [generatedContent]);
 
@@ -165,10 +167,16 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         // Check if scaled content height exceeds the available clipping height
         if (scaledContentHeight > clippingHeight) {
           setIsOverflowing(true);
-          onOverflowDetected(
-            'Resume content exceeds page limits!',
-            'Content is too long. Consider reducing text or hiding sections via "Manage Sections".'
-          );
+          // Only show alert if we haven't shown it already for this content
+          if (!hasShownOverflowAlert) {
+            setHasShownOverflowAlert(true);
+            onOverflowDetected(
+              'Resume content exceeds page limits!',
+              'Content is too long. Consider reducing text or hiding sections via "Manage Sections".'
+            );
+          }
+        } else {
+          setIsOverflowing(false);
         }
       }
     };
@@ -176,7 +184,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     // Run overflow detection after a short delay to ensure layout is complete
     const timer = setTimeout(detectOverflow, 1000);
     return () => clearTimeout(timer);
-  }, [generatedContent, onOverflowDetected]);
+  }, [generatedContent, onOverflowDetected, hasShownOverflowAlert]);
 
   useEffect(() => {
     const resumeContent = document.getElementById('resume-content');
@@ -637,6 +645,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   const handleSaveChanges = () => {
     onContentChange(editedContent);
     setShowEditModal(false);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
   };
 
   // Save summary edit and update the parent's state
@@ -669,6 +679,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     const newContent = tempDiv.innerHTML;
     // Pass the new content up to the parent component
     onContentChange(newContent);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
     // Close the modal
     setShowSummaryEdit(false);
   };
@@ -724,6 +736,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     }
     
     onContentChange(tempDiv.innerHTML);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
     setShowExperienceEdit(false);
     setEditingExperience(null);
   };
@@ -763,6 +777,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     }
 
     onContentChange(tempDiv.innerHTML);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
     setShowEducationEdit(false);
     setEditingEducation(null);
   };
@@ -790,6 +806,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     }
 
     onContentChange(tempDiv.innerHTML);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
     setShowSkillsEdit(false);
   };
 
@@ -817,6 +835,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     }
 
     onContentChange(tempDiv.innerHTML);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
     setShowLanguagesEdit(false);
   };
 
@@ -835,6 +855,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     }
 
     onContentChange(tempDiv.innerHTML);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
     setShowProjectsEdit(false);
   };
 
