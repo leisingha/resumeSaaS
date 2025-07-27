@@ -956,6 +956,29 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
             />
           </div>
         </div>
+        
+        {/* Overflow warning message */}
+        {isOverflowing && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '40px',
+              right: '40px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '6px',
+              padding: '8px 12px',
+              fontSize: '12px',
+              color: '#dc2626',
+              textAlign: 'center',
+              fontWeight: '500',
+              zIndex: 10
+            }}
+          >
+            ⚠️ Text overflow detected - Content exceeds page limits
+          </div>
+        )}
       </div>
 
       <EditModal
