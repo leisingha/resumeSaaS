@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import type { CustomizationOptions, DocumentType } from '../../AppPage';
 import EditModal from './EditModal';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+// PDF download libraries removed - will be replaced with new implementation
 import { Pencil } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import 'react-quill/dist/quill.snow.css';
 import './ResumeDisplay.css';
-import { generateAiResumePoints } from 'wasp/client/operations';
+import { generateAiResumePoints, generateResumePdf } from 'wasp/client/operations';
 import { useAction } from 'wasp/client/operations';
 import type { Section } from '../customizer/ManageSectionsPanel';
 
@@ -83,6 +82,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   const [currentLanguage, setCurrentLanguage] = useState('');
   const [showProjectsEdit, setShowProjectsEdit] = useState(false);
   const [editingProjectsContent, setEditingProjectsContent] = useState('');
+  const [isPdfGenerating, setIsPdfGenerating] = useState(false);
 
   useEffect(() => {
     if (generatedContent) {
@@ -626,19 +626,157 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
   const documentTitle = documentType === 'resume' ? 'Resume' : 'Cover Letter';
 
-  const handleDownloadPdf = () => {
-    const input = document.getElementById('resume-content');
-    if (input) {
-      html2canvas(input, { scale: 2 }).then((canvas) => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'px',
-          format: [canvas.width, canvas.height],
-        });
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save('resume.pdf');
+  const handleDownloadPdf = async () => {
+    if (!generatedContent) {
+      console.error('No content to download');
+      return;
+    }
+
+    if (isPdfGenerating) {
+      console.log('PDF generation already in progress');
+      return;
+    }
+
+    setIsPdfGenerating(true);
+
+    try {
+      console.log('Starting PDF generation...');
+      
+      // Call the backend PDF generation with optimized content
+      const result = await generateResumePdf({
+        htmlContent: generatedContent,
+        filename: `${documentTitle.toLowerCase().replace(/\s+/g, '-')}.pdf`
       });
+
+      console.log(`PDF generated: ${result.size} bytes, base64 length: ${result.pdfBase64.length}`);
+      console.log('Base64 type:', typeof result.pdfBase64);
+      console.log('Base64 sample (first 50 chars):', result.pdfBase64.substring(0, 50));
+
+      // Check if we received actual base64 or something else
+      if (typeof result.pdfBase64 !== 'string') {
+        console.error('Received non-string base64 data:', typeof result.pdfBase64);
+        throw new Error('PDF data is not a string');
+      }
+
+      // Convert base64 to blob with error handling
+      let byteCharacters;
+      try {
+        byteCharacters = atob(result.pdfBase64);
+        console.log('Base64 decoded successfully, length:', byteCharacters.length);
+      } catch (decodeError) {
+        console.error('Failed to decode base64:', decodeError);
+        console.error('Base64 preview (first 100 chars):', result.pdfBase64.substring(0, 100));
+        console.error('Base64 typeof:', typeof result.pdfBase64);
+        
+        // Check if it looks like comma-separated numbers (array serialization issue)
+        if (result.pdfBase64.includes(',') && /^\d/.test(result.pdfBase64)) {
+          console.log('Detected comma-separated bytes, attempting to convert...');
+          
+          try {
+            // Parse the comma-separated numbers back into a byte array
+            const byteArray = result.pdfBase64.split(',').map(num => parseInt(num.trim(), 10));
+            console.log('Parsed byte array length:', byteArray.length);
+            
+            // Convert byte array directly to Uint8Array for blob creation
+            const uint8Array = new Uint8Array(byteArray);
+            const blob = new Blob([uint8Array], { type: 'application/pdf' });
+            console.log('Blob created from byte array, size:', blob.size);
+
+            // Skip the normal base64 decoding and go straight to download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = result.filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            
+            setTimeout(() => {
+              try {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                console.log('Cleanup completed');
+              } catch (cleanupError) {
+                console.warn('Cleanup error (non-critical):', cleanupError);
+              }
+            }, 1000);
+
+            console.log('PDF download successful using byte array conversion');
+            
+            // Success - exit the function early
+            setIsPdfGenerating(false);
+            return;
+          } catch (byteArrayError) {
+            console.error('Failed to convert byte array:', byteArrayError);
+          }
+        }
+        
+        throw new Error('Failed to decode PDF data');
+      }
+
+      // Simple and reliable conversion to Uint8Array
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      console.log('Blob created successfully, size:', blob.size);
+
+      // Create and trigger download with enhanced debugging
+      const url = URL.createObjectURL(blob);
+      console.log('Object URL created:', url);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = result.filename;
+      link.style.display = 'none';
+      
+      console.log('Download link created with filename:', result.filename);
+      
+      document.body.appendChild(link);
+      console.log('Link added to DOM');
+      
+      // Force click with multiple approaches
+      try {
+        link.click();
+        console.log('Download link clicked');
+      } catch (clickError) {
+        console.error('Click failed, trying manual dispatch:', clickError);
+        // Alternative approach
+        const event = new MouseEvent('click', {
+          view: window,
+          bubbles: true,
+          cancelable: true
+        });
+        link.dispatchEvent(event);
+      }
+      
+      // Cleanup with slight delay to ensure download starts
+      setTimeout(() => {
+        try {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          console.log('Cleanup completed');
+        } catch (cleanupError) {
+          console.warn('Cleanup error (non-critical):', cleanupError);
+        }
+      }, 1000); // Increased delay
+
+      console.log(`PDF download initiated successfully: ${result.filename} (${result.size} bytes)`);
+    } catch (error: any) {
+      console.error('Failed to download PDF:', error);
+      
+      // Enhanced error logging
+      if (error?.message) {
+        console.error('Error details:', error.message);
+      }
+      
+      // Could add subtle error indication here in the future
+      // For now, just ensure the button becomes available again
+    } finally {
+      setIsPdfGenerating(false);
     }
   };
 
@@ -921,10 +1059,10 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         <div className='flex items-center space-x-3'>
           <button
             onClick={handleDownloadPdf}
-            disabled={isOverflowing}
+            disabled={isOverflowing || isPdfGenerating}
             className='px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
           >
-            Download
+            {isPdfGenerating ? 'Generating...' : 'Download'}
           </button>
         </div>
       </div>

@@ -224,6 +224,11 @@ action generateAiResumePoints {
   fn: import { generateAiResumePoints } from "@src/features/generation/operations",
   entities: [User]
 }
+
+action generateResumePdf {
+  fn: import { generateResumePdf } from "@src/features/generation/pdfOperations",
+  entities: [User]
+}
 //#endregion
 
 //#region AI Resume Generator App
