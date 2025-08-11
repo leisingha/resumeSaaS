@@ -9,6 +9,7 @@ import './ResumeDisplay.css';
 import { generateAiResumePoints, generateResumePdf } from 'wasp/client/operations';
 import { useAction } from 'wasp/client/operations';
 import type { Section } from '../customizer/ManageSectionsPanel';
+import { filterContentBySections, logSectionVisibility } from './contentFiltering';
 
 import QuillEditor from '../common/forwarded-quill';
 
@@ -93,43 +94,32 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   }, [generatedContent]);
 
   useLayoutEffect(() => {
-    const calculateScale = () => {
+    const setFixedDimensions = () => {
       const containerNode = containerRef.current;
       const contentNode = contentRef.current;
 
-      if (containerNode && contentNode && contentNode.firstChild) {
-        const A4_ASPECT_RATIO = 297 / 210;
-        const containerWidth = containerNode.offsetWidth;
-
-        // Enforce A4 aspect ratio on the container
-        const totalHeight = containerWidth * A4_ASPECT_RATIO;
-        containerNode.style.height = `${totalHeight}px`;
+      if (containerNode && contentNode) {
+        // Fixed A4 dimensions: 800px × 1131px (maintains A4 aspect ratio 297/210)
+        const FIXED_WIDTH = 800;
+        const FIXED_HEIGHT = 1131;
+        
+        // Lock container to fixed dimensions
+        containerNode.style.width = `${FIXED_WIDTH}px`;
+        containerNode.style.height = `${FIXED_HEIGHT}px`;
         
         // Set the clipping container height to account for vertical padding (30px + 40px = 70px)
         const clippingContainer = containerNode.querySelector('div[style*="overflow: hidden"]') as HTMLElement;
         if (clippingContainer) {
-          clippingContainer.style.height = `${totalHeight - 70}px`;
+          clippingContainer.style.height = `${FIXED_HEIGHT - 70}px`;
         }
 
-        const contentElement = contentNode.firstChild as HTMLElement;
-        const contentWidth = contentElement.offsetWidth;
-
-        if (contentWidth > 0 && containerWidth > 0) {
-          // Account for container padding: 40px left + 40px right = 80px total horizontal padding
-          const availableWidth = containerWidth - 80;
-          const scale = availableWidth / contentWidth;
-          contentNode.style.transform = `scale(${scale})`;
-          // The container height is now set based on aspect ratio, not content.
-        }
+        // Remove any scaling transforms - content displays at native size
+        contentNode.style.transform = 'none';
       }
     };
 
-    calculateScale();
-
-    window.addEventListener('resize', calculateScale);
-    return () => {
-      window.removeEventListener('resize', calculateScale);
-    };
+    setFixedDimensions();
+    // Note: No window resize listener - dimensions are locked
   }, [generatedContent]);
 
   // Overflow detection effect
@@ -642,9 +632,14 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     try {
       console.log('Starting PDF generation...');
       
-      // Call the backend PDF generation with optimized content
+      // Filter content based on section visibility to match browser display
+      logSectionVisibility(sections);
+      const filteredContent = filterContentBySections(generatedContent, sections);
+      console.log('Content filtered based on section visibility');
+      
+      // Call the backend PDF generation with filtered content
       const result = await generateResumePdf({
-        htmlContent: generatedContent,
+        htmlContent: filteredContent,
         filename: `${documentTitle.toLowerCase().replace(/\s+/g, '-')}.pdf`
       });
 
@@ -1069,7 +1064,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
       {/* Content Area */}
       <div
-        className='relative w-full overflow-hidden rounded-lg shadow-lg bg-white'
+        className='relative mx-auto overflow-hidden rounded-lg shadow-lg bg-white'
         ref={containerRef}
         style={{ padding: '30px 40px 40px 40px' }}
       >

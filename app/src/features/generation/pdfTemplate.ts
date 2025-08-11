@@ -43,10 +43,24 @@ export const createPdfTemplate = (htmlContent: string): string => {
           overflow: hidden;
         }
         
+        /* Ensure content fits within the container properly - match browser behavior */
         .content {
           width: 100%;
           height: 100%;
           overflow: hidden;
+          transform-origin: top left;
+        }
+        
+        /* Content wrapper should match browser's clipping container */
+        .content > div {
+          background-color: white !important;
+          padding: 0 !important;
+          font-family: serif !important;
+          font-size: 10pt !important;
+          color: #333 !important;
+          overflow: hidden;
+          width: 100%;
+          height: 100%;
         }
         
         /* Match exact resume styles from the generator */
@@ -133,14 +147,7 @@ export const createPdfTemplate = (htmlContent: string): string => {
           /* Inline styles will override these base styles */
         }
         
-        /* Handle content wrapper - matches the generation output exactly */
-        .content > div {
-          background-color: white !important;
-          padding: 0 !important;
-          font-family: serif !important;
-          font-size: 10pt !important;
-          color: #333 !important;
-        }
+        /* Remove duplicate - already defined above */
         
         /* Additional spacing controls */
         div[style*="margin-bottom: 20px"] {
