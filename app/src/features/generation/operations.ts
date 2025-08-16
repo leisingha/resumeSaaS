@@ -228,8 +228,8 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
                   <p style="margin: 0;">${exp.date}</p>
                 </div>
               </div>
-              <ul style="margin-top: 5px; padding-left: 20px; line-height: 1.4;">
-                ${Array.isArray(exp.description) ? exp.description.map((desc) => `<li>${desc}</li>`).join('') : `<li>${exp.description}</li>`}
+              <ul style="margin-top: 5px; padding-left: 0; margin-left: 1.25rem; line-height: 1.4; list-style-type: disc;">
+                ${Array.isArray(exp.description) ? exp.description.map((desc) => `<li style="margin-bottom: 0.25rem; font-size: 10pt; line-height: 1.4;">${desc}</li>`).join('') : `<li style="margin-bottom: 0.25rem; font-size: 10pt; line-height: 1.4;">${exp.description}</li>`}
               </ul>
             </div>
           `

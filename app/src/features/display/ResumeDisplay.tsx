@@ -207,6 +207,21 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       #${instanceId} span {
         color: ${options.colorScheme} !important;
       }
+      
+      /* Bullet point styling for this instance */
+      #${instanceId} ul {
+        list-style-type: disc !important;
+        margin-left: 1.25rem !important;
+        padding-left: 0 !important;
+        margin-top: 5px !important;
+        line-height: 1.4 !important;
+      }
+      
+      #${instanceId} li {
+        margin-bottom: 0.25rem !important;
+        font-size: 10pt !important;
+        line-height: 1.4 !important;
+      }
     `;
     resumeContent.prepend(style);
   }, [generatedContent, options.colorScheme]);
@@ -852,13 +867,19 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       const isAlreadyList = descTempDiv.querySelector('ul, ol');
 
       if (isAlreadyList) {
+        // Ensure existing list has proper styling
+        isAlreadyList.setAttribute('style', 'margin-top: 5px; padding-left: 0; margin-left: 1.25rem; line-height: 1.4; list-style-type: disc;');
+        const existingListItems = isAlreadyList.querySelectorAll('li');
+        existingListItems.forEach(li => {
+          li.setAttribute('style', 'margin-bottom: 0.25rem; font-size: 10pt; line-height: 1.4;');
+        });
         finalDescriptionHtml = isAlreadyList.outerHTML;
       } else {
         const paragraphs = Array.from(descTempDiv.querySelectorAll('p'));
         if (paragraphs.length > 0) {
-          finalDescriptionHtml = `<ul>${paragraphs.map(p => `<li>${p.innerHTML}</li>`).join('')}</ul>`;
+          finalDescriptionHtml = `<ul style="margin-top: 5px; padding-left: 0; margin-left: 1.25rem; line-height: 1.4; list-style-type: disc;">${paragraphs.map(p => `<li style="margin-bottom: 0.25rem; font-size: 10pt; line-height: 1.4;">${p.innerHTML}</li>`).join('')}</ul>`;
         } else {
-          finalDescriptionHtml = `<ul><li>${editingExperience.description}</li></ul>`
+          finalDescriptionHtml = `<ul style="margin-top: 5px; padding-left: 0; margin-left: 1.25rem; line-height: 1.4; list-style-type: disc;"><li style="margin-bottom: 0.25rem; font-size: 10pt; line-height: 1.4;">${editingExperience.description}</li></ul>`
         }
       }
 
@@ -872,7 +893,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
             <p style="margin: 0;">${editingExperience.date}</p>
           </div>
         </div>
-        ${finalDescriptionHtml.replace('<ul', '<ul style="margin-top: 5px; padding-left: 20px; line-height: 1.4;"')}
+        ${finalDescriptionHtml}
       `;
     }
     
