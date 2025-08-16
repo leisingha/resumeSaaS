@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 're
 import type { CustomizationOptions, DocumentType } from '../../AppPage';
 import EditModal from './EditModal';
 // PDF download libraries removed - will be replaced with new implementation
-import { Pencil, Download, Copy } from 'lucide-react';
+import { Pencil, Download, Copy, Settings } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import 'react-quill/dist/quill.snow.css';
 import './ResumeDisplay.css';
@@ -25,6 +25,7 @@ interface ResumeDisplayProps {
   documentType: 'resume' | 'coverLetter';
   sections: Section[];
   onOverflowDetected: (message: string, details: string) => void;
+  onAdjustCustomizations: () => void;
 }
 
 const quillModules = {
@@ -47,6 +48,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   documentType,
   sections,
   onOverflowDetected,
+  onAdjustCustomizations,
 }) => {
   const [editedContent, setEditedContent] = useState(generatedContent || '');
   const [isOverflowing, setIsOverflowing] = useState(false);
@@ -1107,8 +1109,18 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   return (
     <>
       {/* Header */}
-      <div className='flex justify-end items-center w-full'>
-        <div className='flex items-center space-x-3 justify-end'>
+      <div className='flex justify-between items-center w-full'>
+        <div className='flex items-center'>
+          <button
+            onClick={onAdjustCustomizations}
+            className='inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 shadow-sm'
+            style={{ marginLeft: '7px' }}
+          >
+            <Settings size={16} />
+            Adjust Customizations
+          </button>
+        </div>
+        <div className='flex items-center space-x-3'>
           <button
             onClick={handleCopyToClipboard}
             disabled={!generatedContent}

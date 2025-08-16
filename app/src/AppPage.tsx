@@ -383,12 +383,7 @@ const AppPage = () => {
                 {isResumeGenerated ? (
                   <>
                     <StyledButton onClick={handleGenerateResume} text="✨ Regenerate" variant="gradient" />
-                    <button
-                      onClick={handleCancelAdjustCustomizations}
-                      className='dark:border-strokedark flex w-full justify-center rounded border border-stroke p-3 font-medium text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700'
-                    >
-                      Cancel
-                    </button>
+                    <StyledButton onClick={handleCancelAdjustCustomizations} text="Cancel" variant="secondary" />
                   </>
                 ) : (
                   <StyledButton onClick={handleGenerateResume} text="✨ Generate" variant="gradient" />
@@ -411,8 +406,8 @@ const AppPage = () => {
                 documentType={documentType}
                 sections={sections}
                 onOverflowDetected={handleOverflowDetected}
+                onAdjustCustomizations={handleShowAdjustCustomizations}
               />
-              <StyledButton onClick={handleShowAdjustCustomizations} text="Adjust Customizations" />
             </div>
           )}
         </div>
@@ -473,12 +468,7 @@ const AppPage = () => {
                 {isResumeGenerated ? (
                   <>
                     <StyledButton onClick={handleGenerateResume} text="✨ Regenerate" variant="gradient" />
-                    <button
-                      onClick={handleCancelAdjustCustomizations}
-                      className='dark:border-strokedark flex w-full justify-center rounded border border-stroke p-3 font-medium text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700'
-                    >
-                      Cancel
-                    </button>
+                    <StyledButton onClick={handleCancelAdjustCustomizations} text="Cancel" variant="secondary" />
                   </>
                 ) : (
                   <StyledButton onClick={handleGenerateResume} text="✨ Generate" variant="gradient" />
@@ -502,10 +492,8 @@ const AppPage = () => {
               documentType={documentType}
               sections={sections}
               onOverflowDetected={handleOverflowDetected}
+              onAdjustCustomizations={handleShowAdjustCustomizations}
             />
-            <div className='w-full max-w-[800px]'>
-              <StyledButton onClick={handleShowAdjustCustomizations} text="Adjust Customizations" />
-            </div>
           </div>
         )}
       </div>

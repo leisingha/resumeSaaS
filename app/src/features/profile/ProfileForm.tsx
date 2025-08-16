@@ -4,6 +4,7 @@ import { getUserProfile, saveUserProfile, generateAiResumePoints } from 'wasp/cl
 import UploadSection from '../upload/UploadSection';
 import SwitcherOne from '../../admin/elements/forms/SwitcherOne';
 import { Trash2 } from 'lucide-react';
+import StyledButton from '../common/StyledButton';
 
 import QuillEditor from '../common/forwarded-quill';
 
@@ -747,22 +748,20 @@ Education History: ${educationContext}`;
       </div>
 
       {/* Save Button */}
-      <div className='flex justify-start gap-4.5 pt-4'>
-        <button
-          type='button'
-          onClick={handleCancel}
-          className='flex justify-center rounded border border-stroke py-2 px-6 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white'
-          disabled={isSaving}
-        >
-          Cancel
-        </button>
-        <button
-          className='flex justify-center rounded bg-primary py-2 px-6 font-medium text-gray hover:shadow-1'
-          type='submit'
-          disabled={isSaving}
-        >
-          {isSaving ? 'Saving...' : 'Save Profile'}
-        </button>
+      <div className='flex justify-start pt-4'>
+        <div style={{ width: '100px', transform: 'scale(0.7)', transformOrigin: 'left' }}>
+          <StyledButton 
+            onClick={(e) => {
+              e.preventDefault();
+              handleSaveProfile(e);
+            }} 
+            text={isSaving ? 'Saving...' : 'Save'} 
+            variant="gradient" 
+          />
+        </div>
+        <div style={{ width: '120px', transform: 'scale(0.7)', transformOrigin: 'left', marginLeft: '-20px' }}>
+          <StyledButton onClick={handleCancel} text="Cancel" variant="secondary" />
+        </div>
       </div>
     </form>
   );

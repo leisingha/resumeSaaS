@@ -4,76 +4,163 @@ import styled from 'styled-components';
 interface StyledButtonProps {
   onClick: () => void;
   text: string;
-  variant?: 'default' | 'gradient';
+  variant?: 'default' | 'gradient' | 'secondary';
 }
 
 const StyledButton: React.FC<StyledButtonProps> = ({ onClick, text, variant = 'default' }) => {
+  // Parse the text to make the ✨ emoji bigger
+  const parseText = (text: string) => {
+    if (text.includes('✨')) {
+      const parts = text.split('✨');
+      return (
+        <>
+          <span className="emoji">✨</span>
+          {parts[1]?.trim()}
+        </>
+      );
+    }
+    return text;
+  };
+
   return (
     <StyledWrapper variant={variant}>
-      <button onClick={onClick}>
-        <span className="text">{text}</span>
+      <button className="pushable" onClick={onClick}>
+        <span className="edge" />
+        <span className="front">{parseText(text)}</span>
       </button>
     </StyledWrapper>
   );
 };
 
-const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' }>`
+const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary' }>`
   width: 100%;
   
-  button {
-    align-items: center;
-    background-image: linear-gradient(144deg, #af40ff, #5b42f3 50%, #00ddeb);
-    border: 0;
-    border-radius: 8px;
-    box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
-    box-sizing: border-box;
-    color: #ffffff;
-    display: flex;
-    font-size: 18px;
-    justify-content: center;
-    line-height: 1em;
-    width: 100%; /* Changed from max-width to width */
-    min-width: 140px;
-    padding: 3px;
-    text-decoration: none;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    white-space: nowrap;
+  .pushable {
+    position: relative;
+    background: transparent;
+    padding: 0px;
+    border: none;
     cursor: pointer;
-    transition: all 0.3s;
-  }
-
-  button:active,
-  button:hover {
-    outline: 0;
-  }
-
-  button:hover {
-    transform: scale(1.02);
-  }
-
-  button span {
-    background-color: ${(props) => (props.variant === 'gradient' ? 'transparent' : '#F1F5F9')};
-    padding: 16px 24px;
-    border-radius: 6px;
+    outline-offset: 4px;
+    outline-color: deeppink;
+    transition: filter 250ms;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     width: 100%;
-    height: 100%;
-    transition: 300ms;
   }
 
+
+
+  .edge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    border-radius: 8px;
+    background: ${(props) =>
+      props.variant === 'secondary'
+        ? `linear-gradient(
+            to right,
+            hsl(220, 9%, 46%) 0%,
+            hsl(220, 9%, 56%) 8%,
+            hsl(220, 9%, 46%) 92%,
+            hsl(220, 9%, 36%) 100%
+          )`
+        : `linear-gradient(
+            to right,
+            hsl(248, 39%, 39%) 0%,
+            hsl(248, 39%, 49%) 8%,
+            hsl(248, 39%, 39%) 92%,
+            hsl(248, 39%, 29%) 100%
+          )`};
+  }
+
+  .front {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-radius: 8px;
+    background: ${(props) =>
+      props.variant === 'secondary' 
+        ? `hsl(210, 20%, 98%)` // Light gray for light mode
+        : `hsl(248, 53%, 58%)`}; // Purple for primary
+    padding: 16px 32px;
+    color: ${(props) =>
+      props.variant === 'secondary' 
+        ? `hsl(220, 9%, 46%)` // Dark gray text for light mode
+        : `white`}; // White text for primary
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 1rem;
+    transform: translateY(-4px);
+    transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    height: 56px;
+    min-height: 56px;
+  }
+
+  /* Dark mode support for secondary variant */
   @media (prefers-color-scheme: dark) {
-    button span {
-      background-color: ${(props) => (props.variant === 'gradient' ? 'transparent' : '#1A222C')};
+    .front {
+      background: ${(props) =>
+        props.variant === 'secondary' 
+          ? `hsl(220, 13%, 18%)` // Dark gray for dark mode
+          : `hsl(248, 53%, 58%)`}; // Keep purple for primary
+      color: ${(props) =>
+        props.variant === 'secondary' 
+          ? `hsl(220, 9%, 66%)` // Light gray text for dark mode
+          : `white`}; // Keep white for primary
+    }
+    
+    .edge {
+      background: ${(props) =>
+        props.variant === 'secondary'
+          ? `linear-gradient(
+              to right,
+              hsl(220, 13%, 25%) 0%,
+              hsl(220, 13%, 35%) 8%,
+              hsl(220, 13%, 25%) 92%,
+              hsl(220, 13%, 15%) 100%
+            )`
+          : `linear-gradient(
+              to right,
+              hsl(248, 39%, 39%) 0%,
+              hsl(248, 39%, 49%) 8%,
+              hsl(248, 39%, 39%) 92%,
+              hsl(248, 39%, 29%) 100%
+            )`};
     }
   }
 
-  button:hover span {
-    background: none;
+  .front .emoji {
+    font-size: 1.5em;
+    margin-right: 0.3em;
+    text-transform: none;
+    line-height: 1;
   }
 
-  button:active {
-    transform: scale(0.9);
+  .pushable:hover {
+    filter: brightness(110%);
+  }
+
+  .pushable:hover .front {
+    transform: translateY(-6px);
+    transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
+  }
+
+  .pushable:active .front {
+    transform: translateY(-2px);
+    transition: transform 34ms;
+  }
+
+
+
+  .pushable:focus:not(:focus-visible) {
+    outline: none;
   }
 `;
 
