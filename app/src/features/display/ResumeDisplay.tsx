@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 're
 import type { CustomizationOptions, DocumentType } from '../../AppPage';
 import EditModal from './EditModal';
 // PDF download libraries removed - will be replaced with new implementation
-import { Pencil } from 'lucide-react';
+import { Pencil, Download, Copy } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import 'react-quill/dist/quill.snow.css';
 import './ResumeDisplay.css';
@@ -798,6 +798,42 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     }
   };
 
+  const handleCopyToClipboard = async () => {
+    if (!generatedContent) {
+      console.error('No content to copy');
+      return;
+    }
+
+    try {
+      // Create a temporary element to extract text content from HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = filteredContent || generatedContent;
+      const textContent = tempDiv.textContent || tempDiv.innerText || '';
+      
+      await navigator.clipboard.writeText(textContent);
+      
+      // You could add a toast notification here in the future
+      console.log('Resume content copied to clipboard');
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      
+      // Fallback for older browsers
+      try {
+        const textArea = document.createElement('textarea');
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = filteredContent || generatedContent;
+        textArea.value = tempDiv.textContent || tempDiv.innerText || '';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        console.log('Resume content copied to clipboard (fallback)');
+      } catch (fallbackError) {
+        console.error('Fallback copy also failed:', fallbackError);
+      }
+    }
+  };
+
   const handleSaveChanges = () => {
     onContentChange(editedContent);
     setShowEditModal(false);
@@ -1071,22 +1107,32 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   return (
     <>
       {/* Header */}
-      <div className='flex justify-between items-center'>
-        <div>
-          <h2 className='text-xl font-semibold text-black dark:text-white'>Generated {documentTitle}</h2>
-          <div className='text-sm text-gray-400 mt-1'>
-            <span>
-              Template: <span className='font-medium text-gray-500 dark:text-gray-300'>{options.template}</span>
-            </span>
-          </div>
-        </div>
-        <div className='flex items-center space-x-3'>
+      <div className='flex justify-end items-center w-full'>
+        <div className='flex items-center space-x-3 justify-end'>
+          <button
+            onClick={handleCopyToClipboard}
+            disabled={!generatedContent}
+            className='inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm'
+          >
+            <Copy size={16} />
+            Copy
+          </button>
           <button
             onClick={handleDownloadPdf}
             disabled={isOverflowing || isPdfGenerating}
-            className='px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
+            className='inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm'
           >
-            {isPdfGenerating ? 'Generating...' : 'Download'}
+            {isPdfGenerating ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600"></div>
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download size={16} />
+                Download
+              </>
+            )}
           </button>
         </div>
       </div>

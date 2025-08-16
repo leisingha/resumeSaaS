@@ -246,8 +246,8 @@ const AppPage = () => {
       </div>
 
       {/* Mobile horizontal layout for template controls (below 1182px) */}
-      <div className='flex template-break:hidden flex-col gap-4 mb-6 items-center'>
-        <div className='h-9' />
+      <div className='flex template-break:hidden flex-col mb-6 items-center'>
+        <div style={{ height: '3px' }} />
         {/* Container that matches resume width (800px) */}
         <div className='w-[800px] mx-auto'>
           <div className='flex gap-4'>
