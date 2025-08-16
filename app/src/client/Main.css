@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Minimum viewport width constraint */
+body {
+  min-width: 895px;
+}
+
 @layer utilities {
   /* Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {

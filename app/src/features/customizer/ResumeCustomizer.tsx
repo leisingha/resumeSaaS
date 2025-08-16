@@ -69,10 +69,10 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({ options, onOptionsC
   };
 
   return (
-    <div className='bg-white dark:bg-boxdark shadow-md p-4 rounded-lg'>
+    <div className='bg-white dark:bg-boxdark shadow-md p-4 rounded-lg template-break:h-auto h-full template-break:flex-none flex flex-col justify-center'>
       {part === 'templateControls' && (
         <>
-          <div className='flex items-center gap-3 text-black dark:text-white'>
+          <div className='flex items-center gap-3 text-black dark:text-white ml-4'>
             <span className='text-xl'>🎨</span>
             <span>Templates</span>
           </div>

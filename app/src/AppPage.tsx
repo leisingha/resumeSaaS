@@ -208,7 +208,7 @@ const AppPage = () => {
   };
 
   return (
-    <div className='mx-auto flex max-w-6xl flex-col gap-6 p-4 md:p-6 2xl:p-10'>
+    <div className='mx-auto flex max-w-6xl min-w-[860px] flex-col gap-6 p-4 md:p-6 2xl:p-10'>
       <ManageSectionsPanel
         isOpen={isManageSectionsOpen}
         onClose={() => setIsManageSectionsOpen(false)}
@@ -225,6 +225,7 @@ const AppPage = () => {
           onClose={() => setShowWarningAlert(false)} 
         />
       )}
+      <div className='template-break:w-full w-[800px] template-break:mx-0 mx-auto'>
       <AccordionLayout
         isAccordionOpen={isAccordionOpen}
         onAccordionToggle={() => setIsAccordionOpen(!isAccordionOpen)}
@@ -242,9 +243,58 @@ const AppPage = () => {
         setLanguages={setLanguages}
         setAchievements={setAchievements}
       />
+      </div>
 
-      <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>
-        <div className='flex flex-col gap-6 md:col-span-3'>
+      {/* Mobile horizontal layout for template controls (below 1182px) */}
+      <div className='flex template-break:hidden flex-col gap-4 mb-6 items-center'>
+        <div className='h-9' />
+        {/* Container that matches resume width (800px) */}
+        <div className='w-[800px] mx-auto'>
+          <div className='flex gap-4'>
+            {/* All three boxes with equal width and height in horizontal layout */}
+            <div className='flex gap-4 w-full h-[95px]'>
+              {/* Template Customizer - 1/3 width */}
+              <div className='flex-1'>
+                <ResumeCustomizer
+                  part='templateControls'
+                  options={customizationOptions}
+                  onOptionsChange={setCustomizationOptions}
+                  isResumeGenerated={isResumeGenerated}
+                />
+              </div>
+              
+              {/* Manage Sections Button - 1/3 width */}
+              <div className='flex-1'>
+                <button
+                  type='button'
+                  onClick={() => setIsManageSectionsOpen(true)}
+                  disabled={!isResumeGenerated}
+                  className='flex w-full h-full items-center justify-center gap-3 rounded-lg bg-white py-3 px-4 text-black shadow-sm transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 dark:bg-boxdark dark:text-white'
+                >
+                  <span className='text-xl'>🧩</span>
+                  <span>Manage Sections</span>
+                </button>
+              </div>
+              
+              {/* Get Resume Service Button - 1/3 width */}
+              <div className='flex-1'>
+                <button
+                  type='button'
+                  onClick={() => {/* TODO: Add resume service action */}}
+                  className='flex w-full h-full items-center justify-center gap-3 rounded-lg bg-white py-3 px-4 text-black shadow-sm transition-all hover:shadow-md dark:bg-boxdark dark:text-white'
+                >
+                  <span className='text-xl'>📝</span>
+                  <span>Get Resume Service</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop layout (1182px and above) */}
+      <div className='hidden template-break:grid grid-cols-1 gap-6 template-break:grid-cols-12'>
+        <div className='flex flex-col gap-6 template-break:col-span-3'>
           <div className='h-9' />
           <ResumeCustomizer
             part='templateControls'
@@ -280,7 +330,7 @@ const AppPage = () => {
           </div>
         </div>
 
-        <div className='flex flex-col gap-6 md:col-span-9'>
+        <div className='flex flex-col gap-6 template-break:col-span-9'>
           {isGenerating ? (
             <div className='mt-8 flex h-40 items-center justify-center'>
               <div className='typewriter'>
@@ -366,6 +416,98 @@ const AppPage = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Resume content area for mobile (below 1182px) */}
+      <div className='template-break:hidden flex flex-col items-center'>
+        {isGenerating ? (
+          <div className='mt-8 flex h-40 items-center justify-center'>
+            <div className='typewriter'>
+              <div className='slide'>
+                <i></i>
+              </div>
+              <div className='paper'></div>
+              <div className='keyboard'></div>
+            </div>
+          </div>
+        ) : isDetailCustomizerVisible ? (
+          <div className='w-full max-w-[800px] mx-auto'>
+            <div className='flex flex-col gap-6'>
+              <div className="flex items-center justify-between h-9">
+                <h2 className='text-xl font-semibold text-black dark:text-white'>
+                  Customise
+                </h2>
+                <div className="p-1 flex rounded-lg bg-gray-100 dark:bg-strokedark">
+                  <button
+                    type="button"
+                    onClick={() => handleDocumentTypeChange('resume')}
+                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none
+                      ${documentType === 'resume'
+                        ? 'bg-white shadow-sm text-black dark:bg-white dark:text-black'
+                        : 'bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white'}
+                    `}
+                  >
+                    Resume
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDocumentTypeChange('coverLetter')}
+                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none
+                      ${documentType === 'coverLetter'
+                        ? 'bg-white shadow-sm text-black dark:bg-white dark:text-black'
+                        : 'bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white'}
+                    `}
+                  >
+                    Cover Letter
+                  </button>
+                </div>
+              </div>
+              <ResumeCustomizer
+                part='detailControls'
+                options={customizationOptions}
+                onOptionsChange={setCustomizationOptions}
+                documentType={documentType}
+                onDocumentTypeChange={handleDocumentTypeChange}
+              />
+              <div className='flex gap-3'>
+                {isResumeGenerated ? (
+                  <>
+                    <StyledButton onClick={handleGenerateResume} text="✨ Regenerate" variant="gradient" />
+                    <button
+                      onClick={handleCancelAdjustCustomizations}
+                      className='dark:border-strokedark flex w-full justify-center rounded border border-stroke p-3 font-medium text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700'
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <StyledButton onClick={handleGenerateResume} text="✨ Generate" variant="gradient" />
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {isResumeGenerated && !isDetailCustomizerVisible && !isGenerating && (
+          <div className='space-y-4 flex flex-col items-center'>
+            <ResumeDisplay
+              options={customizationOptions}
+              generatedContent={generatedResumeContent}
+              isResumeGenerated={isResumeGenerated}
+              isEditing={isEditing}
+              setIsEditing={setIsEditing}
+              showEditModal={showEditModal}
+              setShowEditModal={setShowEditModal}
+              onContentChange={handleEditSave}
+              documentType={documentType}
+              sections={sections}
+              onOverflowDetected={handleOverflowDetected}
+            />
+            <div className='w-full max-w-[800px]'>
+              <StyledButton onClick={handleShowAdjustCustomizations} text="Adjust Customizations" />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
