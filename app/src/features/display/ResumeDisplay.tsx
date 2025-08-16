@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
 import type { CustomizationOptions, DocumentType } from '../../AppPage';
 import EditModal from './EditModal';
 // PDF download libraries removed - will be replaced with new implementation
@@ -84,6 +84,12 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   const [showProjectsEdit, setShowProjectsEdit] = useState(false);
   const [editingProjectsContent, setEditingProjectsContent] = useState('');
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
+
+  // Apply section visibility filtering to the displayed content
+  const filteredContent = useMemo(() => {
+    if (!generatedContent) return null;
+    return filterContentBySections(generatedContent, sections);
+  }, [generatedContent, sections]);
 
   useEffect(() => {
     if (generatedContent) {
@@ -612,7 +618,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     }
 
     // No specific cleanup needed as dangerouslySetInnerHTML re-renders everything
-  }, [generatedContent, sections]);
+  }, [filteredContent]);
 
   const documentTitle = documentType === 'resume' ? 'Resume' : 'Cover Letter';
 
@@ -632,14 +638,13 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     try {
       console.log('Starting PDF generation...');
       
-      // Filter content based on section visibility to match browser display
+      // Use the already filtered content to match browser display
       logSectionVisibility(sections);
-      const filteredContent = filterContentBySections(generatedContent, sections);
-      console.log('Content filtered based on section visibility');
+      console.log('Using filtered content that matches browser display');
       
       // Call the backend PDF generation with filtered content
       const result = await generateResumePdf({
-        htmlContent: filteredContent,
+        htmlContent: filteredContent || generatedContent,
         filename: `${documentTitle.toLowerCase().replace(/\s+/g, '-')}.pdf`
       });
 
@@ -1085,7 +1090,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
             {/* Render the resume HTML */}
             <div
               style={{ padding: '0' }}
-              dangerouslySetInnerHTML={{ __html: generatedContent || '<p>Your generated document will appear here...</p>' }}
+              dangerouslySetInnerHTML={{ __html: filteredContent || '<p>Your generated document will appear here...</p>' }}
             />
           </div>
         </div>
