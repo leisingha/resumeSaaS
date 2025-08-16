@@ -53,6 +53,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   const [hasShownOverflowAlert, setHasShownOverflowAlert] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  // Create a unique ID for this instance to avoid conflicts with multiple ResumeDisplay components
+  const instanceId = useRef(`resume-content-${Math.random().toString(36).substr(2, 9)}`).current;
   const [showSummaryEdit, setShowSummaryEdit] = useState(false);
   const [summaryEditValue, setSummaryEditValue] = useState('');
   const [isSummaryHovered, setIsSummaryHovered] = useState(false);
@@ -135,33 +137,34 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
       const contentNode = contentRef.current;
 
       if (containerNode && contentNode && generatedContent) {
-        // Get the clipping container
+        // Get the clipping container within this specific container instance
         const clippingContainer = containerNode.querySelector('div[style*="overflow: hidden"]') as HTMLElement;
-        if (!clippingContainer) return;
+        if (!clippingContainer) {
+          return;
+        }
 
-        // Get the resume-content div which contains the actual resume HTML
-        const resumeContent = document.getElementById('resume-content');
-        if (!resumeContent) return;
+        // Use contentNode (which has the ref) instead of document.getElementById
+        // This ensures we're working with the correct instance of the resume content
+        const resumeContent = contentNode;
+        if (!resumeContent) {
+          return;
+        }
 
         const clippingHeight = clippingContainer.offsetHeight;
         
         // Get the actual content div inside resume-content (the one with dangerouslySetInnerHTML)
         const actualContent = resumeContent.querySelector('div[style*="padding: 0"]') as HTMLElement;
-        if (!actualContent) return;
+        if (!actualContent) {
+          return;
+        }
 
-        // Get the natural height of the content without any scaling
+        // Get the natural height of the content - no scaling needed since container is fixed size
         const contentHeight = actualContent.scrollHeight;
-        
-        // Get the current scale factor applied to the contentNode
-        const transform = contentNode.style.transform;
-        const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
-        const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-        
-        // Calculate the scaled height
-        const scaledContentHeight = contentHeight * scale;
 
-        // Check if scaled content height exceeds the available clipping height
-        if (scaledContentHeight > clippingHeight) {
+        // Check if content height exceeds the available clipping height
+        // Since the container is now fixed-size (800px × 1131px) and never scales,
+        // we can directly compare the content height with the clipping height
+        if (contentHeight > clippingHeight) {
           setIsOverflowing(true);
           // Only show alert if we haven't shown it already for this content
           if (!hasShownOverflowAlert) {
@@ -183,7 +186,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   }, [generatedContent, onOverflowDetected, hasShownOverflowAlert]);
 
   useEffect(() => {
-    const resumeContent = document.getElementById('resume-content');
+    const resumeContent = document.getElementById(instanceId);
     if (!resumeContent) return;
 
     // Remove any existing color style tag to prevent multiple insertions
@@ -196,12 +199,12 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     const style = document.createElement('style');
     style.id = 'resume-color-style';
     style.innerHTML = `
-      #resume-content h1,
-      #resume-content h2,
-      #resume-content h3,
-      #resume-content p,
-      #resume-content li,
-      #resume-content span {
+      #${instanceId} h1,
+      #${instanceId} h2,
+      #${instanceId} h3,
+      #${instanceId} p,
+      #${instanceId} li,
+      #${instanceId} span {
         color: ${options.colorScheme} !important;
       }
     `;
@@ -222,7 +225,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
 
   // Combined effect to attach all edit buttons dynamically
   useEffect(() => {
-    const resumeContent = document.getElementById('resume-content');
+    const resumeContent = document.getElementById(instanceId);
     if (!resumeContent) return;
 
     // --- Summary Edit Button ---
@@ -1001,7 +1004,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
   const handleGenerateProjectsContent = async () => {
     setIsAiLoading({ ...isAiLoading, projects: true });
     try {
-        const resumeContent = document.getElementById('resume-content');
+        const resumeContent = document.getElementById(instanceId);
         if (!resumeContent) {
             throw new Error("Could not find resume content to build context.");
         }
@@ -1084,7 +1087,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         >
           <div
             ref={contentRef}
-            id='resume-content'
+            id={instanceId}
             style={{ transformOrigin: 'top left', position: 'relative', padding: '0' }}
           >
             {/* Render the resume HTML */}
