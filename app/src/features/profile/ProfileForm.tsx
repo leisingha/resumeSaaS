@@ -752,8 +752,13 @@ Education History: ${educationContext}`;
         <div style={{ width: '100px', transform: 'scale(0.7)', transformOrigin: 'left' }}>
           <StyledButton 
             onClick={(e) => {
-              e.preventDefault();
-              handleSaveProfile(e);
+              e?.preventDefault();
+              const formEvent = {
+                ...e,
+                preventDefault: () => e?.preventDefault(),
+                stopPropagation: () => e?.stopPropagation()
+              } as React.FormEvent;
+              handleSaveProfile(formEvent);
             }} 
             text={isSaving ? 'Saving...' : 'Save'} 
             variant="gradient" 

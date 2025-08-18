@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 interface StyledButtonProps {
-  onClick: () => void;
+  onClick: (e?: React.MouseEvent<HTMLButtonElement>) => void;
   text: string;
   variant?: 'default' | 'gradient' | 'secondary';
 }
