@@ -362,11 +362,12 @@ const AppPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDocumentTypeChange('coverLetter')}
-                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none
+                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
                       ${documentType === 'coverLetter'
                         ? 'bg-white shadow-sm text-black dark:bg-white dark:text-black'
                         : 'bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white'}
                     `}
+                    disabled
                   >
                     Cover Letter
                   </button>
@@ -447,11 +448,12 @@ const AppPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDocumentTypeChange('coverLetter')}
-                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none
+                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
                       ${documentType === 'coverLetter'
                         ? 'bg-white shadow-sm text-black dark:bg-white dark:text-black'
                         : 'bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white'}
                     `}
+                    disabled
                   >
                     Cover Letter
                   </button>
