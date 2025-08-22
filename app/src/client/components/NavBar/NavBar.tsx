@@ -18,7 +18,7 @@ export interface NavigationItem {
   to: string;
 }
 
-const NavLogo = () => <img className='h-8 w-8' src={logo} alt='Your SaaS App' />;
+const NavLogo = () => <span className='text-2xl font-bold text-gray-900 dark:text-white'>Applify</span>;
 
 export default function AppNavBar({ navigationItems }: { navigationItems: NavigationItem[] }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -28,21 +28,18 @@ export default function AppNavBar({ navigationItems }: { navigationItems: Naviga
   return (
     <header
       className={cn('absolute inset-x-0 top-0 z-50 dark:bg-boxdark-2', {
-        'shadow sticky bg-white bg-opacity-50 backdrop-blur-lg backdrop-filter dark:border dark:border-gray-100/10':
+        'sticky bg-white bg-opacity-50 backdrop-blur-lg backdrop-filter':
           !isLandingPage,
       })}
     >
       {isLandingPage && <Announcement />}
-      <nav className='flex items-center justify-between p-6 lg:px-8' aria-label='Global'>
+      <nav className='flex items-center justify-between p-6 lg:py-6 mx-auto max-w-6xl' aria-label='Global'>
         <div className='flex items-center lg:flex-1'>
           <WaspRouterLink
             to={routes.LandingPageRoute.to}
             className='flex items-center -m-1.5 p-1.5 text-gray-900 duration-300 ease-in-out hover:text-yellow-500'
           >
             <NavLogo />
-            {isLandingPage && (
-              <span className='ml-2 text-sm font-semibold leading-6 dark:text-white'>Your Saas</span>
-            )}
           </WaspRouterLink>
         </div>
         <div className='flex lg:hidden'>
@@ -55,21 +52,17 @@ export default function AppNavBar({ navigationItems }: { navigationItems: Naviga
             <HiBars3 className='h-6 w-6' aria-hidden='true' />
           </button>
         </div>
-        <div className='hidden lg:flex lg:gap-x-12'>{renderNavigationItems(navigationItems)}</div>
-        <div className='hidden lg:flex lg:flex-1 gap-3 justify-end items-center'>
-          <ul className='flex justify-center items-center gap-2 sm:gap-4'>
-            <DarkModeSwitcher />
-          </ul>
+        <div className='hidden lg:flex lg:gap-6 lg:justify-end lg:items-center'>
+          {renderNavigationItems(navigationItems)}
+          <DarkModeSwitcher />
           {isUserLoading ? null : !user ? (
-            <WaspRouterLink to={routes.LoginRoute.to} className='text-sm font-semibold leading-6 ml-3'>
+            <WaspRouterLink to={routes.LoginRoute.to} className='text-sm font-semibold leading-6'>
               <div className='flex items-center duration-300 ease-in-out text-gray-900 hover:text-yellow-500 dark:text-white'>
                 Log in <BiLogIn size='1.1rem' className='ml-1 mt-[0.1rem]' />
               </div>
             </WaspRouterLink>
           ) : (
-            <div className='ml-3'>
-              <DropdownUser user={user} />
-            </div>
+            <DropdownUser user={user} />
           )}
         </div>
       </nav>
@@ -120,9 +113,9 @@ function renderNavigationItems(
   setMobileMenuOpen?: Dispatch<SetStateAction<boolean>>
 ) {
   const menuStyles = cn({
-    '-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-boxdark-2':
+    '-mx-3 block rounded-lg px-3 py-2 text-xl font-semibold leading-7 text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-boxdark-2 tracking-wider':
       !!setMobileMenuOpen,
-    'text-sm font-semibold leading-6 text-gray-900 duration-300 ease-in-out hover:text-yellow-500 dark:text-white':
+    'text-base font-semibold leading-6 text-gray-900 duration-300 ease-in-out hover:text-yellow-500 dark:text-white tracking-wider':
       !setMobileMenuOpen,
   });
 
@@ -145,25 +138,9 @@ const ContestURL = 'https://github.com/wasp-lang/wasp';
 function Announcement() {
   return (
     <div className='flex justify-center items-center gap-3 p-3 w-full bg-gradient-to-r from-[#d946ef] to-[#fc0] font-semibold text-white text-center z-49'>
-      <p
-        onClick={() => window.open(ContestURL, '_blank')}
-        className='hidden lg:block cursor-pointer hover:opacity-90 hover:drop-shadow'
-      >
-        Support Open-Source Software!
+      <p className='cursor-default hover:opacity-90 hover:drop-shadow'>
+        🚀 Applify is in beta! Enjoy free access to all premium features ✨
       </p>
-      <div className='hidden lg:block self-stretch w-0.5 bg-white'></div>
-      <div
-        onClick={() => window.open(ContestURL, '_blank')}
-        className='hidden lg:block cursor-pointer rounded-full bg-neutral-700 px-2.5 py-1 text-xs hover:bg-neutral-600 tracking-wider'
-      >
-        Star Our Repo on Github ⭐️ →
-      </div>
-      <div
-        onClick={() => window.open(ContestURL, '_blank')}
-        className='lg:hidden cursor-pointer rounded-full bg-neutral-700 px-2.5 py-1 text-xs hover:bg-neutral-600 tracking-wider'
-      >
-        ⭐️ Star the Our Repo on Github and Support Open-Source! ⭐️
-      </div>
     </div>
   );
 }

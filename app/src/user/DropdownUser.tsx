@@ -1,16 +1,27 @@
 import { type User } from 'wasp/entities';
+import { type AuthUser } from 'wasp/auth';
 import { useEffect, useRef, useState } from 'react';
 import { CgProfile } from 'react-icons/cg';
 import { UserMenuItems } from './UserMenuItems';
 import { cn } from '../client/cn';
 
-const DropdownUser = ({ user }: { user: Partial<User> }) => {
+const DropdownUser = ({ user }: { user: AuthUser }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
 
   const toggleDropdown = () => setDropdownOpen((prev) => !prev);
+
+  // Get user's first letter for the avatar
+  const getFirstLetter = () => {
+    // Try to get email from identities
+    const emailFromIdentity = user?.identities?.email?.id;
+    
+    const displayName = emailFromIdentity;
+    
+    return displayName ? displayName.charAt(0).toUpperCase() : 'U';
+  };
 
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
@@ -39,12 +50,11 @@ const DropdownUser = ({ user }: { user: Partial<User> }) => {
       <button
         ref={trigger}
         onClick={toggleDropdown}
-        className='flex items-center gap-4 duration-300 ease-in-out text-gray-900 hover:text-yellow-500'
+        className='flex items-center gap-2 duration-300 ease-in-out text-gray-900 hover:text-yellow-500'
       >
-        <span className='hidden text-right lg:block'>
-          <span className='block text-sm font-medium dark:text-white'>{user.username}</span>
-        </span>
-        <CgProfile size='1.1rem' className='ml-1 mt-[0.1rem] dark:text-white' />
+        <div className='w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-white font-medium text-sm'>
+          {getFirstLetter()}
+        </div>
         <svg
           className={cn('hidden fill-current dark:fill-white sm:block', {
             'rotate-180': dropdownOpen,
