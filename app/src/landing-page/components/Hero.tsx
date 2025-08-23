@@ -1,4 +1,3 @@
-import openSaasBannerWebp from '../../client/static/open-saas-banner.webp';
 import { DocsUrl } from '../../shared/common';
 import { Link } from 'wasp/client/router';
 import StyledButton from './StyledButton';
@@ -9,7 +8,7 @@ export default function Hero() {
     <div className='relative pt-14 w-full'>
       <TopGradient />
       <BottomGradient />
-      <div className='py-24 sm:py-32'>
+      <div className='py-16 sm:py-20'>
         <div className='mx-auto max-w-8xl px-6 lg:px-8'>
           <div className='lg:mb-18 mx-auto max-w-3xl text-center'>
             <h1 className='text-4xl font-bold text-gray-900 sm:text-6xl dark:text-white'>
@@ -24,16 +23,39 @@ export default function Hero() {
               </StyledButton>
             </div>
           </div>
-          <div className='mt-14 flow-root sm:mt-14'>
-            <div className='-m-2  flex justify-center rounded-xl lg:-m-4 lg:rounded-2xl lg:p-4'>
-              <img
-                src={openSaasBannerWebp}
-                alt='App screenshot'
-                width={1000}
-                height={530}
-                loading='lazy'
-                className='rounded-md shadow-2xl ring-1 ring-gray-900/10'
-              />
+          <div className='mt-12 flow-root sm:mt-16'>
+            <div className='relative max-w-7xl mx-auto px-4'>
+              <div className='relative h-[400px] sm:h-[480px] lg:h-[550px]'>
+                {/* First Screenshot - Bottom Layer */}
+                <div className='absolute left-8 top-12 w-80 sm:w-96 lg:w-[420px] z-10 group'>
+                  <img
+                    src='/screenshot1.png'
+                    alt='Profile Setup Interface'
+                    className='w-full h-auto rounded-xl shadow-2xl ring-1 ring-gray-900/10 transform -rotate-6 hover:rotate-3 hover:scale-105 transition-all duration-300'
+                    loading='lazy'
+                  />
+                </div>
+                
+                {/* Third Screenshot - Middle Layer (swapped position) */}
+                <div className='absolute left-1/2 top-4 w-80 sm:w-96 lg:w-[420px] -translate-x-1/2 z-20 group'>
+                  <img
+                    src='/screenshot3.png'
+                    alt='Generated Resume Preview'
+                    className='w-full h-auto rounded-xl shadow-2xl ring-1 ring-gray-900/10 transform rotate-2 hover:rotate-0 hover:scale-105 transition-all duration-300'
+                    loading='lazy'
+                  />
+                </div>
+                
+                {/* Second Screenshot - Top Layer (swapped position) */}
+                <div className='absolute right-8 top-12 w-80 sm:w-96 lg:w-[420px] z-30 group'>
+                  <img
+                    src='/screenshot2.png'
+                    alt='Resume Customization'
+                    className='w-full h-auto rounded-xl shadow-2xl ring-1 ring-gray-900/10 transform rotate-6 hover:rotate-3 hover:scale-105 transition-all duration-300'
+                    loading='lazy'
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
