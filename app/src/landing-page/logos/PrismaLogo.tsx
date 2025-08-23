@@ -1,6 +1,12 @@
 export default function PrismaLogo() {
   return (
-    <svg width={48} height={48} viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'>
+    <svg 
+      width={48} 
+      height={48} 
+      viewBox='0 0 32 32' 
+      xmlns='http://www.w3.org/2000/svg'
+      style={{ maxWidth: '100%', height: 'auto' }}
+    >
       <path
         className='dark:fill-white'
         fill='#545454'

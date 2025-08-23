@@ -1,6 +1,12 @@
 export default function AstroLogo() {
   return (
-    <svg viewBox='0 0 256 370' xmlns='http://www.w3.org/2000/svg'>
+    <svg 
+      viewBox='0 0 256 370' 
+      xmlns='http://www.w3.org/2000/svg'
+      width="80"
+      height="115"
+      style={{ maxWidth: '100%', height: 'auto' }}
+    >
       <path
         className='dark:fill-white'
         fill='#545454'

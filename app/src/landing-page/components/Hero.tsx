@@ -1,6 +1,8 @@
 import openSaasBannerWebp from '../../client/static/open-saas-banner.webp';
 import { DocsUrl } from '../../shared/common';
 import { Link } from 'wasp/client/router';
+import StyledButton from './StyledButton';
+import AnimatedLoader from './AnimatedLoader';
 
 export default function Hero() {
   return (
@@ -11,18 +13,15 @@ export default function Hero() {
         <div className='mx-auto max-w-8xl px-6 lg:px-8'>
           <div className='lg:mb-18 mx-auto max-w-3xl text-center'>
             <h1 className='text-4xl font-bold text-gray-900 sm:text-6xl dark:text-white'>
-              Generate standout resumes <span className='italic'>in seconds</span>
+              Generate standout resumes in<span className='italic bg-gradient-to-r from-[#d946ef] to-[#fc0] bg-clip-text text-transparent'> seconds</span>
             </h1>
-            <p className='mt-6 mx-auto max-w-2xl text-lg leading-8 text-gray-600 dark:text-white'>
-            Smart, tailored resumes. ATS-proof. Recruiter-ready. Any field.
-            </p>
+            <div className='mt-6 mx-auto max-w-2xl flex justify-center'>
+              <AnimatedLoader />
+            </div>
             <div className='mt-10 flex items-center justify-center gap-x-6'>
-              <Link
-                to='/app'
-                className='rounded-md px-3.5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-200 hover:ring-2 hover:ring-yellow-300 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:text-white'
-              >
-                Get Started <span aria-hidden='true'>→</span>
-              </Link>
+              <StyledButton to='/app'>
+                Get Started →
+              </StyledButton>
             </div>
           </div>
           <div className='mt-14 flow-root sm:mt-14'>

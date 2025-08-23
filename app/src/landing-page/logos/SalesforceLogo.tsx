@@ -1,6 +1,12 @@
 export default function SalesforceLogo() {
   return (
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 273 191'>
+    <svg 
+      xmlns='http://www.w3.org/2000/svg' 
+      viewBox='0 0 273 191'
+      width="120"
+      height="84"
+      style={{ maxWidth: '100%', height: 'auto' }}
+    >
       <defs>
         <path id='a' d='M.06.5h272v190H.06z' />
       </defs>
