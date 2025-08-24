@@ -6,8 +6,9 @@ const AnimatedLoader = () => {
     <StyledWrapper>
       <div className="card">
         <div className="loader">
-          <p>Tailored for every</p>
+          <p>Cut through the hiring BS. Tailored for every</p>
           <div className="words">
+            <span className="word">Student</span>
             <span className="word">Software Engineer</span>
             <span className="word">Product Manager</span>
             <span className="word">Data Analyst</span>
@@ -16,7 +17,6 @@ const AnimatedLoader = () => {
             <span className="word">Sales Executive</span>
             <span className="word">Consultant</span>
             <span className="word">Teacher</span>
-            <span className="word">Nurse</span>
             <span className="word">Entrepreneur</span>
           </div>
         </div>

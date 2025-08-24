@@ -3,6 +3,10 @@ import { routes } from 'wasp/client/router';
 import { DocsUrl, BlogUrl } from '../shared/common';
 import daBoiAvatar from '../client/static/da-boi.webp';
 import avatarPlaceholder from '../client/static/avatar-placeholder.webp';
+// Avatar images from public directory
+const bryanAvatar = '/bryan.JPG';
+const vincentAvatar = '/vincent.jpeg';
+const wendyAvatar = '/wendy.jpeg';
 
 export const landingPageNavigationItems: NavigationItem[] = [
   { name: 'Features', to: '#features' },
@@ -40,21 +44,21 @@ export const testimonials = [
   {
     name: 'Bryan',
     role: 'Intern',
-    avatarSrc: daBoiAvatar,
+    avatarSrc: bryanAvatar,
     socialUrl: 'https://twitter.com/wasplang',
     quote: "Stacking interviews like I'm Thanos with the infinity gauntlet 😹",
   },
   {
     name: 'Vincent',
     role: 'Developer Intern',
-    avatarSrc: avatarPlaceholder,
+    avatarSrc: vincentAvatar,
     socialUrl: '',
-    quote: 'Finessed my way into a new job with this tool 😭',
+    quote: 'Finessed my way into a new job with this tool 😈',
   },
   {
     name: 'Wendy',
     role: 'Finance Administrator',
-    avatarSrc: avatarPlaceholder,
+    avatarSrc: wendyAvatar,
     socialUrl: '#',
     quote: 'Mass applying like a mf',
   },
@@ -63,18 +67,18 @@ export const testimonials = [
 export const faqs = [
   {
     id: 1,
-    question: 'How does the resume parsing work?',
-    answer: 'Our AI-powered system analyzes your uploaded resume and extracts key information including work experience, education, skills, and contact details. The parsed data is then used to generate a professional, ATS-friendly resume in your chosen template.',
+    question: 'Shortcut or cheating? What if someone uses this to make their resume seem better than they really are?',
+    answer: 'Let’s be real 🤷 Recruiters barely glance at resumes, no matter how many hours you slave over them. This tool levels the field by cutting out pointless busywork. We make applying effortless so candidates can spend their energy on what actually matters: proving they can do the job.',
   },
   {
     id: 2,
-    question: 'What file formats are supported for resume uploads?',
-    answer: 'We support PDF, DOC, DOCX, and TXT file formats for resume uploads. For best results, we recommend using PDF files as they maintain formatting consistency across different systems.',
+    question: 'How does the AI-powered resume enhancement work?',
+    answer: 'Our AI analyzes your resume and suggests improvements based on job descriptions. It highlights relevant skills, formats your resume for ATS compatibility, and ensures your resume is ATS-friendly.', 
   },
   {
     id: 3,
-    question: 'Can I customize the resume templates?',
-    answer: 'Yes! You can customize colors, fonts, layout sections, and content. Our editor allows you to add, remove, or reorder sections, and you can preview changes in real-time before generating your final resume.',
+    question: 'Can I customize my resume?',
+    answer: 'Yes! You can customize colors,layout sections, and content. Our inline editor allows you to edit your resume text content and modify it as you see fit.',
   },
   {
     id: 4,
@@ -95,7 +99,7 @@ export const footerNavigation = {
 };
 
 export const footerContent = {
-  companyDescription: "Mass apply to jobs with ease",
+  companyDescription: "Effortlessly mass-apply with resumes that stay perfectly accurate, relevant, and tailored to every job",
   copyright: "Copyright 2025 © Applify. All Right Reserved.",
   copyrightUrl: "https://prebuiltui.com",
   resources: [

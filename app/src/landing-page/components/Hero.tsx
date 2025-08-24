@@ -12,7 +12,7 @@ export default function Hero() {
         <div className='mx-auto max-w-8xl px-6 lg:px-8'>
           <div className='lg:mb-18 mx-auto max-w-3xl text-center'>
             <h1 className='text-4xl font-bold text-gray-900 sm:text-6xl dark:text-white'>
-              Generate standout resumes in<span className='italic bg-gradient-to-r from-[#d946ef] to-[#fc0] bg-clip-text text-transparent'> seconds</span>
+              Stop wasting hours, generate standout resumes in<span className='italic bg-gradient-to-r from-[#d946ef] to-[#fc0] bg-clip-text text-transparent'> seconds</span>
             </h1>
             <div className='mt-6 mx-auto max-w-2xl flex justify-center'>
               <AnimatedLoader />

@@ -58,7 +58,7 @@ export default function Footer() {
         
             </div>
             <p className="py-4 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                Copyright 2024 © <a href={footerContent.copyrightUrl} className="hover:text-gray-700 dark:hover:text-gray-200">PrebuiltUI</a>. All Right Reserved.
+                Copyright 2025 © <a href={footerContent.copyrightUrl} className="hover:text-gray-700 dark:hover:text-gray-200">Applify</a>. All Right Reserved.
             </p>
         </footer>
     );
