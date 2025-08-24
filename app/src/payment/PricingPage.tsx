@@ -41,17 +41,50 @@ const PricingPage = () => {
   const [isPaymentLoading, setIsPaymentLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { data: user } = useAuth();
+  const { data: user, isLoading: isAuthLoading, error: authError } = useAuth();
+  
+  // Only consider user subscribed if they are authenticated and have a valid subscription status
   const isUserSubscribed =
-    !!user && !!user.subscriptionStatus && user.subscriptionStatus !== SubscriptionStatus.Deleted;
+    !!user && 
+    !isAuthLoading && 
+    !!user.subscriptionStatus && 
+    user.subscriptionStatus !== SubscriptionStatus.Deleted;
+
+  // Additional safety check to ensure user is fully authenticated
+  const isUserFullyAuthenticated = !!user && !isAuthLoading && !authError;
 
   const {
     data: customerPortalUrl,
     isLoading: isCustomerPortalUrlLoading,
     error: customerPortalUrlError,
-  } = useQuery(getCustomerPortalUrl, { enabled: isUserSubscribed });
+  } = useQuery(getCustomerPortalUrl, { 
+    enabled: isUserSubscribed && isUserFullyAuthenticated,
+    retry: false, // Don't retry on auth errors
+    onError: (error: unknown) => {
+      console.error('Customer portal URL query error:', error);
+      // If it's an auth error, don't show it to the user as it will be handled by the auth error handler
+      if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
+        console.log('Auth error detected in customer portal query, redirecting to login');
+      }
+    }
+  });
 
   const navigate = useNavigate();
+
+  // Handle auth errors by redirecting to login
+  if (authError && !isAuthLoading) {
+    console.log('Auth error detected, redirecting to login');
+    // Redirect to login if there's an auth error
+    navigate('/login');
+    return null;
+  }
+
+  // Handle customer portal query auth errors
+  if (customerPortalUrlError && typeof customerPortalUrlError === 'object' && 'status' in customerPortalUrlError && customerPortalUrlError.status === 401) {
+    console.log('Customer portal query auth error, redirecting to login');
+    navigate('/login');
+    return null;
+  }
 
   async function handleBuyNowClick(paymentPlanId: PaymentPlanId) {
     if (!user) {
@@ -97,6 +130,28 @@ const PricingPage = () => {
 
     window.open(customerPortalUrl, '_blank');
   };
+
+  // Show loading state while auth is being determined
+  if (isAuthLoading) {
+    return (
+      <div className='py-10 lg:mt-10'>
+        <div className='mx-auto max-w-7xl px-6 lg:px-8'>
+          <div className='flex justify-center items-center h-64'>
+            <div className='text-lg text-gray-600 dark:text-white'>Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Debug logging to help identify issues
+  console.log('PricingPage render state:', {
+    user: !!user,
+    isAuthLoading,
+    authError: !!authError,
+    isUserSubscribed,
+    customerPortalUrlError: !!customerPortalUrlError
+  });
 
   return (
     <div className='py-10 lg:mt-10'>
