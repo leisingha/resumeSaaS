@@ -12,51 +12,51 @@ export const landingPageNavigationItems: NavigationItem[] = [
 ];
 export const features = [
   {
-    name: 'Cool Feature #1',
-    description: 'Describe your cool feature here.',
-    icon: '🤝',
+    name: 'AI-Powered Resume Enhancement',
+    description: 'Optimizes resume for specific job descriptions with ATS keyword matching',
+    icon: '🤖',
     href: DocsUrl,
   },
   {
-    name: 'Cool Feature #2',
-    description: 'Describe your cool feature here.',
-    icon: '🔐',
+    name: 'Intelligent editor',
+    description: 'Smart editing tools with real-time suggestions and formatting assistance',
+    icon: '✏️',
     href: DocsUrl,
   },
   {
-    name: 'Cool Feature #3',
-    description: 'Describe your cool feature here.',
-    icon: '🥞',
+    name: 'Document Parser',
+    description: 'Extracts and parses content from uploaded documents automatically',
+    icon: '📜',
     href: DocsUrl,
   },
   {
-    name: 'Cool Feature #4',
-    description: 'Describe your cool feature here.',
-    icon: '💸',
+    name: 'One-Click PDF Download',
+    description: 'Download your resume as a PDF with one click',
+    icon: '📥',
     href: DocsUrl,
   },
 ];
 export const testimonials = [
   {
-    name: 'Da Boi',
-    role: 'Wasp Mascot',
+    name: 'Bryan',
+    role: 'Intern',
     avatarSrc: daBoiAvatar,
     socialUrl: 'https://twitter.com/wasplang',
-    quote: "I don't even know how to code. I'm just a plushie.",
+    quote: "Stacking interviews like I'm Thanos with the infinity gauntlet 😹",
   },
   {
-    name: 'Mr. Foobar',
-    role: 'Founder @ Cool Startup',
+    name: 'Vincent',
+    role: 'Developer Intern',
     avatarSrc: avatarPlaceholder,
     socialUrl: '',
-    quote: 'This product makes me cooler than I already am.',
+    quote: 'Finessed my way into a new job with this tool 😭',
   },
   {
-    name: 'Jamie',
-    role: 'Happy Customer',
+    name: 'Wendy',
+    role: 'Finance Administrator',
     avatarSrc: avatarPlaceholder,
     socialUrl: '#',
-    quote: 'My cats love it!',
+    quote: 'Mass applying like a mf',
   },
 ];
 

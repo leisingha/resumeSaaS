@@ -13,8 +13,7 @@ export default function Features({ features }: { features: Feature[] }) {
           The <span className='text-yellow-500'>Best</span> Features
         </p>
         <p className='mt-6 text-lg leading-8 text-gray-600 dark:text-white'>
-          Don't work harder.
-          <br /> Work smarter.
+          Don't work harder, work smarter 🤓
         </p>
       </div>
       <div className='mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl'>
@@ -22,12 +21,18 @@ export default function Features({ features }: { features: Feature[] }) {
           {features.map((feature) => (
             <div key={feature.name} className='relative pl-16'>
               <dt className='text-base font-semibold leading-7 text-gray-900 dark:text-white'>
-                <div className='absolute left-0 top-0 flex h-10 w-10 items-center justify-center border border-yellow-400 bg-yellow-100/50 dark:bg-boxdark rounded-lg'>
-                  <div className='text-2xl'>{feature.icon}</div>
+                <div className='absolute left-0 top-0 flex h-12 w-12 items-center justify-center bg-yellow-100/50 dark:bg-boxdark rounded-lg'>
+                  <div className='text-3xl'>{feature.icon}</div>
                 </div>
                 {feature.name}
               </dt>
-              <dd className='mt-2 text-base leading-7 text-gray-600 dark:text-white'>{feature.description}</dd>
+              <dd className='mt-2 text-base leading-7 text-gray-600 dark:text-white'>
+                {feature.description.split('\n').map((line, index) => (
+                  <div key={index} className='mb-1'>
+                    {line}
+                  </div>
+                ))}
+              </dd>
             </div>
           ))}
         </dl>
