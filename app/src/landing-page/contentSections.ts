@@ -63,9 +63,23 @@ export const testimonials = [
 export const faqs = [
   {
     id: 1,
-    question: 'Whats the meaning of life?',
-    answer: '42.',
-    href: 'https://en.wikipedia.org/wiki/42_(number)',
+    question: 'How does the resume parsing work?',
+    answer: 'Our AI-powered system analyzes your uploaded resume and extracts key information including work experience, education, skills, and contact details. The parsed data is then used to generate a professional, ATS-friendly resume in your chosen template.',
+  },
+  {
+    id: 2,
+    question: 'What file formats are supported for resume uploads?',
+    answer: 'We support PDF, DOC, DOCX, and TXT file formats for resume uploads. For best results, we recommend using PDF files as they maintain formatting consistency across different systems.',
+  },
+  {
+    id: 3,
+    question: 'Can I customize the resume templates?',
+    answer: 'Yes! You can customize colors, fonts, layout sections, and content. Our editor allows you to add, remove, or reorder sections, and you can preview changes in real-time before generating your final resume.',
+  },
+  {
+    id: 4,
+    question: 'Is my data secure?',
+    answer: 'Absolutely. We use industry-standard encryption and security practices to protect your personal information. Your data is never shared with third parties and you can delete your account and data at any time.',
   },
 ];
 export const footerNavigation = {

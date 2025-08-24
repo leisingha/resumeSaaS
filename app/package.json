@@ -19,6 +19,7 @@
     "axios": "^1.4.0",
     "clsx": "^2.1.0",
     "date-fns": "^4.1.0",
+    "flowbite-react": "^0.12.7",
     "headlessui": "^0.0.0",
     "lucide-react": "^0.540.0",
     "node-fetch": "3.3.0",
