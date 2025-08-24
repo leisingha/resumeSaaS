@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { Link } from 'wasp/client/router';
 
 interface StyledButtonProps {
-  to: string;
+  to: any; // Changed from string to any to accommodate Wasp route types
   children: React.ReactNode;
 }
 
