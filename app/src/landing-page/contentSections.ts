@@ -93,3 +93,24 @@ export const footerNavigation = {
     { name: 'Terms of Service', href: '#' },
   ],
 };
+
+export const footerContent = {
+  companyDescription: "Mass apply to jobs with ease",
+  copyright: "Copyright 2025 © Applify. All Right Reserved.",
+  copyrightUrl: "https://prebuiltui.com",
+  resources: [
+    { name: 'Documentation', href: '#' },
+    { name: 'Tutorials', href: '#' },
+    { name: 'Blog', href: '#' },
+  ],
+  company: [
+    { name: 'About', href: '#' },
+    { name: 'Privacy', href: '#' },
+    { name: 'Terms', href: '#' },
+  ],
+  socialLinks: [
+    { name: 'Twitter', href: '#', icon: 'twitter' },
+    { name: 'GitHub', href: '#', icon: 'github' },
+    { name: 'LinkedIn', href: '#', icon: 'linkedin' },
+  ],
+};
