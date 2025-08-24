@@ -40,9 +40,9 @@ export const paymentPlans: Record<PaymentPlanId, PaymentPlan> = {
 
 export function prettyPaymentPlanName(planId: PaymentPlanId): string {
   const planToName: Record<PaymentPlanId, string> = {
-    [PaymentPlanId.Hobby]: 'Hobby',
+    [PaymentPlanId.Hobby]: 'Free',
     [PaymentPlanId.Pro]: 'Pro',
-    [PaymentPlanId.Credits10]: '10 Credits',
+    [PaymentPlanId.Credits10]: 'Premium',
   };
   return planToName[planId];
 }
