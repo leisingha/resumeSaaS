@@ -3,12 +3,12 @@ app OpenSaaS {
     version: "^0.16.0"
   },
 
-  title: "My Open SaaS App",
+  title: "Applify",
 
   head: [
     "<meta charset='utf-8' />",
-    "<meta name='description' content='Your apps main description and features.' />",
-    "<meta name='author' content='Your (App) Name' />",
+    "<meta name='description' content='Applify is a platform that helps you create and manage your resume and job applications.' />",
+    "<meta name='author' content='Applify' />",
     "<meta name='keywords' content='saas, solution, product, app, service' />",
     // Google Fonts - Roboto
     "<link rel='preconnect' href='https://fonts.googleapis.com' />",
@@ -41,7 +41,7 @@ app OpenSaaS {
       //   (RequestPasswordReset(Route|Page), PasswordReset(Route|Page), EmailVerification(Route|Page))
       email: {
         fromField: {
-          name: "Open SaaS App",
+          name: "Applify",
           email: "me@example.com"
         },
         emailVerification: {
@@ -55,10 +55,10 @@ app OpenSaaS {
         userSignupFields: import { getEmailUserFields } from "@src/auth/userSignupFields",
       },
       // Uncomment to enable Google Auth (check https://wasp.sh/docs/auth/social-auth/google for setup instructions):
-      // google: { // Guide for setting up Auth via Google
-      //   userSignupFields: import { getGoogleUserFields } from "@src/auth/userSignupFields",
-      //   configFn: import { getGoogleAuthConfig } from "@src/auth/userSignupFields",
-      // },
+      google: { // Guide for setting up Auth via Google
+        userSignupFields: import { getGoogleUserFields } from "@src/auth/userSignupFields",
+        configFn: import { getGoogleAuthConfig } from "@src/auth/userSignupFields",
+      },
       // Uncomment to enable GitHub Auth (check https://wasp.sh/docs/auth/social-auth/github for setup instructions):
       // gitHub: {
       //   userSignupFields: import { getGitHubUserFields } from "@src/auth/userSignupFields",
@@ -71,7 +71,7 @@ app OpenSaaS {
       // }
     },
     onAuthFailedRedirectTo: "/login",
-    onAuthSucceededRedirectTo: "/demo-app",
+    onAuthSucceededRedirectTo: "/app",
   },
 
   db: {

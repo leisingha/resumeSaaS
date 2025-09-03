@@ -15,12 +15,10 @@ const DropdownUser = ({ user }: { user: AuthUser }) => {
 
   // Get user's first letter for the avatar
   const getFirstLetter = () => {
-    // Try to get email from identities
-    const emailFromIdentity = user?.identities?.email?.id;
+    // Get email directly from user object
+    const email = user?.email;
     
-    const displayName = emailFromIdentity;
-    
-    return displayName ? displayName.charAt(0).toUpperCase() : 'U';
+    return email ? email.charAt(0).toUpperCase() : 'U';
   };
 
   useEffect(() => {
