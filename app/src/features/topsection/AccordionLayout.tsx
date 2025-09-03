@@ -76,6 +76,8 @@ interface AccordionLayoutProps {
   setExperienceEntries: (data: any[]) => void;
   setLanguages: (data: string[]) => void;
   setAchievements: (data: string) => void;
+  onShowSuccessAlert?: (message: string) => void;
+  onCloseAccordion?: () => void;
 }
 
 const AccordionLayout: React.FC<AccordionLayoutProps> = ({

@@ -209,6 +209,15 @@ const AppPage = () => {
     setAchievements(data.awards || '');
   };
 
+  const handleShowSuccessAlert = (message: string) => {
+    setAlertMessage(message);
+    setShowSuccessAlert(true);
+  };
+
+  const handleCloseAccordion = () => {
+    setIsAccordionOpen(false);
+  };
+
   return (
     <div className='mx-auto flex max-w-6xl min-w-[860px] flex-col gap-6 p-4 md:p-6 2xl:p-10'>
       <ManageSectionsPanel
@@ -244,6 +253,8 @@ const AppPage = () => {
         setExperienceEntries={setExperienceEntries}
         setLanguages={setLanguages}
         setAchievements={setAchievements}
+        onShowSuccessAlert={handleShowSuccessAlert}
+        onCloseAccordion={handleCloseAccordion}
       />
       </div>
 

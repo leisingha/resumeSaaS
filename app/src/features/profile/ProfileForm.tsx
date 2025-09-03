@@ -67,6 +67,8 @@ const ProfileForm = ({
   setExperienceEntries,
   setLanguages,
   setAchievements,
+  onShowSuccessAlert,
+  onCloseAccordion,
 }: {
   setProfileProgress: (progress: number) => void;
   onResumeParsed: (data: any) => void;
@@ -80,6 +82,8 @@ const ProfileForm = ({
   setExperienceEntries: (data: any[]) => void;
   setLanguages: (data: string[]) => void;
   setAchievements: (data: string) => void;
+  onShowSuccessAlert?: (message: string) => void;
+  onCloseAccordion?: () => void;
 }) => {
   const { data: userProfile, isLoading: isProfileLoading } = useQuery(getUserProfile);
   const generateResumePointsAction = useAction(generateAiResumePoints);
@@ -324,8 +328,12 @@ Education History: ${educationContext}`;
         languages: languages.join(', '),
         awards: achievements,
       });
-      // You can add a success alert here
-      alert('Profile Saved Successfully!');
+      // Show styled success alert
+      if (onShowSuccessAlert) {
+        onShowSuccessAlert('Profile Saved Successfully!');
+      } else {
+        alert('Profile Saved Successfully!');
+      }
     } catch (error: any) {
       console.error('Error saving profile: ', error);
       alert('Error saving profile: ' + error.message);
@@ -359,6 +367,11 @@ Education History: ${educationContext}`;
       setAchievements(userProfile.awards || '');
     }
     setFormErrors({});
+    
+    // Close the accordion after resetting the form
+    if (onCloseAccordion) {
+      onCloseAccordion();
+    }
   };
 
   const newStandardInputClass =
