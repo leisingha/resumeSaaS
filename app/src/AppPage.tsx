@@ -4,6 +4,7 @@ import ResumeCustomizer from './features/customizer/ResumeCustomizer';
 import ResumeDisplay from './features/display/ResumeDisplay';
 import SuccessAlert from './features/common/SuccessAlert';
 import WarningAlert from './features/common/WarningAlert';
+import Loader from './features/common/Loader';
 import { useQuery, useAction } from 'wasp/client/operations';
 import { getUserProfile } from 'wasp/client/operations';
 import { generateDocument, updateGeneratedDocument } from 'wasp/client/operations';
@@ -105,6 +106,7 @@ const AppPage = () => {
           targetCompany: customizationOptions.targetCompany,
           keySkills: customizationOptions.keySkills,
           tone: customizationOptions.tone,
+          jobDescription: customizationOptions.jobDescription,
         },
         documentType,
       });
@@ -332,14 +334,8 @@ const AppPage = () => {
 
         <div className='flex flex-col gap-6 template-break:col-span-9'>
           {isGenerating ? (
-            <div className='mt-8 flex h-40 items-center justify-center'>
-              <div className='typewriter'>
-                <div className='slide'>
-                  <i></i>
-                </div>
-                <div className='paper'></div>
-                <div className='keyboard'></div>
-              </div>
+            <div className='mt-16 flex h-40 items-center justify-center'>
+              <Loader />
             </div>
           ) : isDetailCustomizerVisible ? (
             <>
@@ -418,13 +414,7 @@ const AppPage = () => {
       <div className='template-break:hidden flex flex-col items-center'>
         {isGenerating ? (
           <div className='mt-8 flex h-40 items-center justify-center'>
-            <div className='typewriter'>
-              <div className='slide'>
-                <i></i>
-              </div>
-              <div className='paper'></div>
-              <div className='keyboard'></div>
-            </div>
+            <Loader />
           </div>
         ) : isDetailCustomizerVisible ? (
           <div className='w-full max-w-[800px] mx-auto'>

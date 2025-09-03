@@ -18,6 +18,7 @@ type GenerateDocumentPayload = {
     targetCompany: string;
     keySkills: string;
     tone: number;
+    jobDescription: string;
   };
   documentType: 'resume' | 'coverLetter';
 };
@@ -85,6 +86,9 @@ const resumeJsonSchema = `
   "skills": [
     "string"
   ],
+  "projects": [
+    "string"
+  ],
   "languages": [
     {
       "language": "string",
@@ -110,6 +114,7 @@ type ResumeData = {
     gpa?: string;
   }[];
   skills: string[];
+  projects: string[];
   languages: {
     language: string;
     proficiency: string;
@@ -140,8 +145,11 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
   const toneLabel = getToneLabel(customizationOptions.tone);
 
   const systemPrompt = `
-    You are an expert resume writer. Your task is to generate a professional resume in JSON format based on the user's profile data.
-    The output MUST strictly adhere to the following JSON schema and contain a minimum of 260 words. The content should be dense, professional, and tailored to the target job.
+    You are an expert resume writer and career strategist. Your task is to transform the user's profile data into a highly targeted resume that aligns perfectly with their target job and company.
+
+    IMPORTANT: You must use the user's actual profile data as the foundation, but strategically reframe, emphasize, and optimize it to match the target position.Alter the content to match the target job description and company if you have to.
+
+    OUTPUT FORMAT: Generate a professional resume in JSON format that strictly adheres to this schema:
     \`\`\`json
     ${resumeJsonSchema}
     \`\`\`
@@ -155,10 +163,58 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
     - Experience: List of jobs with title, company, dates, and max 3 bullet points with quantifiable achievements.
     - Education: List of degrees with school and graduation date. If a GPA is provided in the user's data, it MUST be included.
     - Skills: List of relevant skills.
+    - Projects: List of projects/achievements as bullet points, each describing a separate project with technologies and impact.
     - Languages: List of languages and proficiency.
 
-    Now, generate a resume for the following user profile. Emphasize keywords relevant to their experience and the target job title: "${customizationOptions.targetJobTitle}".
-    The tone of the resume should be: ${toneLabel}.
+    CUSTOMIZATION REQUIREMENTS:
+    - Target Job Title: "${customizationOptions.targetJobTitle}"
+    ${customizationOptions.keySkills ? `- Key Skills to Highlight: "${customizationOptions.keySkills}"` : ''}
+    ${customizationOptions.jobDescription ? `- Job Description Requirements: "${customizationOptions.jobDescription}"` : ''}
+
+    CONTENT TRANSFORMATION STRATEGY:
+
+    1. PROFESSIONAL SUMMARY:
+       - Write a 2-3 sentence summary that positions the candidate as an ideal fit for the target role
+       - Use terminology and keywords from the job description
+       - Highlight the most relevant aspects of their background
+
+    2. EXPERIENCE SECTION OPTIMIZATION:
+       - Keep job titles, companies, and dates from the user's profile as reference points
+       - COMPLETELY REWRITE job descriptions to showcase responsibilities and achievements that directly relate to the target role
+       - Transform generic tasks into specific accomplishments that match job requirements
+       - Create compelling bullet points that demonstrate competencies required for the target position
+       - Use quantified achievements and metrics that impress in the target industry
+       - Incorporate job description keywords and requirements throughout experience descriptions
+       - Frame all work experience to tell a story of progression toward the target role
+
+    3. SKILLS SECTION TARGETING:
+       - Prioritize skills from the user's profile that match the job requirements
+       - Include the specified key skills prominently
+       - Add relevant technical/soft skills mentioned in the job description that the user likely possesses
+       - Organize skills by relevance to the target role
+
+    4. EDUCATION OPTIMIZATION:
+       - Present education information as provided
+       - If relevant coursework/projects align with the target role, emphasize those connections
+
+    5. PROJECTS & ACHIEVEMENTS ALIGNMENT:
+       - Transform the user's awards/projects into compelling bullet points that showcase skills needed for the target role
+       - Each bullet point should describe a separate project/achievement with relevant technologies and quantified impact
+       - Use industry-specific language and metrics that resonate with the target position
+       - Present each project as a standalone bullet point that directly correlates to job requirements
+       - Include technologies, tools, and measurable outcomes for each project
+
+    TRANSFORMATION APPROACH:
+    - AGGRESSIVELY customize all content to fit the target job while maintaining the structural foundation (companies, titles, dates)
+    - Think like a skilled recruiter presenting the candidate in the best possible light for this specific role
+    - Every sentence should serve the purpose of making this candidate appear ideal for the target position
+    - Use powerful action verbs, industry terminology, and quantified results that align with the job requirements
+    - CREATE compelling narratives from the user's background that position them as the perfect candidate
+    - The tone should be: ${toneLabel}
+
+    FINAL GOAL: Transform this resume into a laser-focused, highly persuasive document that makes the candidate irresistible for the target role.
+
+    Transform the user's profile into a compelling, targeted resume that makes them appear as the perfect candidate for this specific role.
   `;
 
   try {
@@ -244,7 +300,9 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
 
         <div>
             <h2 style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 2px; margin: 15px 0 10px;">Projects & Achievements</h2>
-            <div>${userProfile.awards || ''}</div>
+            <ul style="margin-top: 5px; padding-left: 0; margin-left: 1.25rem; line-height: 1.4; list-style-type: disc;">
+                ${(jsonResponse.projects || []).map((project) => `<li style="margin-bottom: 0.25rem; font-size: 10pt; line-height: 1.4;">${project}</li>`).join('')}
+            </ul>
         </div>
         
         <div>
