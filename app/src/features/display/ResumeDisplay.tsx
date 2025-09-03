@@ -618,7 +618,7 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
           btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
           btn.onclick = (e) => {
             e.stopPropagation();
-            setEditingProjectsContent(projectsContainer.innerHTML);
+            setEditingProjectsContent(projectsContainer.outerHTML);
             setShowProjectsEdit(true);
           }
           projectsContainer.appendChild(btn);
@@ -1050,7 +1050,8 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
     if (projectsH2) {
       const projectsContainer = projectsH2.nextElementSibling as HTMLElement | null;
       if (projectsContainer) {
-        projectsContainer.innerHTML = editingProjectsContent;
+        // Replace the entire container to avoid nested lists
+        projectsContainer.outerHTML = editingProjectsContent;
       }
     }
 
