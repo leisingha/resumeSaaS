@@ -19,6 +19,13 @@ export default function App() {
   const isLandingPage = useIsLandingPage();
   const navigationItems = isLandingPage ? landingPageNavigationItems : appNavigationItems;
 
+  // Force dark mode immediately on component mount
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+    document.body.classList.add('dark');
+    localStorage.removeItem('color-theme');
+  }, []);
+
   const shouldDisplayAppNavBar = useMemo(() => {
     return location.pathname !== routes.LoginRoute.build() && location.pathname !== routes.SignupRoute.build();
   }, [location]);

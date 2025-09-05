@@ -7,6 +7,7 @@ import type {
   UpdateGeneratedDocument,
   GenerateAiResumePoints,
 } from 'wasp/server/operations';
+import { ensureDailyCredits, consumeCredit } from '../../server/utils';
 
 // Setup OpenAI client
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : undefined;
@@ -127,6 +128,15 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
 ) => {
   if (!context.user) {
     throw new HttpError(401);
+  }
+
+  // Check and ensure credits (daily + purchased)
+  console.log(`[generateDocument] Checking credits for user: ${context.user.id}`);
+  const { dailyCredits, purchasedCredits, totalCredits } = await ensureDailyCredits(context.user.id, context.entities.User);
+  console.log(`[generateDocument] User has ${totalCredits} total credits (${dailyCredits} daily + ${purchasedCredits} purchased)`);
+  
+  if (totalCredits <= 0) {
+    throw new HttpError(402, 'No credits remaining. Daily credits reset tomorrow or purchase more credits.');
   }
 
   const userProfile = await context.entities.UserProfile.findFirst({
@@ -313,7 +323,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
       </div>
     `;
 
-    return context.entities.GeneratedDocument.create({
+    const generatedDocument = await context.entities.GeneratedDocument.create({
       data: {
         userId: context.user.id,
         content: htmlContent,
@@ -321,6 +331,13 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
         customizationParams: customizationOptions,
       },
     });
+
+    // Consume 1 credit after successful generation (daily first, then purchased)
+    console.log(`[generateDocument] About to consume 1 credit for user: ${context.user.id}`);
+    const { consumedFrom } = await consumeCredit(context.user.id, context.entities.User);
+    console.log(`[generateDocument] Successfully consumed 1 ${consumedFrom} credit for user: ${context.user.id}`);
+
+    return generatedDocument;
   } catch (error: any) {
     console.error('Error generating document: ', error);
     throw new HttpError(500, 'Failed to generate document.');
@@ -376,18 +393,6 @@ export const generateAiResumePoints: GenerateAiResumePoints<
     throw new HttpError(500, 'OpenAI API key is not set.');
   }
 
-  const user = await context.entities.User.findUnique({
-    where: { id: context.user.id },
-  });
-
-  if (!user) {
-    throw new HttpError(404, 'User not found');
-  }
-
-  if (user.credits === 0 && !user.isAdmin) {
-    throw new HttpError(402, 'No credits remaining');
-  }
-
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4.1-nano',
@@ -407,13 +412,6 @@ export const generateAiResumePoints: GenerateAiResumePoints<
       frequency_penalty: 0,
       presence_penalty: 0,
     });
-
-    if (!user.isAdmin) {
-      await context.entities.User.update({
-        where: { id: context.user.id },
-        data: { credits: { decrement: 1 } },
-      });
-    }
 
     const content = completion.choices[0].message.content;
     if (!content) {

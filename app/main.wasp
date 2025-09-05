@@ -10,6 +10,8 @@ app OpenSaaS {
     "<meta name='description' content='Applify is a platform that helps you create and manage your resume and job applications.' />",
     "<meta name='author' content='Applify' />",
     "<meta name='keywords' content='saas, solution, product, app, service' />",
+    // Force dark mode before any content loads
+    "<script>document.documentElement.classList.add('dark');localStorage.removeItem('color-theme');</script>",
     // Google Fonts - Roboto
     "<link rel='preconnect' href='https://fonts.googleapis.com' />",
     "<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />",
@@ -140,6 +142,18 @@ page AccountPage {
 
 query getPaginatedUsers {
   fn: import { getPaginatedUsers } from "@src/user/operations",
+  entities: [User]
+}
+
+// TODO: Re-enable this query once Wasp compilation issues are resolved
+// query getUserAccountDetails {
+//   fn: import { getUserAccountDetails } from "@src/user/operations",
+//   entities: [User]
+// }
+
+// Temporary debugging query
+query getCurrentDailyCredits {
+  fn: import { getCurrentDailyCredits } from "@src/user/operations",
   entities: [User]
 }
 

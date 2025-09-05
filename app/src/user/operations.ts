@@ -5,6 +5,7 @@ import { HttpError, prisma } from 'wasp/server';
 import { SubscriptionStatus } from '../payment/plans';
 import { type Prisma } from '@prisma/client';
 import { ensureArgsSchemaOrThrowHttpError } from '../server/validation';
+import { ensureDailyCredits } from '../server/utils';
 
 const updateUserAdminByIdInputSchema = z.object({
   id: z.string().nonempty(),
@@ -122,5 +123,67 @@ export const getPaginatedUsers: GetPaginatedUsers<GetPaginatedUsersInput, GetPag
   return {
     users: pageOfUsers,
     totalPages,
+  };
+};
+
+type UserAccountDetails = Pick<User, 'id' | 'email' | 'username' | 'subscriptionStatus' | 'subscriptionPlan' | 'datePaid' | 'credits' | 'isAdmin'> & {
+  dailyCredits: number;
+};
+
+export const getUserAccountDetails = async (_args: void, context: any): Promise<UserAccountDetails> => {
+  if (!context.user) {
+    throw new HttpError(401, 'Only authenticated users are allowed to perform this operation');
+  }
+
+  // Ensure daily credits are up to date
+  const { dailyCredits } = await ensureDailyCredits(context.user.id, context.entities.User);
+
+  const user = await context.entities.User.findUnique({
+    where: { id: context.user.id },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      subscriptionStatus: true,
+      subscriptionPlan: true,
+      datePaid: true,
+      credits: true,
+      isAdmin: true,
+    }
+  });
+
+  if (!user) {
+    throw new HttpError(404, 'User not found');
+  }
+
+  return {
+    ...user,
+    dailyCredits,
+  };
+};
+
+// Get current credits with enhanced fallback system
+export const getCurrentDailyCredits = async (_args: void, context: any): Promise<{ dailyCredits: number; purchasedCredits: number; totalCredits: number; isAdmin: boolean }> => {
+  if (!context.user) {
+    throw new HttpError(401, 'Not authorized');
+  }
+  
+  // Use the enhanced credit system
+  const { dailyCredits, purchasedCredits, totalCredits } = await ensureDailyCredits(context.user.id, context.entities.User);
+  
+  const user = await context.entities.User.findUnique({
+    where: { id: context.user.id },
+    select: { isAdmin: true }
+  });
+  
+  if (!user) {
+    throw new HttpError(404, 'User not found');
+  }
+  
+  return {
+    dailyCredits,
+    purchasedCredits,
+    totalCredits,
+    isAdmin: user.isAdmin
   };
 };

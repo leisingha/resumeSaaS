@@ -13,6 +13,7 @@ import { GeneratedSchedule } from './schedule';
 import OpenAI from 'openai';
 import { SubscriptionStatus } from '../payment/plans';
 import { ensureArgsSchemaOrThrowHttpError } from '../server/validation';
+import { ensureDailyCredits, consumeCredit } from '../server/utils';
 
 const openai = setupOpenAI();
 function setupOpenAI() {
@@ -58,25 +59,18 @@ export const generateGptResponse: GenerateGptResponse<GenerateGptResponseInput, 
       throw openai;
     }
 
-    const hasCredits = context.user.credits > 0;
+    // Check and ensure credits (daily + purchased)
+    const { dailyCredits, purchasedCredits, totalCredits } = await ensureDailyCredits(context.user.id, context.entities.User);
+    
     const hasValidSubscription =
       !!context.user.subscriptionStatus &&
       context.user.subscriptionStatus !== SubscriptionStatus.Deleted &&
       context.user.subscriptionStatus !== SubscriptionStatus.PastDue;
-    const canUserContinue = hasCredits || hasValidSubscription;
+    
+    const canUserContinue = totalCredits > 0 || hasValidSubscription;
 
     if (!canUserContinue) {
-      throw new HttpError(402, 'User has not paid or is out of credits');
-    } else {
-      console.log('decrementing credits');
-      await context.entities.User.update({
-        where: { id: context.user.id },
-        data: {
-          credits: {
-            decrement: 1,
-          },
-        },
-      });
+      throw new HttpError(402, 'No credits remaining. Daily credits reset tomorrow, purchase more credits, or upgrade to subscription.');
     }
 
     const completion = await openai.chat.completions.create({
@@ -172,18 +166,15 @@ export const generateGptResponse: GenerateGptResponse<GenerateGptResponseInput, 
       },
     });
 
+    // Consume 1 daily credit after successful generation (only if not subscription user)
+    if (!hasValidSubscription) {
+      const { consumedFrom } = await consumeCredit(context.user.id, context.entities.User);
+      console.log(`[generateGptResponse] Consumed 1 ${consumedFrom} credit for user: ${context.user.id}`);
+    }
+
     return JSON.parse(gptArgs);
   } catch (error: any) {
-    if (!context.user.subscriptionStatus && error?.statusCode != 402) {
-      await context.entities.User.update({
-        where: { id: context.user.id },
-        data: {
-          credits: {
-            increment: 1,
-          },
-        },
-      });
-    }
+    // No credit refund needed for daily credits - they don't get consumed on failure
     console.error(error);
     const statusCode = error.statusCode || 500;
     const errorMessage = error.message || 'Internal server error';

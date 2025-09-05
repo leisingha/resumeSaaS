@@ -97,7 +97,11 @@ model User {
   subscriptionStatus        String?         // 'active', 'cancel_at_period_end', 'past_due', 'deleted'
   subscriptionPlan          String?         // 'hobby', 'pro'
   datePaid                  DateTime?
-  credits                   Int             @default(3)
+  credits                   Int             @default(0)
+  
+  // Daily credit system
+  dailyCredits              Int             @default(10)  // Daily credits (resets to 10 each day)
+  lastCreditReset           DateTime        @default(now()) // Last time credits were reset
 
   gptResponses              GptResponse[]
   contactFormMessages       ContactFormMessage[]
