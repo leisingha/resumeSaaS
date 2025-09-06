@@ -1,5 +1,5 @@
 import { HttpError } from 'wasp/server';
-import puppeteer from 'puppeteer';
+import { chromium } from 'playwright';
 import type { GenerateResumePdf } from 'wasp/server/operations';
 import { createPdfTemplate } from './pdfTemplate';
 
@@ -40,8 +40,8 @@ export const generateResumePdf: GenerateResumePdf<GeneratePdfPayload, PdfResult>
 
   let browser;
   try {
-    // Launch Puppeteer browser with highly optimized settings for PDF generation
-    browser = await puppeteer.launch({
+    // Launch Playwright browser with optimized settings for PDF generation
+    browser = await chromium.launch({
       headless: true,
       args: [
         '--no-sandbox',
@@ -68,21 +68,23 @@ export const generateResumePdf: GenerateResumePdf<GeneratePdfPayload, PdfResult>
     const page = await browser.newPage();
 
     // Set viewport to A4 dimensions (794x1123px at 96 DPI)
-    await page.setViewport({
+    await page.setViewportSize({
       width: 794,
-      height: 1123,
-      deviceScaleFactor: 1
+      height: 1123
     });
 
     // Disable JavaScript to improve performance and avoid layout shifts
-    await page.setJavaScriptEnabled(false);
+    await page.addInitScript(() => {
+      // Disable JavaScript execution
+      Object.defineProperty(window, 'eval', { value: () => { throw new Error('JavaScript disabled'); } });
+    });
 
     // Generate the PDF-optimized HTML using the template
     const htmlTemplate = createPdfTemplate(htmlContent);
 
     // Set the HTML content with optimized loading strategy
     await page.setContent(htmlTemplate, {
-      waitUntil: ['domcontentloaded'],
+      waitUntil: 'domcontentloaded',
       timeout: 15000
     });
 
@@ -101,10 +103,7 @@ export const generateResumePdf: GenerateResumePdf<GeneratePdfPayload, PdfResult>
       },
       preferCSSPageSize: true,
       displayHeaderFooter: false,
-      scale: 1,
-      timeout: 15000,
-      omitBackground: false,
-      tagged: false
+      scale: 1
     });
 
     // Validate PDF generation
@@ -171,11 +170,9 @@ export const generateResumePdf: GenerateResumePdf<GeneratePdfPayload, PdfResult>
   } finally {
     if (browser) {
       try {
-        // Force close all pages before closing browser for better memory management
-        const pages = await browser.pages();
-        await Promise.all(pages.map(page => page.close().catch(() => {})));
+        // Close browser for better memory management
         await browser.close();
-        console.log(`[generateResumePdf] Browser and ${pages.length} pages closed for user ${context.user.id}`);
+        console.log(`[generateResumePdf] Browser closed for user ${context.user.id}`);
       } catch (closeError) {
         console.warn(`[generateResumePdf] Error closing browser for user ${context.user.id}:`, closeError);
         // Force kill the browser process if normal close fails
