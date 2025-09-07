@@ -43,6 +43,7 @@ export const generateResumePdf: GenerateResumePdf<GeneratePdfPayload, PdfResult>
     // Launch Playwright browser with optimized settings for PDF generation
     browser = await chromium.launch({
       headless: true,
+      executablePath: '/usr/bin/chromium-browser', // Use system chromium
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
