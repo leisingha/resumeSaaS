@@ -1,6 +1,9 @@
 # Custom Dockerfile to install Playwright browsers in production
 # This will be appended to the generated Wasp Dockerfile
 
+# Rebuild native dependencies for Alpine Linux
+RUN cd /app && npm rebuild @node-rs/argon2 --build-from-source
+
 # Install specific version of Playwright globally
 RUN npm install -g playwright@1.48.2
 
