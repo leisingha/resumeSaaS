@@ -157,7 +157,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
   const systemPrompt = `
     You are an expert resume writer and career strategist. Your task is to transform the user's profile data into a highly targeted resume that aligns perfectly with their target job and company.
 
-    IMPORTANT: You must use the user's actual profile data as the foundation, but strategically reframe, emphasize, and optimize it to match the target position.Alter the content to match the target job description and company if you have to.
+    IMPORTANT: You must use the user's actual profile data as the foundation, but strategically reframe, emphasize, and optimize it to match the target position. Alter the content to match the target job description and company if you have to.
 
     OUTPUT FORMAT: Generate a professional resume in JSON format that strictly adheres to this schema:
     \`\`\`json
@@ -224,7 +224,7 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
 
     FINAL GOAL: Transform this resume into a laser-focused, highly persuasive document that makes the candidate irresistible for the target role.
 
-    Transform the user's profile into a compelling, targeted resume that makes them appear as the perfect candidate for this specific role.
+    Transform the user's profile into a compelling, targeted resume that makes them appear as the perfect candidate for this specific role. Minimum 300 words.
   `;
 
   try {
