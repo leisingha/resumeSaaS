@@ -164,6 +164,19 @@ export const parseResumeAndPopulateProfile = async (args: { key: string }, conte
     // It prevents a crash by polyfilling a missing browser-specific API.
     (global as any).DOMMatrix = class {};
     
+    // Polyfill Promise.withResolvers for older Node.js versions
+    if (!Promise.withResolvers) {
+      Promise.withResolvers = <T>() => {
+        let resolve!: (value: T | PromiseLike<T>) => void;
+        let reject!: (reason?: any) => void;
+        const promise = new Promise<T>((res, rej) => {
+          resolve = res;
+          reject = rej;
+        });
+        return { promise, resolve, reject };
+      };
+    }
+    
     // @ts-ignore
     const pdfjsLib = await import('pdfjs-dist');
     const fileBuffer = await downloadFileFromS3(key);
