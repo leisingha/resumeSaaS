@@ -24,7 +24,7 @@
     "lucide-react": "^0.540.0",
     "node-fetch": "3.3.0",
     "openai": "^4.104.0",
-    "pdfjs-dist": "^5.3.93",
+    "pdfjs-dist": "^4.4.168",
     "playwright": "^1.55.0",
     "prettier": "3.1.1",
     "prettier-plugin-tailwindcss": "0.5.11",
