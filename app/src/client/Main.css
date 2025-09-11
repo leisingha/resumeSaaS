@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 /* Minimum viewport width constraint */
-body {
+/* body {
   min-width: 895px;
-}
+} */
 
 @layer utilities {
   /* Chrome, Safari and Opera */

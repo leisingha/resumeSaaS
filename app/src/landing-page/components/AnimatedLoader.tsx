@@ -37,16 +37,30 @@ const StyledWrapper = styled.div`
     color: rgb(156, 156, 156);
     font-family: inherit;
     font-weight: 400;
-    font-size: 20px;
+    font-size: 16px;
     line-height: 1.5;
     -webkit-box-sizing: content-box;
     box-sizing: content-box;
-    height: 30px;
+    height: 24px;
     padding: 0;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
     border-radius: 0;
+  }
+
+  @media (min-width: 640px) {
+    .loader {
+      font-size: 18px;
+      height: 27px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .loader {
+      font-size: 20px;
+      height: 30px;
+    }
   }
 
   .words {
