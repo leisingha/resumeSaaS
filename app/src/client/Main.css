@@ -228,3 +228,163 @@ span.flatpickr-weekday,
 .dark .ql-toolbar .ql-fill {
   fill: #ffffff;
 }
+
+/* Style Wasp Auth divider - make background transparent, only style the lines */
+.c-jeggsF {
+  background-color: transparent !important; /* Let form background show through */
+}
+
+/* Style the divider lines to be lighter gray instead of white */
+.c-bhYUiE {
+  background-color: #F1F5F9 !important; /* lighter gray for light mode */
+  border-color: #F1F5F9 !important;
+}
+
+.dark .c-bhYUiE {
+  background-color: #475569 !important; /* lighter gray for dark mode */
+  border-color: #475569 !important;
+}
+
+/* Alternative: target pseudo-elements that might be the divider lines */
+.c-bhYUiE::before,
+.c-bhYUiE::after {
+  background-color: #F1F5F9 !important;
+  border-color: #F1F5F9 !important;
+}
+
+.dark .c-bhYUiE::before,
+.dark .c-bhYUiE::after {
+  background-color: #475569 !important;
+  border-color: #475569 !important;
+}
+
+/* Make text container background transparent too */
+.c-bdGFpt {
+  background-color: transparent !important; /* Let form background show through */
+}
+
+/* Additional fallback styles for divider elements */
+.c-ebyAWX {
+  background-color: transparent !important;
+}
+
+/* Make all divider child elements transparent */
+.c-jeggsF *,
+.c-ebyAWX *,
+.c-bdGFpt * {
+  background-color: transparent !important;
+}
+
+/* Ensure divider lines are visible with minimum height and proper color */
+.c-bhYUiE,
+.c-bhYUiE::before,
+.c-bhYUiE::after {
+  min-height: 1px !important;
+  height: 1px !important;
+  background-color: #F1F5F9 !important;
+  border: none !important;
+}
+
+.dark .c-bhYUiE,
+.dark .c-bhYUiE::before,
+.dark .c-bhYUiE::after {
+  background-color: #475569 !important;
+}
+
+/* Style the "Or continue with" text to be muted and give it a background */
+.c-kDyssU {
+  color: #9ca3af !important; /* lighter muted gray for light mode */
+  background-color: #ffffff !important; /* Match form background */
+  padding: 0 12px !important; /* Add padding around text */
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.dark .c-kDyssU {
+  color: #d1d5db !important; /* lighter muted gray for dark mode */
+  background-color: #24303F !important; /* Match form dark background */
+}
+
+/* Ensure the text container has proper background and positioning */
+.c-bdGFpt {
+  background-color: transparent !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Make Login text bold in auth forms */
+/* Target common selectors that might contain the Login text/button */
+button[type="submit"],
+input[type="submit"],
+[data-testid="login-button"],
+[data-testid="submit-button"],
+.auth-form button,
+.auth-form input[type="submit"] {
+  font-weight: bold !important;
+}
+
+/* Target any heading that might be the Login title */
+.auth-form h1,
+.auth-form h2,
+.auth-form h3,
+.auth-form h4,
+.auth-form h5,
+.auth-form h6 {
+  font-weight: bold !important;
+}
+
+/* Style Wasp auth form inputs to match main app form inputs */
+/* Target the specific Wasp-generated input classes */
+.c-cqUsHv,
+input.c-cqUsHv,
+input[type="email"].c-cqUsHv,
+input[type="password"].c-cqUsHv {
+  border: 1.5px solid #E2E8F0 !important; /* border-stroke */
+  background-color: transparent !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  padding: 0.75rem 1.25rem !important; /* py-3 px-5 */
+  font-weight: 500 !important; /* font-medium */
+  outline: none !important;
+  transition: border-color 0.2s ease-in-out !important;
+  color: #000000 !important; /* text-black */
+}
+
+.dark .c-cqUsHv,
+.dark input.c-cqUsHv,
+.dark input[type="email"].c-cqUsHv,
+.dark input[type="password"].c-cqUsHv {
+  border-color: #3d4d60 !important; /* form-strokedark */
+  background-color: #1d2a39 !important; /* form-input */
+  color: #ffffff !important; /* text-white */
+}
+
+/* Focus state for the input */
+.c-cqUsHv:focus,
+input.c-cqUsHv:focus,
+input[type="email"].c-cqUsHv:focus,
+input[type="password"].c-cqUsHv:focus {
+  border-color: #3C50E0 !important; /* primary */
+}
+
+/* Target other potential Wasp-generated input classes */
+/* Add more classes as you discover them from the HTML */
+input[class^="c-"] {
+  border: 1.5px solid #E2E8F0 !important;
+  background-color: transparent !important;
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1.25rem !important;
+  font-weight: 500 !important;
+  outline: none !important;
+  transition: border-color 0.2s ease-in-out !important;
+  color: #000000 !important;
+}
+
+.dark input[class^="c-"] {
+  border-color: #3d4d60 !important;
+  background-color: #1d2a39 !important;
+  color: #ffffff !important;
+}
+
+input[class^="c-"]:focus {
+  border-color: #3C50E0 !important;
+}
