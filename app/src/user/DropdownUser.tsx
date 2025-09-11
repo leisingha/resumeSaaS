@@ -76,10 +76,9 @@ const DropdownUser = ({ user }: { user: AuthUser }) => {
       <div
         ref={dropdown}
         className={cn(
-          'absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark dark:text-white',
-          {
-            hidden: !dropdownOpen,
-          }
+          'absolute right-0 mt-4 flex w-48 flex-col rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-boxdark-2 shadow-xl dark:text-white',
+          'transform transition-all duration-200 ease-out',
+          dropdownOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
         )}
       >
         <UserMenuItems user={user} setMobileMenuOpen={toggleDropdown} />

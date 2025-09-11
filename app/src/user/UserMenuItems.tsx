@@ -15,18 +15,13 @@ export const UserMenuItems = ({ user, setMobileMenuOpen }: { user?: Partial<User
   };
 
   return (
-    <>
-      <ul
-        className={cn('flex flex-col gap-5 border-b border-stroke py-4 dark:border-strokedark', {
-          'sm:px-6': path !== adminDashboardPath,
-          'px-6': path === adminDashboardPath,
-        })}
-      >
+    <div className="p-2">
+      <ul className="flex flex-col gap-1">
         <li>
           <WaspRouterLink
             to={routes.AccountRoute.to}
             onClick={handleMobileMenuClick}
-            className='flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-yellow-500'
+            className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-yellow-500 focus:text-yellow-500 transition-colors duration-150'
           >
             <svg
               className='fill-current'
@@ -50,17 +45,12 @@ export const UserMenuItems = ({ user, setMobileMenuOpen }: { user?: Partial<User
         </li>
       </ul>
       {!!user && user.isAdmin && (
-        <ul
-          className={cn('flex flex-col gap-5 border-b border-stroke py-4 dark:border-strokedark', {
-            'sm:px-6': path !== adminDashboardPath,
-            'px-6': path === adminDashboardPath,
-          })}
-        >
-          <li className='flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-yellow-500'>
+        <ul className="flex flex-col gap-1">
+          <li>
             <WaspRouterLink
               to={routes.AdminRoute.to}
               onClick={handleMobileMenuClick}
-              className='flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-yellow-500'
+              className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-yellow-500 focus:text-yellow-500 transition-colors duration-150'
             >
               <TfiDashboard size='1.1rem' />
               Admin Dashboard
@@ -70,13 +60,7 @@ export const UserMenuItems = ({ user, setMobileMenuOpen }: { user?: Partial<User
       )}
       <button
         onClick={() => logout()}
-        className={cn(
-          'flex items-center gap-3.5 py-4 text-sm font-medium duration-300 ease-in-out hover:text-yellow-500',
-          {
-            'sm:px-6': path !== adminDashboardPath,
-            'px-6': path === adminDashboardPath,
-          }
-        )}
+        className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-yellow-500 focus:text-yellow-500 transition-colors duration-150'
       >
         <svg
           className='fill-current'
@@ -97,6 +81,6 @@ export const UserMenuItems = ({ user, setMobileMenuOpen }: { user?: Partial<User
         </svg>
         Log Out
       </button>
-    </>
+    </div>
   );
 };

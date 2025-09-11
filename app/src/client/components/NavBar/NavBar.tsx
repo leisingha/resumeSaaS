@@ -2,10 +2,7 @@ import { Link as ReactRouterLink } from 'react-router-dom';
 import { Link as WaspRouterLink, routes } from 'wasp/client/router';
 import { useAuth } from 'wasp/client/auth';
 import { useState, Dispatch, SetStateAction } from 'react';
-import { Dialog } from '@headlessui/react';
 import { BiLogIn } from 'react-icons/bi';
-import { AiFillCloseCircle } from 'react-icons/ai';
-import { HiBars3 } from 'react-icons/hi2';
 import logo from '../../static/logo.webp';
 import DropdownUser from '../../../user/DropdownUser';
 import { UserMenuItems } from '../../../user/UserMenuItems';
@@ -20,11 +17,114 @@ export interface NavigationItem {
 
 const NavLogo = () => <span className='text-2xl font-bold text-gray-900 dark:text-white'>Applify</span>;
 
+// Animated Hamburger Icon Component
+const HamburgerIcon = ({ 
+  className, 
+  isOpen, 
+  ...props 
+}: React.SVGAttributes<SVGElement> & { isOpen?: boolean }) => (
+  <svg
+    className={cn('transition-transform duration-300', className)}
+    width={24}
+    height={24}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    {/* Top line - transforms to top part of X */}
+    <path
+      d="M4 12L20 12"
+      className={cn(
+        "origin-center -translate-y-[7px] transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.1)]",
+        isOpen && "translate-x-0 translate-y-0 rotate-[315deg]"
+      )}
+    />
+    {/* Middle line - becomes the center of X */}
+    <path
+      d="M4 12H20"
+      className={cn(
+        "origin-center transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.8)]",
+        isOpen && "rotate-45"
+      )}
+    />
+    {/* Bottom line - transforms to bottom part of X */}
+    <path
+      d="M4 12H20"
+      className={cn(
+        "origin-center translate-y-[7px] transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.1)]",
+        isOpen && "translate-y-0 rotate-[135deg]"
+      )}
+    />
+  </svg>
+);
+
+// Mobile Menu Component - Popover style floating card
+const MobileMenu = ({ 
+  navigationItems, 
+  user, 
+  isUserLoading, 
+  isOpen, 
+  onClose 
+}: {
+  navigationItems: NavigationItem[];
+  user: any;
+  isUserLoading: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 z-40 lg:hidden" 
+        onClick={onClose}
+      />
+      {/* Floating Menu Card */}
+      <div className={cn(
+        "absolute top-18 right-4 z-50 lg:hidden",
+        "w-40 bg-white dark:bg-boxdark-2",
+        "border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl",
+        "transform transition-all duration-200 ease-out",
+        isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95"
+      )}>
+        <div className="p-2">
+          {/* Navigation Items */}
+          <div className="space-y-1">
+            {navigationItems.map((item) => (
+              <ReactRouterLink
+                key={item.name}
+                to={item.to}
+                className="flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                onClick={onClose}
+              >
+                {item.name}
+              </ReactRouterLink>
+            ))}
+          </div>
+          
+          {/* Dark Mode Switcher */}
+          <div className="px-1">
+            <DarkModeSwitcher />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 export default function AppNavBar({ navigationItems }: { navigationItems: NavigationItem[] }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isLandingPage = useIsLandingPage();
 
   const { data: user, isLoading: isUserLoading } = useAuth();
+  
   return (
     <header
       className={cn('absolute inset-x-0 top-0 z-50 dark:bg-boxdark-2', {
@@ -33,7 +133,7 @@ export default function AppNavBar({ navigationItems }: { navigationItems: Naviga
       })}
     >
       {isLandingPage && <Announcement />}
-      <nav className='flex items-center justify-between p-6 lg:py-6 mx-auto max-w-6xl' aria-label='Global'>
+      <nav className='flex items-center justify-between p-6 lg:py-6 mx-auto max-w-6xl relative' aria-label='Global'>
         <div className='flex items-center lg:flex-1'>
           <WaspRouterLink
             to={routes.LandingPageRoute.to}
@@ -42,16 +142,41 @@ export default function AppNavBar({ navigationItems }: { navigationItems: Naviga
             <NavLogo />
           </WaspRouterLink>
         </div>
-        <div className='flex lg:hidden'>
+        
+        <div className='flex lg:hidden items-center gap-3'>
+          {/* Log in button for mobile */}
+          {isUserLoading ? null : !user ? (
+            <WaspRouterLink to={routes.LoginRoute.to} className='text-sm font-semibold leading-6'>
+              <div className='flex items-center duration-300 ease-in-out text-gray-900 hover:text-yellow-500 dark:text-white'>
+                Log in <BiLogIn size='1.1rem' className='ml-1 mt-[0.1rem]' />
+              </div>
+            </WaspRouterLink>
+          ) : (
+            <DropdownUser user={user} />
+          )}
+          
+          {/* Hamburger menu button */}
           <button
             type='button'
-            className='-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-white'
-            onClick={() => setMobileMenuOpen(true)}
+            className={cn(
+              '-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-white',
+              'hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 cursor-pointer',
+              'group',
+              // Active state when menu is open
+              mobileMenuOpen && 'bg-gray-100 dark:bg-gray-800'
+            )}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-expanded={mobileMenuOpen}
           >
-            <span className='sr-only'>Open main menu</span>
-            <HiBars3 className='h-6 w-6' aria-hidden='true' />
+            <span className='sr-only'>Toggle main menu</span>
+            <HamburgerIcon 
+              className='h-6 w-6' 
+              isOpen={mobileMenuOpen}
+              aria-hidden='true' 
+            />
           </button>
         </div>
+        
         <div className='hidden lg:flex lg:gap-6 lg:justify-end lg:items-center'>
           {renderNavigationItems(navigationItems)}
           <DarkModeSwitcher />
@@ -65,45 +190,16 @@ export default function AppNavBar({ navigationItems }: { navigationItems: Naviga
             <DropdownUser user={user} />
           )}
         </div>
+        
+        {/* Mobile Menu */}
+        <MobileMenu 
+          navigationItems={navigationItems}
+          user={user}
+          isUserLoading={isUserLoading}
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+        />
       </nav>
-      <Dialog as='div' className='lg:hidden' open={mobileMenuOpen} onClose={setMobileMenuOpen}>
-        <div className='fixed inset-0 z-50' />
-        <Dialog.Panel className='fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white dark:text-white dark:bg-boxdark px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10'>
-          <div className='flex items-center justify-between'>
-            <WaspRouterLink to={routes.LandingPageRoute.to} className='-m-1.5 p-1.5'>
-              <span className='sr-only'>Your SaaS</span>
-              <NavLogo />
-            </WaspRouterLink>
-            <button
-              type='button'
-              className='-m-2.5 rounded-md p-2.5 text-gray-700 dark:text-gray-50'
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <span className='sr-only'>Close menu</span>
-              <AiFillCloseCircle className='h-6 w-6' aria-hidden='true' />
-            </button>
-          </div>
-          <div className='mt-6 flow-root'>
-            <div className='-my-6 divide-y divide-gray-500/10'>
-              <div className='space-y-2 py-6'>{renderNavigationItems(navigationItems, setMobileMenuOpen)}</div>
-              <div className='py-6'>
-                {isUserLoading ? null : !user ? (
-                  <WaspRouterLink to={routes.LoginRoute.to}>
-                    <div className='flex justify-end items-center duration-300 ease-in-out text-gray-900 hover:text-yellow-500 dark:text-white'>
-                      Log in <BiLogIn size='1.1rem' className='ml-1' />
-                    </div>
-                  </WaspRouterLink>
-                ) : (
-                  <UserMenuItems user={user} setMobileMenuOpen={setMobileMenuOpen} />
-                )}
-              </div>
-              <div className='py-6'>
-                <DarkModeSwitcher />
-              </div>
-            </div>
-          </div>
-        </Dialog.Panel>
-      </Dialog>
     </header>
   );
 }
