@@ -7,7 +7,7 @@ export function Signup() {
     <AuthPageLayout>
       <SignupForm />
       <br />
-      <span className='text-sm font-medium text-gray-900'>
+      <span className='text-sm text-white'>
         I already have an account (
         <WaspRouterLink to={routes.LoginRoute.to} className='underline'>
           go to login
