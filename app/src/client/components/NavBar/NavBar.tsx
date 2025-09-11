@@ -211,7 +211,7 @@ function renderNavigationItems(
   const menuStyles = cn({
     '-mx-3 block rounded-lg px-3 py-2 text-xl font-semibold leading-7 text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-boxdark-2 tracking-wider':
       !!setMobileMenuOpen,
-    'text-base font-semibold leading-6 text-gray-900 duration-300 ease-in-out hover:text-yellow-500 dark:text-white tracking-wider':
+    'text-sm font-medium text-gray-900 duration-300 ease-in-out hover:text-yellow-500 dark:text-white':
       !setMobileMenuOpen,
   });
 
