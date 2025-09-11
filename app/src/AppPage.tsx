@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AccordionLayout from './features/topsection/AccordionLayout';
 import ResumeCustomizer from './features/customizer/ResumeCustomizer';
 import ResumeDisplay from './features/display/ResumeDisplay';
+import ResumeDisplayMobile from './features/display/ResumeDisplayMobile';
 import SuccessAlert from './features/common/SuccessAlert';
 import WarningAlert from './features/common/WarningAlert';
 import Loader from './features/common/Loader';
@@ -35,6 +36,23 @@ const AppPage = () => {
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [activeDocument, setActiveDocument] = useState<GeneratedDocument | null>(null);
   const [profileProgress, setProfileProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 895);
+    };
+
+    // Check on mount
+    checkScreenSize();
+
+    // Listen for resize events
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Lifted state from ProfileForm
   const [profileData, setProfileData] = useState({
@@ -402,20 +420,37 @@ const AppPage = () => {
 
           {isResumeGenerated && !isDetailCustomizerVisible && !isGenerating && (
             <div className='space-y-4'>
-              <ResumeDisplay
-                options={customizationOptions}
-                generatedContent={generatedResumeContent}
-                isResumeGenerated={isResumeGenerated}
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
-                showEditModal={showEditModal}
-                setShowEditModal={setShowEditModal}
-                onContentChange={handleEditSave}
-                documentType={documentType}
-                sections={sections}
-                onOverflowDetected={handleOverflowDetected}
-                onAdjustCustomizations={handleShowAdjustCustomizations}
-              />
+              {isMobile ? (
+                <ResumeDisplayMobile
+                  options={customizationOptions}
+                  generatedContent={generatedResumeContent}
+                  isResumeGenerated={isResumeGenerated}
+                  isEditing={isEditing}
+                  setIsEditing={setIsEditing}
+                  showEditModal={showEditModal}
+                  setShowEditModal={setShowEditModal}
+                  onContentChange={handleEditSave}
+                  documentType={documentType}
+                  sections={sections}
+                  onOverflowDetected={handleOverflowDetected}
+                  onAdjustCustomizations={handleShowAdjustCustomizations}
+                />
+              ) : (
+                <ResumeDisplay
+                  options={customizationOptions}
+                  generatedContent={generatedResumeContent}
+                  isResumeGenerated={isResumeGenerated}
+                  isEditing={isEditing}
+                  setIsEditing={setIsEditing}
+                  showEditModal={showEditModal}
+                  setShowEditModal={setShowEditModal}
+                  onContentChange={handleEditSave}
+                  documentType={documentType}
+                  sections={sections}
+                  onOverflowDetected={handleOverflowDetected}
+                  onAdjustCustomizations={handleShowAdjustCustomizations}
+                />
+              )}
             </div>
           )}
         </div>
@@ -483,20 +518,37 @@ const AppPage = () => {
 
         {isResumeGenerated && !isDetailCustomizerVisible && !isGenerating && (
           <div className='space-y-4 flex flex-col items-center'>
-            <ResumeDisplay
-              options={customizationOptions}
-              generatedContent={generatedResumeContent}
-              isResumeGenerated={isResumeGenerated}
-              isEditing={isEditing}
-              setIsEditing={setIsEditing}
-              showEditModal={showEditModal}
-              setShowEditModal={setShowEditModal}
-              onContentChange={handleEditSave}
-              documentType={documentType}
-              sections={sections}
-              onOverflowDetected={handleOverflowDetected}
-              onAdjustCustomizations={handleShowAdjustCustomizations}
-            />
+            {isMobile ? (
+              <ResumeDisplayMobile
+                options={customizationOptions}
+                generatedContent={generatedResumeContent}
+                isResumeGenerated={isResumeGenerated}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                showEditModal={showEditModal}
+                setShowEditModal={setShowEditModal}
+                onContentChange={handleEditSave}
+                documentType={documentType}
+                sections={sections}
+                onOverflowDetected={handleOverflowDetected}
+                onAdjustCustomizations={handleShowAdjustCustomizations}
+              />
+            ) : (
+              <ResumeDisplay
+                options={customizationOptions}
+                generatedContent={generatedResumeContent}
+                isResumeGenerated={isResumeGenerated}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                showEditModal={showEditModal}
+                setShowEditModal={setShowEditModal}
+                onContentChange={handleEditSave}
+                documentType={documentType}
+                sections={sections}
+                onOverflowDetected={handleOverflowDetected}
+                onAdjustCustomizations={handleShowAdjustCustomizations}
+              />
+            )}
           </div>
         )}
       </div>
