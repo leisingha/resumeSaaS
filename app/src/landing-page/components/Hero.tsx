@@ -26,8 +26,8 @@ export default function Hero() {
           <div className='mt-12 flow-root sm:mt-16'>
             <div className='relative max-w-7xl mx-auto px-4'>
               <div className='relative h-[400px] sm:h-[480px] lg:h-[550px]'>
-                {/* First Screenshot - Bottom Layer */}
-                <div className='absolute left-8 top-12 w-80 sm:w-96 lg:w-[420px] z-10 group'>
+                {/* First Screenshot - Top Layer on mobile, Bottom Layer on desktop */}
+                <div className='absolute left-8 top-12 w-80 sm:w-96 lg:w-[420px] z-30 sm:z-10 group'>
                   <img
                     src='/screenshot1.png'
                     alt='Profile Setup Interface'
@@ -46,8 +46,8 @@ export default function Hero() {
                   />
                 </div>
                 
-                {/* Second Screenshot - Top Layer (swapped position) */}
-                <div className='absolute right-8 top-12 w-80 sm:w-96 lg:w-[420px] z-30 group'>
+                {/* Second Screenshot - Bottom Layer on mobile, Top Layer on desktop */}
+                <div className='absolute right-8 top-12 w-80 sm:w-96 lg:w-[420px] z-10 sm:z-30 group'>
                   <img
                     src='/screenshot2.png'
                     alt='Resume Customization'
