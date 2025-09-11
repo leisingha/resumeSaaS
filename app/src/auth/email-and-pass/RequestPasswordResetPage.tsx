@@ -1,10 +1,10 @@
 import { ForgotPasswordForm } from 'wasp/client/auth';
-import { AuthPageLayout } from '../AuthPageLayout';
+import { EmailAuthPageLayout } from '../EmailAuthPageLayout';
 
 export function RequestPasswordResetPage() {
   return (
-    <AuthPageLayout>
+    <EmailAuthPageLayout>
       <ForgotPasswordForm />
-    </AuthPageLayout>
+    </EmailAuthPageLayout>
   );
 }

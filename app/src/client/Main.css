@@ -388,3 +388,19 @@ input[class^="c-"] {
 input[class^="c-"]:focus {
   border-color: #3C50E0 !important;
 }
+
+/* Control auth form container width on mobile */
+.c-fixGjY {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Add additional horizontal margin below 640px to prevent expansion */
+@media (max-width: 640px) {
+  .c-fixGjY {
+    margin-left: 2rem !important; /* 32px */
+    margin-right: 2rem !important; /* 32px */
+    max-width: calc(100% - 4rem) !important; /* Account for the margins */
+  }
+}
