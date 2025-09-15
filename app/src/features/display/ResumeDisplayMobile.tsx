@@ -1,14 +1,27 @@
-import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
-import type { CustomizationOptions, DocumentType } from '../../AppPage';
-import EditModal from './EditModal';
-import { Pencil, Download, Copy, Settings } from 'lucide-react';
-import { Dialog, Transition } from '@headlessui/react';
-import 'react-quill/dist/quill.snow.css';
-import { generateAiResumePoints, generateResumePdf } from 'wasp/client/operations';
-import { useAction } from 'wasp/client/operations';
-import type { Section } from '../customizer/ManageSectionsPanel';
-import { filterContentBySections, logSectionVisibility } from './contentFiltering';
-import QuillEditor from '../common/forwarded-quill';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useLayoutEffect,
+  useMemo,
+} from "react";
+import type { CustomizationOptions, DocumentType } from "../../AppPage";
+import EditModal from "./EditModal";
+import { Pencil, Download, Copy, Settings } from "lucide-react";
+import { Dialog, Transition } from "@headlessui/react";
+import "react-quill/dist/quill.snow.css";
+import {
+  generateAiResumePoints,
+  generateResumePdf,
+} from "wasp/client/operations";
+import { useAction } from "wasp/client/operations";
+import type { Section } from "../customizer/ManageSectionsPanel";
+import {
+  filterContentBySections,
+  logSectionVisibility,
+} from "./contentFiltering";
+
+import QuillEditor from "../common/forwarded-quill";
 
 interface ResumeDisplayProps {
   options: CustomizationOptions;
@@ -19,7 +32,7 @@ interface ResumeDisplayProps {
   showEditModal: boolean;
   setShowEditModal: (show: boolean) => void;
   onContentChange: (newContent: string) => void;
-  documentType: 'resume' | 'coverLetter';
+  documentType: "resume" | "coverLetter";
   sections: Section[];
   onOverflowDetected: (message: string, details: string) => void;
   onAdjustCustomizations: () => void;
@@ -39,16 +52,18 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
   onOverflowDetected,
   onAdjustCustomizations,
 }) => {
-  const [editedContent, setEditedContent] = useState(generatedContent || '');
+  const [editedContent, setEditedContent] = useState(generatedContent || "");
   const [isOverflowing, setIsOverflowing] = useState(false);
   const [hasShownOverflowAlert, setHasShownOverflowAlert] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const instanceId = useRef(`mobile-resume-content-${Math.random().toString(36).substr(2, 9)}`).current;
-  
+  const instanceId = useRef(
+    `mobile-resume-content-${Math.random().toString(36).substr(2, 9)}`
+  ).current;
+
   // Edit states
   const [showSummaryEdit, setShowSummaryEdit] = useState(false);
-  const [summaryEditValue, setSummaryEditValue] = useState('');
+  const [editingSummaryContent, setEditingSummaryContent] = useState("");
   const [showExperienceEdit, setShowExperienceEdit] = useState(false);
   const [editingExperience, setEditingExperience] = useState<{
     index: number;
@@ -68,15 +83,19 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
   } | null>(null);
   const [showSkillsEdit, setShowSkillsEdit] = useState(false);
   const [editingSkills, setEditingSkills] = useState<string[]>([]);
-  const [currentSkill, setCurrentSkill] = useState('');
+  const [currentSkill, setCurrentSkill] = useState("");
   const [showLanguagesEdit, setShowLanguagesEdit] = useState(false);
   const [editingLanguages, setEditingLanguages] = useState<string[]>([]);
-  const [currentLanguage, setCurrentLanguage] = useState('');
+  const [currentLanguage, setCurrentLanguage] = useState("");
   const [showProjectsEdit, setShowProjectsEdit] = useState(false);
-  const [editingProjectsContent, setEditingProjectsContent] = useState('');
+  const [editingProjectsContent, setEditingProjectsContent] = useState("");
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
-  const [isAiLoading, setIsAiLoading] = useState({ experience: false, projects: false });
-  
+  const [isAiLoading, setIsAiLoading] = useState({
+    experience: false,
+    projects: false,
+    summary: false,
+  });
+
   const generateResumePointsAction = useAction(generateAiResumePoints);
 
   // Apply section visibility filtering
@@ -84,6 +103,24 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
     if (!generatedContent) return null;
     return filterContentBySections(generatedContent, sections);
   }, [generatedContent, sections]);
+
+  // Find summary section in the rendered HTML (matching desktop behavior)
+  useEffect(() => {
+    if (!generatedContent) return;
+    // Extract summary content from the HTML
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = generatedContent;
+    const summaryH2 = Array.from(tempDiv.getElementsByTagName("h2")).find(
+      (h2) => h2.textContent?.toLowerCase().includes("summary")
+    );
+    if (summaryH2) {
+      const summaryContainer =
+        summaryH2.nextElementSibling as HTMLElement | null;
+      if (summaryContainer) {
+        setEditingSummaryContent(summaryContainer.outerHTML);
+      }
+    }
+  }, [generatedContent]);
 
   useEffect(() => {
     if (generatedContent) {
@@ -102,18 +139,20 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
       if (containerNode && contentNode) {
         // Mobile A4 dimensions: 320px × 453px (maintains A4 aspect ratio 297/210 = 1.414)
         const MOBILE_WIDTH = 320;
-        const MOBILE_HEIGHT = Math.round(320 * (297/210)); // 320 * 1.414 = 453px
-        
+        const MOBILE_HEIGHT = Math.round(320 * (297 / 210)); // 320 * 1.414 = 453px
+
         containerNode.style.width = `${MOBILE_WIDTH}px`;
         containerNode.style.height = `${MOBILE_HEIGHT}px`;
-        
+
         // Set clipping container height (453px - 28px padding = 425px)
-        const clippingContainer = containerNode.querySelector('div[style*="overflow: hidden"]') as HTMLElement;
+        const clippingContainer = containerNode.querySelector(
+          'div[style*="overflow: hidden"]'
+        ) as HTMLElement;
         if (clippingContainer) {
           clippingContainer.style.height = `${MOBILE_HEIGHT - 28}px`;
         }
 
-        contentNode.style.transform = 'none';
+        contentNode.style.transform = "none";
       }
     };
 
@@ -127,14 +166,18 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
       const contentNode = contentRef.current;
 
       if (containerNode && contentNode && generatedContent) {
-        const clippingContainer = containerNode.querySelector('div[style*="overflow: hidden"]') as HTMLElement;
+        const clippingContainer = containerNode.querySelector(
+          'div[style*="overflow: hidden"]'
+        ) as HTMLElement;
         if (!clippingContainer) return;
 
         const resumeContent = contentNode;
         if (!resumeContent) return;
 
         const clippingHeight = clippingContainer.offsetHeight;
-        const actualContent = resumeContent.querySelector('div[style*="padding: 0"]') as HTMLElement;
+        const actualContent = resumeContent.querySelector(
+          'div[style*="padding: 0"]'
+        ) as HTMLElement;
         if (!actualContent) return;
 
         const contentHeight = actualContent.scrollHeight;
@@ -144,7 +187,7 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
           if (!hasShownOverflowAlert) {
             setHasShownOverflowAlert(true);
             onOverflowDetected(
-              'Resume content exceeds page limits!',
+              "Resume content exceeds page limits!",
               'Content is too long. Consider reducing text or hiding sections via "Manage Sections".'
             );
           }
@@ -163,13 +206,15 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
     const resumeContent = document.getElementById(instanceId);
     if (!resumeContent) return;
 
-    const existingStyle = resumeContent.querySelector('#mobile-resume-color-style');
+    const existingStyle = resumeContent.querySelector(
+      "#mobile-resume-color-style"
+    );
     if (existingStyle) {
       existingStyle.remove();
     }
 
-    const style = document.createElement('style');
-    style.id = 'mobile-resume-color-style';
+    const style = document.createElement("style");
+    style.id = "mobile-resume-color-style";
     style.innerHTML = `
       #${instanceId} h1,
       #${instanceId} h2,
@@ -248,50 +293,205 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
     if (!resumeContent) return;
 
     // Summary edit button
-    const summaryH2 = Array.from(resumeContent.getElementsByTagName('h2')).find(h2 => h2.textContent?.toLowerCase().includes('summary'));
+    const summaryH2 = Array.from(resumeContent.getElementsByTagName("h2")).find(
+      (h2) => h2.textContent?.toLowerCase().includes("summary")
+    );
     const summaryP = summaryH2?.nextElementSibling as HTMLElement | null;
-    
-    const summarySectionState = sections.find((s) => s.id === 'summary');
+
+    const summarySectionState = sections.find((s) => s.id === "summary");
     if (summaryH2) {
-      summaryH2.style.display = summarySectionState?.visible ? '' : 'none';
+      summaryH2.style.display = summarySectionState?.visible ? "" : "none";
     }
     if (summaryP) {
-      summaryP.style.display = summarySectionState?.visible ? '' : 'none';
+      summaryP.style.display = summarySectionState?.visible ? "" : "none";
     }
-    
+
     if (summaryP) {
-      summaryP.style.position = 'relative';
-      
+      summaryP.style.position = "relative";
+
       // Always show edit button on mobile
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'mobile-edit-button';
-      btn.style.position = 'absolute';
-      btn.style.top = '6px';
-      btn.style.right = '6px';
-      btn.style.zIndex = '10';
-      btn.style.background = 'white';
-      btn.style.borderRadius = '6px';
-      btn.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
-      btn.style.padding = '4px';
-      btn.style.border = '1px solid #e2e8f0';
-      btn.style.display = 'flex';
-      btn.style.alignItems = 'center';
-      btn.style.justifyContent = 'center';
-      btn.style.cursor = 'pointer';
-      btn.style.width = '24px';
-      btn.style.height = '24px';
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mobile-edit-button";
+      btn.style.position = "absolute";
+      btn.style.top = "6px";
+      btn.style.right = "6px";
+      btn.style.zIndex = "10";
+      btn.style.background = "white";
+      btn.style.borderRadius = "6px";
+      btn.style.boxShadow = "0 2px 6px rgba(0,0,0,0.1)";
+      btn.style.padding = "4px";
+      btn.style.border = "1px solid #e2e8f0";
+      btn.style.display = "flex";
+      btn.style.alignItems = "center";
+      btn.style.justifyContent = "center";
+      btn.style.cursor = "pointer";
+      btn.style.width = "24px";
+      btn.style.height = "24px";
       btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
-      btn.onclick = () => setShowSummaryEdit(true);
+      btn.onclick = () => {
+        setEditingSummaryContent(summaryP.outerHTML);
+        setShowSummaryEdit(true);
+      };
       summaryP.appendChild(btn);
     }
 
-    // Similar logic for other sections (Experience, Education, Skills, Languages, Projects)
+    // Education edit buttons
+    const educationH2 = Array.from(
+      resumeContent.getElementsByTagName("h2")
+    ).find((h2) => h2.textContent?.toLowerCase().includes("education"));
+    if (educationH2 && educationH2.parentElement) {
+      const educationSectionState = sections.find((s) => s.id === "education");
+      const isVisible = educationSectionState?.visible;
+
+      educationH2.style.display = isVisible ? "" : "none";
+
+      const educationEntries = Array.from(
+        educationH2.parentElement.children
+      ).filter(
+        (child) => child.tagName === "DIV" && child.querySelector("h3")
+      ) as HTMLElement[];
+
+      educationEntries.forEach((entry, index) => {
+        entry.style.display = isVisible ? "" : "none";
+        entry.style.position = "relative";
+
+        // Always show edit button on mobile (remove any existing button first)
+        entry.querySelector(".mobile-edit-button-education")?.remove();
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "mobile-edit-button-education";
+        btn.style.position = "absolute";
+        btn.style.top = "6px";
+        btn.style.right = "6px";
+        btn.style.zIndex = "10";
+        btn.style.background = "white";
+        btn.style.borderRadius = "6px";
+        btn.style.boxShadow = "0 2px 6px rgba(0,0,0,0.1)";
+        btn.style.padding = "4px";
+        btn.style.border = "1px solid #e2e8f0";
+        btn.style.display = "flex";
+        btn.style.alignItems = "center";
+        btn.style.justifyContent = "center";
+        btn.style.cursor = "pointer";
+        btn.style.width = "24px";
+        btn.style.height = "24px";
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+        btn.onclick = () => {
+          const degree = entry.querySelector("h3")?.textContent || "";
+          const pElement = entry.querySelector("p");
+          const school = pElement?.childNodes[0]?.textContent?.trim() || "";
+          const gpaSpan = pElement?.querySelector("span");
+          const gpa = gpaSpan?.textContent?.trim() || "";
+          const date =
+            entry.querySelector('div[style*="text-align: right"] p')
+              ?.textContent || "";
+          setEditingEducation({ index, degree, school, date, gpa });
+          setShowEducationEdit(true);
+        };
+        entry.appendChild(btn);
+      });
+    }
+
+    // Experience edit buttons
+    const experienceH2 = Array.from(
+      resumeContent.getElementsByTagName("h2")
+    ).find((h2) => h2.textContent?.toLowerCase().includes("experience"));
+
+    if (experienceH2 && experienceH2.parentElement) {
+      const experienceSectionState = sections.find(
+        (s) => s.id === "experience"
+      );
+      const isVisible = experienceSectionState?.visible;
+
+      experienceH2.style.display = isVisible ? "" : "none";
+
+      const experienceEntries = Array.from(
+        experienceH2.parentElement.children
+      ).filter(
+        (child) => child.tagName === "DIV" && child.querySelector("h3")
+      ) as HTMLElement[];
+
+      experienceEntries.forEach((entry, index) => {
+        entry.style.display = isVisible ? "" : "none";
+        entry.style.position = "relative";
+
+        // Always show edit button on mobile
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.style.position = "absolute";
+        btn.style.top = "6px";
+        btn.style.right = "6px";
+        btn.style.zIndex = "10";
+        btn.style.background = "white";
+        btn.style.borderRadius = "6px";
+        btn.style.boxShadow = "0 1.6px 6.4px rgba(0,0,0,0.08)";
+        btn.style.padding = "4.8px";
+        btn.style.border = "1px solid #e2e8f0";
+        btn.style.display = "flex";
+        btn.style.alignItems = "center";
+        btn.style.justifyContent = "center";
+        btn.style.cursor = "pointer";
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14.4" height="14.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+        btn.onclick = () => {
+          const title = entry.querySelector("h3")?.textContent || "";
+          const pElement = entry.querySelector("p");
+          const companyLocation = pElement?.textContent?.split(" - ") || [];
+          const company = companyLocation[0];
+          const location = companyLocation[1] || "";
+          const date =
+            entry.querySelector('div[style*="text-align: right"] p')
+              ?.textContent || "";
+          const ulEl = entry.querySelector("ul");
+          const description = ulEl
+            ? ulEl.outerHTML
+            : entry.querySelector("p")?.innerHTML || "";
+          setEditingExperience({
+            index,
+            title,
+            company,
+            location,
+            date,
+            description,
+          });
+          setShowExperienceEdit(true);
+        };
+        entry.appendChild(btn);
+      });
+    }
+
+    // Similar logic for other sections (Skills, Languages, Projects)
     // ... (truncated for brevity - would include all edit button logic from original)
-    
   }, [filteredContent, sections, instanceId]);
 
-  const documentTitle = documentType === 'resume' ? 'Resume' : 'Cover Letter';
+  // AI generation for summary (matching desktop behavior)
+  const handleGenerateSummaryContent = async () => {
+    setIsAiLoading({ ...isAiLoading, summary: true });
+    try {
+      const resumeContent = document.getElementById(instanceId);
+      if (!resumeContent) {
+        throw new Error("Could not find resume content to build context.");
+      }
+
+      const experienceTitles = Array.from(resumeContent.querySelectorAll("h3"))
+        .map((h3) => h3.textContent?.trim())
+        .filter(Boolean)
+        .join(", ");
+
+      const context = `Based on job titles and degrees like: ${experienceTitles}, write a professional summary paragraph that highlights key strengths, experience, and career objectives. The summary should be 3-4 sentences and capture the candidate's value proposition.`;
+
+      const result = await generateResumePointsAction({ context });
+      if (result?.content) {
+        setEditingSummaryContent((prev) => (prev || "") + result.content);
+      }
+    } catch (error: any) {
+      alert("Error generating AI content: " + error.message);
+    } finally {
+      setIsAiLoading({ ...isAiLoading, summary: false });
+    }
+  };
+
+  const documentTitle = documentType === "resume" ? "Resume" : "Cover Letter";
 
   const handleDownloadPdf = async () => {
     if (!generatedContent || isPdfGenerating) return;
@@ -300,7 +500,7 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
     try {
       const result = await generateResumePdf({
         htmlContent: filteredContent || generatedContent,
-        filename: `${documentTitle.toLowerCase().replace(/\s+/g, '-')}.pdf`
+        filename: `${documentTitle.toLowerCase().replace(/\s+/g, "-")}.pdf`,
       });
 
       // PDF download logic (same as original)
@@ -310,23 +510,22 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const blob = new Blob([byteArray], { type: "application/pdf" });
 
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = result.filename;
-      link.style.display = 'none';
+      link.style.display = "none";
       document.body.appendChild(link);
       link.click();
-      
+
       setTimeout(() => {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       }, 1000);
-
     } catch (error: any) {
-      console.error('Failed to download PDF:', error);
+      console.error("Failed to download PDF:", error);
     } finally {
       setIsPdfGenerating(false);
     }
@@ -336,31 +535,143 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
     if (!generatedContent) return;
 
     try {
-      const tempDiv = document.createElement('div');
+      const tempDiv = document.createElement("div");
       tempDiv.innerHTML = filteredContent || generatedContent;
-      const textContent = tempDiv.textContent || tempDiv.innerText || '';
-      
+      const textContent = tempDiv.textContent || tempDiv.innerText || "";
+
       await navigator.clipboard.writeText(textContent);
-      console.log('Resume content copied to clipboard');
+      console.log("Resume content copied to clipboard");
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      console.error("Failed to copy to clipboard:", error);
     }
   };
 
   // Save handlers (same as original)
   const handleSummarySave = () => {
     if (!generatedContent) return;
-    // ... (same logic as original)
+
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = generatedContent;
+
+    const summaryH2 = Array.from(tempDiv.getElementsByTagName("h2")).find(
+      (h2) => h2.textContent?.toLowerCase().includes("summary")
+    );
+    if (summaryH2) {
+      const summaryContainer =
+        summaryH2.nextElementSibling as HTMLElement | null;
+      if (summaryContainer) {
+        // Replace the entire container to avoid nested lists
+        summaryContainer.outerHTML = editingSummaryContent;
+      }
+    }
+
+    onContentChange(tempDiv.innerHTML);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
+    setShowSummaryEdit(false);
   };
 
   const handleExperienceSave = () => {
     if (!editingExperience || !generatedContent) return;
-    // ... (same logic as original)
+
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = generatedContent;
+
+    const experienceH2 = Array.from(tempDiv.getElementsByTagName("h2")).find(
+      (h2) => h2.textContent?.toLowerCase().includes("experience")
+    );
+    if (!experienceH2 || !experienceH2.parentElement) return;
+
+    const experienceContainer = experienceH2.parentElement;
+    const experienceEntries = Array.from(experienceContainer.children).filter(
+      (child) => child.tagName === "DIV" && child.querySelector("h3")
+    );
+    const entryToUpdate = experienceEntries[
+      editingExperience.index
+    ] as HTMLElement;
+
+    if (entryToUpdate) {
+      let finalDescriptionHtml = "";
+      const descTempDiv = document.createElement("div");
+      descTempDiv.innerHTML = editingExperience.description;
+
+      const isAlreadyList = descTempDiv.querySelector("ul, ol");
+
+      if (isAlreadyList) {
+        // If it's already a list, just reformat with proper mobile styling
+        const listItems = Array.from(descTempDiv.querySelectorAll("li"));
+        finalDescriptionHtml = `<ul style="margin-top: 2px; padding-left: 0; margin-left: 0.5rem; line-height: 1.4; list-style-type: disc;">${listItems
+          .map(
+            (p) =>
+              `<li style="margin-bottom: 0.1rem; font-size: 4pt; line-height: 1.4;">${p.innerHTML}</li>`
+          )
+          .join("")}</ul>`;
+      } else {
+        finalDescriptionHtml = `<ul style="margin-top: 2px; padding-left: 0; margin-left: 0.5rem; line-height: 1.4; list-style-type: disc;"><li style="margin-bottom: 0.1rem; font-size: 4pt; line-height: 1.4;">${editingExperience.description}</li></ul>`;
+      }
+
+      entryToUpdate.innerHTML = `
+        <div style="display: flex; justify-content: space-between;">
+          <div>
+            <h3 style="font-weight: bold; margin: 0;">${editingExperience.title}</h3>
+            <p style="margin: 0.8px 0;">${editingExperience.company} - ${editingExperience.location}</p>
+          </div>
+          <div style="text-align: right;">
+            <p style="margin: 0;">${editingExperience.date}</p>
+          </div>
+        </div>
+        ${finalDescriptionHtml}
+      `;
+    }
+
+    onContentChange(tempDiv.innerHTML);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
+    setShowExperienceEdit(false);
+    setEditingExperience(null);
   };
 
   const handleEducationSave = () => {
     if (!editingEducation || !generatedContent) return;
-    // ... (same logic as original)
+
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = generatedContent;
+
+    const educationH2 = Array.from(tempDiv.getElementsByTagName("h2")).find(
+      (h2) => h2.textContent?.toLowerCase().includes("education")
+    );
+    if (!educationH2 || !educationH2.parentElement) return;
+
+    const educationContainer = educationH2.parentElement;
+    const educationEntries = Array.from(educationContainer.children).filter(
+      (child) => child.tagName === "DIV" && child.querySelector("h3")
+    );
+    const entryToUpdate = educationEntries[
+      editingEducation.index
+    ] as HTMLElement;
+
+    if (entryToUpdate) {
+      const gpaHtml = editingEducation.gpa
+        ? ` <span style="margin-left: 1rem; color: #555;">${editingEducation.gpa}</span>`
+        : "";
+      entryToUpdate.innerHTML = `
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${editingEducation.degree}</h3>
+                <p style="margin: 2px 0;">${editingEducation.school}${gpaHtml}</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="margin: 0;">${editingEducation.date}</p>
+            </div>
+        </div>
+      `;
+    }
+
+    onContentChange(tempDiv.innerHTML);
+    // Reset overflow alert state when content is changed
+    setHasShownOverflowAlert(false);
+    setShowEducationEdit(false);
+    setEditingEducation(null);
   };
 
   const handleSkillsSave = () => {
@@ -381,21 +692,21 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
   return (
     <>
       {/* Mobile Header */}
-      <div className='flex justify-between items-center w-full px-4'>
-        <div className='flex items-center'>
+      <div className="flex justify-between items-center w-full px-4">
+        <div className="flex items-center">
           <button
             onClick={onAdjustCustomizations}
-            className='inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm'
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm"
           >
             <Settings size={14} />
             <span className="hidden sm:inline">Adjust</span>
           </button>
         </div>
-        <div className='flex items-center space-x-2'>
+        <div className="flex items-center space-x-2">
           <button
             onClick={handleCopyToClipboard}
             disabled={!generatedContent}
-            className='inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm'
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             <Copy size={14} />
             <span className="hidden sm:inline">Copy</span>
@@ -403,7 +714,7 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
           <button
             onClick={handleDownloadPdf}
             disabled={isOverflowing || isPdfGenerating}
-            className='inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm'
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             {isPdfGenerating ? (
               <>
@@ -423,48 +734,56 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
       {/* Mobile Content Area */}
       <div className="flex justify-center p-4">
         <div
-          className='relative overflow-hidden rounded-lg shadow-lg bg-white'
+          className="relative overflow-hidden rounded-lg shadow-lg bg-white"
           ref={containerRef}
-          style={{ padding: '12px 16px 16px 16px' }}
+          style={{ padding: "12px 16px 16px 16px" }}
         >
           {/* Clipping container */}
           <div
-            style={{ 
-              width: '100%', 
-              height: '100%', 
-              overflow: 'hidden', 
-              position: 'relative'
+            style={{
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+              position: "relative",
             }}
           >
             <div
               ref={contentRef}
               id={instanceId}
-              style={{ transformOrigin: 'top left', position: 'relative', padding: '0' }}
+              style={{
+                transformOrigin: "top left",
+                position: "relative",
+                padding: "0",
+              }}
             >
               <div
-                style={{ padding: '0' }}
-                dangerouslySetInnerHTML={{ __html: filteredContent || '<p>Your generated document will appear here...</p>' }}
+                style={{ padding: "0" }}
+                dangerouslySetInnerHTML={{
+                  __html:
+                    filteredContent ||
+                    "<p>Your generated document will appear here...</p>",
+                }}
               />
             </div>
           </div>
-          
+
           {/* Overflow warning */}
           {isOverflowing && (
             <div
               style={{
-                position: 'absolute',
-                bottom: '8px',
-                left: '20px',
-                right: '20px',
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                borderRadius: '6px',
-                padding: '6px 8px',
-                fontSize: '10px',
-                color: '#dc2626',
-                textAlign: 'center',
-                fontWeight: '500',
-                zIndex: 10
+                position: "absolute",
+                bottom: "8px",
+                left: "20px",
+                right: "20px",
+                background: "rgba(239, 68, 68, 0.1)",
+                border: "1px solid rgba(239, 68, 68, 0.3)",
+                borderRadius: "6px",
+                padding: "6px 8px",
+                fontSize: "10px",
+                color: "#dc2626",
+                textAlign: "center",
+                fontWeight: "500",
+                zIndex: 10,
               }}
             >
               ⚠️ Text overflow detected
@@ -478,58 +797,73 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         onSave={onContentChange}
-        initialContent={generatedContent || ''}
+        initialContent={generatedContent || ""}
       />
 
       {/* Summary Edit Modal */}
       <Transition appear show={showSummaryEdit} as={React.Fragment}>
-        <Dialog as='div' className='relative z-50' onClose={() => setShowSummaryEdit(false)}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() => setShowSummaryEdit(false)}
+        >
           <Transition.Child
             as={React.Fragment}
-            enter='ease-out duration-300'
-            enterFrom='opacity-0'
-            enterTo='opacity-100'
-            leave='ease-in duration-200'
-            leaveFrom='opacity-100'
-            leaveTo='opacity-0'
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
           >
-            <div className='fixed inset-0 bg-black bg-opacity-50' />
+            <div className="fixed inset-0 bg-black bg-opacity-50" />
           </Transition.Child>
 
-          <div className='fixed inset-0 overflow-y-auto'>
-            <div className='flex min-h-full items-center justify-center p-4 text-center'>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
               <Transition.Child
                 as={React.Fragment}
-                enter='ease-out duration-300'
-                enterFrom='opacity-0 scale-95'
-                enterTo='opacity-100 scale-100'
-                leave='ease-in duration-200'
-                leaveFrom='opacity-100 scale-100'
-                leaveTo='opacity-0 scale-95'
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className='w-full max-w-lg transform rounded-2xl bg-white dark:bg-boxdark p-6 text-left align-middle shadow-xl transition-all'>
-                  <Dialog.Title as='h3' className='text-lg font-medium leading-6 text-gray-900 dark:text-white'>
+                <Dialog.Panel className="w-full max-w-2xl transform rounded-2xl bg-white dark:bg-boxdark p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
+                  >
                     Edit Summary
                   </Dialog.Title>
-                  <div className='mt-2'>
-                    <label htmlFor='summary-edit' className='block text-sm font-medium text-black dark:text-white'>
-                      Summary
-                    </label>
-                    <div className='quill-container'>
-                      <QuillEditor value={summaryEditValue} onChange={setSummaryEditValue} />
+                  <div className="mt-4 quill-container">
+                    <div className="flex justify-end items-center mb-1">
+                      <button
+                        type="button"
+                        onClick={handleGenerateSummaryContent}
+                        className="text-sm text-primary hover:underline"
+                        disabled={isAiLoading.summary}
+                      >
+                        {isAiLoading.summary ? "Generating..." : "✨ AI Writer"}
+                      </button>
                     </div>
+                    <QuillEditor
+                      value={editingSummaryContent}
+                      onChange={setEditingSummaryContent}
+                    />
                   </div>
-                  <div className='mt-6 flex justify-end gap-4'>
+                  <div className="mt-6 flex justify-end gap-4">
                     <button
-                      type='button'
-                      className='inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                       onClick={() => setShowSummaryEdit(false)}
                     >
                       Cancel
                     </button>
                     <button
-                      type='button'
-                      className='inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       onClick={handleSummarySave}
                     >
                       Save
@@ -542,8 +876,306 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         </Dialog>
       </Transition>
 
+      {/* Education Edit Modal */}
+      <Transition appear show={showEducationEdit} as={React.Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() => setShowEducationEdit(false)}
+        >
+          <Transition.Child
+            as={React.Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-50" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={React.Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-lg transform rounded-2xl bg-white dark:bg-boxdark p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
+                  >
+                    Edit Education
+                  </Dialog.Title>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                        School
+                      </label>
+                      <input
+                        type="text"
+                        value={editingEducation?.school || ""}
+                        onChange={(e) =>
+                          setEditingEducation((prev) =>
+                            prev ? { ...prev, school: e.target.value } : null
+                          )
+                        }
+                        className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                        Field of Study
+                      </label>
+                      <input
+                        type="text"
+                        value={editingEducation?.degree || ""}
+                        onChange={(e) =>
+                          setEditingEducation((prev) =>
+                            prev ? { ...prev, degree: e.target.value } : null
+                          )
+                        }
+                        className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                        Graduation Date
+                      </label>
+                      <input
+                        type="text"
+                        value={editingEducation?.date || ""}
+                        onChange={(e) =>
+                          setEditingEducation((prev) =>
+                            prev ? { ...prev, date: e.target.value } : null
+                          )
+                        }
+                        className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                        GPA (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingEducation?.gpa || ""}
+                        onChange={(e) =>
+                          setEditingEducation((prev) =>
+                            prev ? { ...prev, gpa: e.target.value } : null
+                          )
+                        }
+                        className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end gap-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                      onClick={() => setShowEducationEdit(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={handleEducationSave}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Experience Edit Modal */}
+      <Transition appear show={showExperienceEdit} as={React.Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() => setShowExperienceEdit(false)}
+        >
+          <Transition.Child
+            as={React.Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-50" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={React.Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-2xl transform rounded-2xl bg-white dark:bg-boxdark p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
+                  >
+                    Edit Experience
+                  </Dialog.Title>
+                  {editingExperience && (
+                    <div className="mt-4 space-y-4">
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="w-full sm:w-1/2">
+                          <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                            Employer
+                          </label>
+                          <input
+                            type="text"
+                            value={editingExperience.company}
+                            onChange={(e) =>
+                              setEditingExperience({
+                                ...editingExperience,
+                                company: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                          />
+                        </div>
+                        <div className="w-full sm:w-1/2">
+                          <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                            Job Title
+                          </label>
+                          <input
+                            type="text"
+                            value={editingExperience.title}
+                            onChange={(e) =>
+                              setEditingExperience({
+                                ...editingExperience,
+                                title: e.target.value,
+                              })
+                            }
+                            className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="w-full sm:w-1/2">
+                          <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                            Start Date
+                          </label>
+                          <input
+                            type="text"
+                            value={editingExperience.date.split(" - ")[0] || ""}
+                            onChange={(e) => {
+                              const newStartDate = e.target.value;
+                              const endDate =
+                                editingExperience.date.split(" - ")[1] ||
+                                "Present";
+                              setEditingExperience({
+                                ...editingExperience,
+                                date: `${newStartDate} - ${endDate}`,
+                              });
+                            }}
+                            className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                          />
+                        </div>
+                        <div className="w-full sm:w-1/2">
+                          <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                            End Date
+                          </label>
+                          <input
+                            type="text"
+                            value={editingExperience.date.split(" - ")[1] || ""}
+                            onChange={(e) => {
+                              const newEndDate = e.target.value;
+                              const startDate =
+                                editingExperience.date.split(" - ")[0] || "";
+                              setEditingExperience({
+                                ...editingExperience,
+                                date: `${startDate} - ${newEndDate}`,
+                              });
+                            }}
+                            className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                          Location
+                        </label>
+                        <input
+                          type="text"
+                          value={editingExperience.location}
+                          onChange={(e) =>
+                            setEditingExperience({
+                              ...editingExperience,
+                              location: e.target.value,
+                            })
+                          }
+                          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <label
+                            htmlFor="experience-description"
+                            className="block text-sm font-medium text-black dark:text-white"
+                          >
+                            Work Description at the Company
+                          </label>
+                        </div>
+                        <div className="quill-container">
+                          <QuillEditor
+                            value={editingExperience.description}
+                            onChange={(value) =>
+                              setEditingExperience({
+                                ...editingExperience,
+                                description: value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="mt-6 flex justify-end gap-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                      onClick={() => setShowExperienceEdit(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 focus:outline-none"
+                      onClick={handleExperienceSave}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
       {/* Other edit modals would be included here with similar structure */}
-      {/* (Experience, Education, Skills, Languages, Projects) */}
+      {/* (Skills, Languages, Projects) */}
     </>
   );
 };

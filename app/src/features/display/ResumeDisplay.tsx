@@ -1051,10 +1051,10 @@ const ResumeDisplay: React.FC<ResumeDisplayProps> = ({
         <div style="display: flex; justify-content: space-between;">
           <div>
             <h3 style="font-size: 11pt; font-weight: bold; margin: 0;">${editingExperience.title}</h3>
-            <p style="margin: 2px 0;">${editingExperience.company} - ${editingExperience.location}</p>
+            <p style="margin: 2px 0; font-size: 10pt;">${editingExperience.company} - ${editingExperience.location}</p>
           </div>
           <div style="text-align: right;">
-            <p style="margin: 0;">${editingExperience.date}</p>
+            <p style="margin: 0; font-size: 10pt;">${editingExperience.date}</p>
           </div>
         </div>
         ${finalDescriptionHtml}
