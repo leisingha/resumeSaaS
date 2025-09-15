@@ -107,10 +107,10 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         containerNode.style.width = `${MOBILE_WIDTH}px`;
         containerNode.style.height = `${MOBILE_HEIGHT}px`;
         
-        // Set clipping container height (453px - 35px padding = 418px)
+        // Set clipping container height (453px - 28px padding = 425px)
         const clippingContainer = containerNode.querySelector('div[style*="overflow: hidden"]') as HTMLElement;
         if (clippingContainer) {
-          clippingContainer.style.height = `${MOBILE_HEIGHT - 35}px`;
+          clippingContainer.style.height = `${MOBILE_HEIGHT - 28}px`;
         }
 
         contentNode.style.transform = 'none';
@@ -181,62 +181,62 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
       }
       
       #${instanceId} h1 {
-        font-size: 9pt !important;
-        line-height: 1.3 !important;
-        margin: 0 0 3px 0 !important;
+        font-size: 9.6pt !important;
+        line-height: 1.4 !important;
+        margin: 0 !important;
       }
       
       #${instanceId} h2 {
-        font-size: 5pt !important;
-        line-height: 1.3 !important;
-        margin: 5px 0 2px 0 !important;
+        font-size: 4.8pt !important;
+        line-height: 1.4 !important;
+        margin: 6px 0 4px 0 !important;
       }
       
       #${instanceId} h3 {
-        font-size: 4pt !important;
-        line-height: 1.3 !important;
-        margin: 2px 0 1px 0 !important;
+        font-size: 4.4pt !important;
+        line-height: 1.4 !important;
+        margin: 0 !important;
       }
       
       #${instanceId} p {
         font-size: 4pt !important;
-        line-height: 1.3 !important;
-        margin: 1px 0 !important;
+        line-height: 1.4 !important;
+        margin: 0.8px 0 !important;
       }
       
       #${instanceId} li,
       #${instanceId} span {
         font-size: 4pt !important;
-        line-height: 1.3 !important;
+        line-height: 1.4 !important;
       }
       
       #${instanceId} ul {
         list-style-type: disc !important;
-        margin-left: 0.8rem !important;
+        margin-left: 0.5rem !important;
         padding-left: 0 !important;
-        margin-top: 1px !important;
-        margin-bottom: 2px !important;
-        line-height: 1.3 !important;
+        margin-top: 2px !important;
+        margin-bottom: 1px !important;
+        line-height: 1.4 !important;
       }
       
       #${instanceId} li {
-        margin-bottom: 0.15rem !important;
+        margin-bottom: 0.1rem !important;
       }
       
       #${instanceId} div {
-        margin-bottom: 2px !important;
+        margin-bottom: 6px !important;
       }
       
       /* Make section dividers thinner in mobile */
       #${instanceId} hr {
         border: none !important;
-        border-top: 0.5px solid ${options.colorScheme} !important;
-        margin: 2px 0 !important;
+        border-top: 0.4px solid ${options.colorScheme} !important;
+        margin: 1px 0 !important;
       }
       
       #${instanceId} h2 {
-        border-bottom: 0.5px solid ${options.colorScheme} !important;
-        padding-bottom: 1px !important;
+        border-bottom: 0.4px solid ${options.colorScheme} !important;
+        padding-bottom: 0.8px !important;
       }
     `;
     resumeContent.prepend(style);
@@ -425,7 +425,7 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         <div
           className='relative overflow-hidden rounded-lg shadow-lg bg-white'
           ref={containerRef}
-          style={{ padding: '15px 20px 20px 20px' }}
+          style={{ padding: '12px 16px 16px 16px' }}
         >
           {/* Clipping container */}
           <div
