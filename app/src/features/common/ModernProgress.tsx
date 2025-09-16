@@ -56,14 +56,14 @@ export function ModernProgress({
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className='flex items-center gap-3'>
+    <div className='mobile-break:flex mobile-break:items-center mobile-break:gap-3 flex items-center justify-center'>
       {showLabel && (
-        <div className='text-center'>
+        <div className='text-center mobile-break:block hidden'>
           <div className='text-title-md2 font-bold text-primary-light'>{`${Math.round(percentage)}%`}</div>
           <div className='text-sm text-gray-500 dark:text-gray-400'>Complete</div>
         </div>
       )}
-      <div className={cn('relative', sizeMap[size], className)}>
+      <div className={cn('relative flex items-center justify-center', sizeMap[size], className)}>
         <svg className='w-full h-full' viewBox={`0 0 ${size_px} ${size_px}`}>
           {/* Background circle */}
           <circle
@@ -102,6 +102,13 @@ export function ModernProgress({
             </linearGradient>
           </defs>
         </svg>
+        
+        {/* Percentage text inside the circle for mobile */}
+        {showLabel && (
+          <div className='absolute inset-0 flex items-center justify-center mobile-break:hidden'>
+            <div className='text-xs font-bold text-primary-light'>{`${Math.round(percentage)}%`}</div>
+          </div>
+        )}
       </div>
     </div>
   );
