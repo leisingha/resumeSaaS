@@ -375,10 +375,10 @@ Education History: ${educationContext}`;
   };
 
   const newStandardInputClass =
-    'w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary';
+    'w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary';
   const newStandardInputWithIconClass =
-    'w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 pl-12 pr-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary';
-  const labelClassName = 'mb-2.5 block text-sm font-medium text-black dark:text-white';
+    'w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:pl-12 mobile-break:pr-5 py-2 pl-10 pr-3 mobile-break:text-base text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary';
+  const labelClassName = 'mb-2.5 block mobile-break:text-base text-sm font-medium text-black dark:text-white';
   const subSectionTitleClassName = 'text-md font-semibold text-black dark:text-white mb-3 pt-3';
 
   if (isProfileLoading) {

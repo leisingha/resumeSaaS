@@ -1002,35 +1002,35 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         <div className="flex items-center">
           <button
             onClick={onAdjustCustomizations}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-transparent border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
           >
             <Settings size={14} />
-            <span className="hidden sm:inline">Adjust</span>
+            <span>Adjust</span>
           </button>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={handleCopyToClipboard}
             disabled={!generatedContent}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-transparent border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
           >
             <Copy size={14} />
-            <span className="hidden sm:inline">Copy</span>
+            <span>Copy</span>
           </button>
           <button
             onClick={handleDownloadPdf}
             disabled={isOverflowing || isPdfGenerating}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-transparent border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
           >
             {isPdfGenerating ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600"></div>
-                <span className="hidden sm:inline">Generating...</span>
+                <span>Generating...</span>
               </>
             ) : (
               <>
                 <Download size={14} />
-                <span className="hidden sm:inline">Download</span>
+                <span>Download</span>
               </>
             )}
           </button>
