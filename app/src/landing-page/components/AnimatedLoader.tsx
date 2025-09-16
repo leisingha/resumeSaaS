@@ -1,5 +1,5 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 const AnimatedLoader = () => {
   return (
@@ -23,7 +23,7 @@ const AnimatedLoader = () => {
       </div>
     </StyledWrapper>
   );
-}
+};
 
 const StyledWrapper = styled.div`
   .card {
@@ -41,17 +41,21 @@ const StyledWrapper = styled.div`
     line-height: 1.5;
     -webkit-box-sizing: content-box;
     box-sizing: content-box;
-    height: 24px;
+    height: auto;
     padding: 0;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
+    flex-direction: column;
+    align-items: center;
     border-radius: 0;
   }
 
   @media (min-width: 640px) {
     .loader {
       font-size: 18px;
+    }
+    .words {
       height: 27px;
     }
   }
@@ -59,6 +63,8 @@ const StyledWrapper = styled.div`
   @media (min-width: 768px) {
     .loader {
       font-size: 20px;
+    }
+    .words {
       height: 30px;
     }
   }
@@ -66,7 +72,9 @@ const StyledWrapper = styled.div`
   .words {
     overflow: hidden;
     position: relative;
-    text-align: left;
+    text-align: center;
+    height: 24px;
+    margin-top: 4px;
   }
   .words::after {
     content: "";
@@ -96,34 +104,44 @@ const StyledWrapper = styled.div`
   }
 
   @keyframes spin_4991 {
-    0%, 8% {
+    0%,
+    8% {
       transform: translateY(0%);
     }
-    10%, 18% {
+    10%,
+    18% {
       transform: translateY(-100%);
     }
-    20%, 28% {
+    20%,
+    28% {
       transform: translateY(-200%);
     }
-    30%, 38% {
+    30%,
+    38% {
       transform: translateY(-300%);
     }
-    40%, 48% {
+    40%,
+    48% {
       transform: translateY(-400%);
     }
-    50%, 58% {
+    50%,
+    58% {
       transform: translateY(-500%);
     }
-    60%, 68% {
+    60%,
+    68% {
       transform: translateY(-600%);
     }
-    70%, 78% {
+    70%,
+    78% {
       transform: translateY(-700%);
     }
-    80%, 88% {
+    80%,
+    88% {
       transform: translateY(-800%);
     }
-    90%, 98% {
+    90%,
+    98% {
       transform: translateY(-900%);
     }
     100% {

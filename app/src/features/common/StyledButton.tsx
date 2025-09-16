@@ -1,17 +1,21 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 interface StyledButtonProps {
   onClick: (e?: React.MouseEvent<HTMLButtonElement>) => void;
   text: string;
-  variant?: 'default' | 'gradient' | 'secondary' | 'yellow';
+  variant?: "default" | "gradient" | "secondary" | "yellow";
 }
 
-const StyledButton: React.FC<StyledButtonProps> = ({ onClick, text, variant = 'default' }) => {
+const StyledButton: React.FC<StyledButtonProps> = ({
+  onClick,
+  text,
+  variant = "default",
+}) => {
   // Parse the text to make the ✨ emoji bigger
   const parseText = (text: string) => {
-    if (text.includes('✨')) {
-      const parts = text.split('✨');
+    if (text.includes("✨")) {
+      const parts = text.split("✨");
       return (
         <>
           <span className="emoji">✨</span>
@@ -32,9 +36,11 @@ const StyledButton: React.FC<StyledButtonProps> = ({ onClick, text, variant = 'd
   );
 };
 
-const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary' | 'yellow' }>`
+const StyledWrapper = styled.div<{
+  variant: "default" | "gradient" | "secondary" | "yellow";
+}>`
   width: 100%;
-  
+
   .pushable {
     position: relative;
     background: transparent;
@@ -48,8 +54,6 @@ const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary'
     width: 100%;
   }
 
-
-
   .edge {
     position: absolute;
     top: 0;
@@ -58,7 +62,7 @@ const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary'
     width: 100%;
     border-radius: 8px;
     background: ${(props) =>
-      props.variant === 'secondary'
+      props.variant === "secondary"
         ? `linear-gradient(
             to right,
             hsl(220, 9%, 46%) 0%,
@@ -66,15 +70,15 @@ const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary'
             hsl(220, 9%, 46%) 92%,
             hsl(220, 9%, 36%) 100%
           )`
-        : props.variant === 'yellow'
-        ? `linear-gradient(
+        : props.variant === "yellow"
+          ? `linear-gradient(
             to right,
             hsl(45, 93%, 47%) 0%,
             hsl(45, 93%, 57%) 8%,
             hsl(45, 93%, 47%) 92%,
             hsl(45, 93%, 37%) 100%
           )`
-        : `linear-gradient(
+          : `linear-gradient(
             to right,
             hsl(248, 39%, 39%) 0%,
             hsl(248, 39%, 49%) 8%,
@@ -90,18 +94,18 @@ const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary'
     position: relative;
     border-radius: 8px;
     background: ${(props) =>
-      props.variant === 'secondary' 
+      props.variant === "secondary"
         ? `hsl(210, 20%, 98%)` // Light gray for light mode
-        : props.variant === 'yellow'
-        ? `hsl(45, 93%, 58%)` // Yellow
-        : `hsl(248, 53%, 58%)`}; // Purple for primary
+        : props.variant === "yellow"
+          ? `hsl(45, 93%, 58%)` // Yellow
+          : `hsl(248, 53%, 58%)`}; // Purple for primary
     padding: 16px 32px;
     color: ${(props) =>
-      props.variant === 'secondary' 
+      props.variant === "secondary"
         ? `hsl(220, 9%, 46%)` // Dark gray text for light mode
-        : props.variant === 'yellow'
-        ? `black` // Black text for yellow
-        : `white`}; // White text for primary
+        : props.variant === "yellow"
+          ? `black` // Black text for yellow
+          : `white`}; // White text for primary
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1.5px;
@@ -124,22 +128,22 @@ const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary'
   @media (prefers-color-scheme: dark) {
     .front {
       background: ${(props) =>
-        props.variant === 'secondary' 
+        props.variant === "secondary"
           ? `hsl(220, 13%, 18%)` // Dark gray for dark mode
-          : props.variant === 'yellow'
-          ? `hsl(45, 93%, 58%)` // Keep yellow same in dark mode
-          : `hsl(248, 53%, 58%)`}; // Keep purple for primary
+          : props.variant === "yellow"
+            ? `hsl(45, 93%, 58%)` // Keep yellow same in dark mode
+            : `hsl(248, 53%, 58%)`}; // Keep purple for primary
       color: ${(props) =>
-        props.variant === 'secondary' 
+        props.variant === "secondary"
           ? `hsl(220, 9%, 66%)` // Light gray text for dark mode
-          : props.variant === 'yellow'
-          ? `black` // Keep black text for yellow
-          : `white`}; // Keep white for primary
+          : props.variant === "yellow"
+            ? `black` // Keep black text for yellow
+            : `white`}; // Keep white for primary
     }
-    
+
     .edge {
       background: ${(props) =>
-        props.variant === 'secondary'
+        props.variant === "secondary"
           ? `linear-gradient(
               to right,
               hsl(220, 13%, 25%) 0%,
@@ -147,15 +151,15 @@ const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary'
               hsl(220, 13%, 25%) 92%,
               hsl(220, 13%, 15%) 100%
             )`
-          : props.variant === 'yellow'
-          ? `linear-gradient(
+          : props.variant === "yellow"
+            ? `linear-gradient(
               to right,
               hsl(45, 93%, 47%) 0%,
               hsl(45, 93%, 57%) 8%,
               hsl(45, 93%, 47%) 92%,
               hsl(45, 93%, 37%) 100%
             )`
-          : `linear-gradient(
+            : `linear-gradient(
               to right,
               hsl(248, 39%, 39%) 0%,
               hsl(248, 39%, 49%) 8%,
@@ -186,11 +190,9 @@ const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary'
     transition: transform 34ms;
   }
 
-
-
   .pushable:focus:not(:focus-visible) {
     outline: none;
   }
 `;
 
-export default StyledButton; 
+export default StyledButton;

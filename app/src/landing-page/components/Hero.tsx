@@ -10,7 +10,7 @@ export default function Hero() {
       <BottomGradient />
       <div className='py-16 sm:py-20'>
         <div className='mx-auto max-w-8xl px-6 lg:px-8'>
-          <div className='lg:mb-18 mx-auto max-w-3xl text-center pt-4 sm:pt-0'>
+          <div className='lg:mb-18 mx-auto max-w-3xl text-center pt-12 sm:pt-4'>
             <h1 className='text-4xl font-bold text-gray-900 sm:text-6xl dark:text-white'>
               Stop wasting hours, generate standout resumes in<span className='italic bg-gradient-to-r from-[#d946ef] to-[#fc0] bg-clip-text text-transparent'> seconds</span>
             </h1>

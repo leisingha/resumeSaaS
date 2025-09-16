@@ -539,7 +539,7 @@ const AppPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDocumentTypeChange("resume")}
-                    className={`transition-all duration-200 ease-in-out mobile-break:py-1.5 mobile-break:px-4 py-1 px-2 mobile-break:text-sm text-xs font-medium rounded-md focus:outline-none
+                    className={`transition-all duration-200 ease-in-out mobile-break:py-1.5 mobile-break:px-4 py-1.5 px-3 mobile-break:text-sm text-xs font-medium rounded-md focus:outline-none
                       ${
                         documentType === "resume"
                           ? "bg-white shadow-sm text-black dark:bg-white dark:text-black"
@@ -552,7 +552,7 @@ const AppPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDocumentTypeChange("coverLetter")}
-                    className={`transition-all duration-200 ease-in-out mobile-break:py-1.5 mobile-break:px-4 py-1 px-2 mobile-break:text-sm text-xs font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
+                    className={`transition-all duration-200 ease-in-out mobile-break:py-1.5 mobile-break:px-4 py-1.5 px-3 mobile-break:text-sm text-xs font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
                       ${
                         documentType === "coverLetter"
                           ? "bg-white shadow-sm text-black dark:bg-white dark:text-black"

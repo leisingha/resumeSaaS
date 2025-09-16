@@ -237,7 +237,7 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
       {part === "detailControls" && (
         <>
           {/* Target Job Title & Skills */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 mobile-break:grid-cols-2">
             <div className="flex flex-col">
               <label className="mb-2.5 block text-black dark:text-white mobile-break:text-base text-sm">
                 🎯 Target Job Title
@@ -326,7 +326,9 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
               }
             >
               <div className="flex items-center">
-                <span className="font-medium mobile-break:text-base text-sm">📝 Job Description</span>
+                <span className="font-medium mobile-break:text-base text-sm">
+                  📝 Job Description
+                </span>
                 <span className="ml-2 mobile-break:text-sm text-xs text-gray-500 dark:text-gray-400">
                   (Recommended)
                 </span>
