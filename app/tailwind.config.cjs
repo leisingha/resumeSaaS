@@ -59,6 +59,7 @@ module.exports = {
       },
 
       fontSize: {
+        "2xs": ["10px", "14px"],
         "title-xxl": ["44px", "55px"],
         "title-xl": ["36px", "45px"],
         "title-xl2": ["33px", "45px"],
@@ -154,6 +155,10 @@ module.exports = {
         230: "57.5rem",
         242.5: "60.625rem",
         320: "20rem",
+        322: "20.125rem",
+        330: "20.625rem",
+        340: "21.25rem",
+        360: "22.5rem",
       },
       maxWidth: {
         2.5: "0.625rem",
@@ -186,6 +191,11 @@ module.exports = {
         270: "67.5rem",
         280: "70rem",
         292.5: "73.125rem",
+        320: "20rem",
+        322: "20.125rem",
+        330: "20.625rem",
+        340: "21.25rem",
+        360: "22.5rem",
       },
       maxHeight: {
         35: "8.75rem",

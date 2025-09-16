@@ -327,7 +327,7 @@ const AppPage = () => {
         <div className="mobile-break:w-[800px] w-320 mx-auto">
           <div className="flex gap-4">
             {/* All three boxes with equal width and height in horizontal layout */}
-            <div className="flex gap-4 w-full h-[95px]">
+            <div className="flex gap-4 w-full h-[80px]">
               {/* Template Customizer - 1/3 width */}
               <div className="flex-1">
                 <ResumeCustomizer
@@ -529,17 +529,17 @@ const AppPage = () => {
             <Loader />
           </div>
         ) : isDetailCustomizerVisible ? (
-          <div className="w-full mobile-break:max-w-[800px] max-w-320 mx-auto px-4 mobile-break:px-0">
+          <div className="w-full mobile-break:max-w-[800px] max-w-360 mx-auto px-4 mobile-break:px-0">
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between h-9">
                 <h2 className="text-xl font-semibold text-black dark:text-white">
                   Customise
                 </h2>
-                <div className="p-1 flex rounded-lg bg-gray-100 dark:bg-strokedark">
+                <div className="mobile-break:p-1 p-0.5 flex rounded-lg bg-gray-100 dark:bg-strokedark">
                   <button
                     type="button"
                     onClick={() => handleDocumentTypeChange("resume")}
-                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none
+                    className={`transition-all duration-200 ease-in-out mobile-break:py-1.5 mobile-break:px-4 py-1 px-2 mobile-break:text-sm text-xs font-medium rounded-md focus:outline-none
                       ${
                         documentType === "resume"
                           ? "bg-white shadow-sm text-black dark:bg-white dark:text-black"
@@ -552,7 +552,7 @@ const AppPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDocumentTypeChange("coverLetter")}
-                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
+                    className={`transition-all duration-200 ease-in-out mobile-break:py-1.5 mobile-break:px-4 py-1 px-2 mobile-break:text-sm text-xs font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
                       ${
                         documentType === "coverLetter"
                           ? "bg-white shadow-sm text-black dark:bg-white dark:text-black"
@@ -575,16 +575,20 @@ const AppPage = () => {
               <div className="flex gap-3">
                 {isResumeGenerated ? (
                   <>
-                    <StyledButton
-                      onClick={handleGenerateResume}
-                      text="✨ Regenerate"
-                      variant="gradient"
-                    />
-                    <StyledButton
-                      onClick={handleCancelAdjustCustomizations}
-                      text="Cancel"
-                      variant="secondary"
-                    />
+                    <div className="flex-1">
+                      <StyledButton
+                        onClick={handleGenerateResume}
+                        text="✨ Regenerate"
+                        variant="gradient"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <StyledButton
+                        onClick={handleCancelAdjustCustomizations}
+                        text="Cancel"
+                        variant="secondary"
+                      />
+                    </div>
                   </>
                 ) : (
                   <StyledButton

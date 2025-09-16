@@ -91,12 +91,12 @@ export default function ModernSlider({
   return (
     <div className="w-full select-none">
       <div className="flex items-center justify-between mb-2">
-        <label className="mb-0 block font-bold text-black dark:text-white">
+        <label className="mb-0 block font-bold text-black dark:text-white mobile-break:text-base text-sm">
           🧑‍🔬 Enhancement
         </label>
         <div className="text-right">
-          <div className="text-sm font-medium text-primary-light">{toneProfile.title}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">{toneProfile.description}</div>
+          <div className="mobile-break:text-sm text-xs font-medium text-primary-light">{toneProfile.title}</div>
+          <div className="mobile-break:text-xs hidden mobile-break:block text-gray-500 dark:text-gray-400">{toneProfile.description}</div>
         </div>
       </div>
 
@@ -141,7 +141,7 @@ export default function ModernSlider({
       </div>
 
       {/* Labels */}
-      <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex justify-between mt-2 mobile-break:text-xs text-xs text-gray-500 dark:text-gray-400">
         <div>Strict</div>
         <div>Balanced</div>
         <div>Creative</div>

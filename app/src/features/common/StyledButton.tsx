@@ -105,7 +105,7 @@ const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary'
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    font-size: 1rem;
+    font-size: 0.875rem; /* 14px for mobile */
     transform: translateY(-4px);
     transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
     text-align: center;
@@ -113,6 +113,11 @@ const StyledWrapper = styled.div<{ variant: 'default' | 'gradient' | 'secondary'
     box-sizing: border-box;
     height: 56px;
     min-height: 56px;
+
+    /* Larger font size for screens 860px and above */
+    @media (min-width: 860px) {
+      font-size: 1rem; /* 16px for larger screens */
+    }
   }
 
   /* Dark mode support for secondary variant */

@@ -18,8 +18,8 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ title, children, isOpen, 
     <div> 
       <button onClick={onToggle} className='flex w-full items-center justify-between text-left py-2'>
         <div>
-          <h2 className='text-xl font-semibold text-black dark:text-white'>{title}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h2 className='mobile-break:text-xl text-lg font-semibold text-black dark:text-white'>{title}</h2>
+          <p className="mobile-break:text-sm text-xs text-gray-500 dark:text-gray-400 mt-1">
             Complete your profile to generate better results
           </p>
         </div>

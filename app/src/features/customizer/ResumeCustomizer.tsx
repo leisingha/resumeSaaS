@@ -239,7 +239,7 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
           {/* Target Job Title & Skills */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col">
-              <label className="mb-2.5 block text-black dark:text-white">
+              <label className="mb-2.5 block text-black dark:text-white mobile-break:text-base text-sm">
                 🎯 Target Job Title
               </label>
               <input
@@ -248,14 +248,14 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
                 placeholder="e.g., Software Engineer"
                 value={options.targetJobTitle}
                 onChange={handleInputChange}
-                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
             </div>
 
             <div className="flex flex-col">
-              <label className="mb-2.5 block text-black dark:text-white">
+              <label className="mb-2.5 block text-black dark:text-white mobile-break:text-base text-sm">
                 🔦 Skills to Highlight{" "}
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="mobile-break:text-sm text-xs text-gray-500 dark:text-gray-400">
                   (optional)
                 </span>
               </label>
@@ -266,7 +266,7 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
                   value={currentSkill}
                   onChange={handleSkillInputChange}
                   onKeyDown={handleSkillInputKeyDown}
-                  className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary pr-12"
+                  className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary pr-12"
                 />
                 <button
                   type="button"
@@ -287,7 +287,7 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
                 {skillsList.map((skill, index) => (
                   <span
                     key={index}
-                    className="m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray py-1.5 px-2.5 text-sm font-medium dark:border-strokedark dark:bg-white/30 dark:text-white"
+                    className="m-1.5 flex items-center justify-center rounded border-[.5px] border-stroke bg-gray mobile-break:py-1.5 mobile-break:px-2.5 py-1 px-2 mobile-break:text-sm text-xs font-medium dark:border-strokedark dark:bg-white/30 dark:text-white"
                   >
                     {skill}
                     <button
@@ -326,8 +326,8 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
               }
             >
               <div className="flex items-center">
-                <span className="font-medium">📝 Job Description</span>
-                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                <span className="font-medium mobile-break:text-base text-sm">📝 Job Description</span>
+                <span className="ml-2 mobile-break:text-sm text-xs text-gray-500 dark:text-gray-400">
                   (Recommended)
                 </span>
               </div>
@@ -357,7 +357,7 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
                 placeholder="Paste the job description here..."
                 value={options.jobDescription}
                 onChange={handleInputChange}
-                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
             )}
           </div>
