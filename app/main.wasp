@@ -88,6 +88,10 @@ app OpenSaaS {
     rootComponent: import App from "@src/client/App",
   },
 
+  server: {
+    middlewareConfigFn: import { getGlobalMiddleware } from "@src/server/data",
+  },
+
   emailSender: {
     // Using Mailgun for production email sending
     // Make sure to set MAILGUN_API_KEY and MAILGUN_DOMAIN in your .env.server file
@@ -310,6 +314,11 @@ query getDownloadFileSignedURL {
 query getDailyStats {
   fn: import { getDailyStats } from "@src/analytics/operations",
   entities: [User, DailyStats]
+}
+
+query getSomeData {
+  fn: import { getSomeData } from "@src/server/data",
+  entities: []
 }
 
 job dailyStatsJob {
