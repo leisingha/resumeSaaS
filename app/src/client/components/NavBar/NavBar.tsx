@@ -140,9 +140,10 @@ export default function AppNavBar({
 
   return (
     <header
-      className={cn("absolute inset-x-0 top-0 z-50 dark:bg-boxdark-2", {
-        "sticky bg-white bg-opacity-50 backdrop-blur-lg backdrop-filter":
+      className={cn("absolute inset-x-0 top-0 z-50", {
+        "sticky bg-white bg-opacity-50 backdrop-blur-lg backdrop-filter dark:bg-boxdark-2":
           !isLandingPage,
+        "bg-transparent": isLandingPage,
       })}
     >
       {isLandingPage && <Announcement />}
