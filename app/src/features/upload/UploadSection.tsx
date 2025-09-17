@@ -30,6 +30,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onResumeParsed }) => {
     onDrop,
     onDragEnter: () => setIsDragging(true),
     onDragLeave: () => setIsDragging(false),
+    onDragOver: () => setIsDragging(true),
     multiple: false,
     accept: {
       "application/pdf": [".pdf"],
