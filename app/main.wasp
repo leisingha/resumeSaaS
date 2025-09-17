@@ -386,6 +386,13 @@ page NotFoundPage {
 }
 //#endregion
 
+//#region Contact Us
+route ContactUsRoute { path: "/contact-us", to: ContactUsPage }
+page ContactUsPage {
+  component: import ContactUsPage from "@src/contact-us/ContactUsPage"
+}
+//#endregion
+
 //#region Contact Form Messages
 // TODO: 
 // add functionality to allow users to send messages to admin

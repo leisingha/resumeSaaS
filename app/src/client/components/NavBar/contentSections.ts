@@ -1,8 +1,8 @@
-import type { NavigationItem } from '../NavBar/NavBar';
-import { routes } from 'wasp/client/router';
-import { BlogUrl, DocsUrl } from '../../../shared/common';
+import type { NavigationItem } from "../NavBar/NavBar";
+import { routes } from "wasp/client/router";
+import { BlogUrl, DocsUrl } from "../../../shared/common";
 
 export const appNavigationItems: NavigationItem[] = [
-  { name: 'Blog', to: BlogUrl },
-  { name: 'Contact us', to: '#' },
+  { name: "Blog", to: BlogUrl },
+  { name: "Contact us", to: "/contact-us" },
 ];
