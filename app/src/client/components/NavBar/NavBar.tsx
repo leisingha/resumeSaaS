@@ -125,6 +125,9 @@ export default function AppNavBar({ navigationItems }: { navigationItems: Naviga
 
   const { data: user, isLoading: isUserLoading } = useAuth();
   
+  // Determine where the logo should link to
+  const logoLinkTo = (user && !isLandingPage) ? routes.MainAppRoute.to : routes.LandingPageRoute.to;
+  
   return (
     <header
       className={cn('absolute inset-x-0 top-0 z-50 dark:bg-boxdark-2', {
@@ -136,7 +139,7 @@ export default function AppNavBar({ navigationItems }: { navigationItems: Naviga
       <nav className='flex items-center justify-between p-6 lg:py-6 mx-auto max-w-6xl relative' aria-label='Global'>
         <div className='flex items-center lg:flex-1'>
           <WaspRouterLink
-            to={routes.LandingPageRoute.to}
+            to={logoLinkTo}
             className='flex items-center -m-1.5 p-1.5 text-gray-900 duration-300 ease-in-out hover:text-yellow-500'
           >
             <NavLogo />

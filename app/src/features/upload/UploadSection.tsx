@@ -156,7 +156,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onResumeParsed }) => {
           onClick={handleUploadClick}
           disabled={!selectedFile || isUploading}
         >
-          {isUploading ? 'Uploading...' : 'Upload Resume'}
+          {isUploading ? 'Uploading...' : 'Autofill Form'}
         </button>
       </div>
     </div>
