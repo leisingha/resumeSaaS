@@ -51,12 +51,21 @@ const StyledWrapper = styled.div`
     border-radius: 0;
   }
 
+  .loader p {
+    white-space: nowrap;
+    margin: 0;
+  }
+
   @media (min-width: 640px) {
     .loader {
       font-size: 18px;
+      flex-direction: row;
+      gap: 4px;
+      align-items: baseline;
     }
     .words {
       height: 27px;
+      margin-top: 0;
     }
   }
 
@@ -72,7 +81,7 @@ const StyledWrapper = styled.div`
   .words {
     overflow: hidden;
     position: relative;
-    text-align: center;
+    text-align: left;
     height: 24px;
     margin-top: 4px;
   }
@@ -101,6 +110,7 @@ const StyledWrapper = styled.div`
     text-align: left;
     width: auto;
     min-width: 0;
+    line-height: 1.5;
   }
 
   @keyframes spin_4991 {
