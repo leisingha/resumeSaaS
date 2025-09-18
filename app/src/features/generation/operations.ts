@@ -399,8 +399,13 @@ export const generateDocument: GenerateDocument<
     console.log(
       `[generateDocument] About to consume 3 credits for user: ${context.user.id}`
     );
+    console.log(
+      `[generateDocument] Credits before consumption: ${totalCredits} total (${dailyCredits} daily + ${purchasedCredits} purchased)`
+    );
+
     const { consumedFrom, dailyCreditsUsed, purchasedCreditsUsed } =
       await consumeMultipleCredits(context.user.id, context.entities.User, 3);
+
     console.log(
       `[generateDocument] Successfully consumed 3 credits from ${consumedFrom} (${dailyCreditsUsed} daily + ${purchasedCreditsUsed} purchased) for user: ${context.user.id}`
     );

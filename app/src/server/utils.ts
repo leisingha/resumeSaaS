@@ -10,7 +10,11 @@ export function requireNodeEnvVar(name: string): string {
 }
 
 // Daily credit management utilities
-export function isNewDay(lastReset: Date): boolean {
+export function isNewDay(lastReset: Date | null): boolean {
+  if (!lastReset) {
+    return true; // If no reset date, treat as new day
+  }
+
   const now = new Date();
   const lastResetDate = new Date(lastReset);
 
@@ -76,7 +80,7 @@ export async function ensureDailyCredits(
   // Check if we need to reset daily credits
   const needsReset = isNewDay(user.lastCreditReset);
   console.log(
-    `[ensureDailyCredits] Needs reset: ${needsReset}, lastReset: ${user.lastCreditReset}, isProUser: ${hasValidSubscription}, dailyCreditAmount: ${dailyCreditAmount}`
+    `[ensureDailyCredits] Needs reset: ${needsReset}, lastReset: ${user.lastCreditReset}, isProUser: ${hasValidSubscription}, dailyCreditAmount: ${dailyCreditAmount}, currentDailyCredits: ${dailyCredits}`
   );
 
   if (needsReset) {
@@ -95,22 +99,6 @@ export async function ensureDailyCredits(
     dailyCredits = updatedUser.dailyCredits;
     console.log(
       `[ensureDailyCredits] Reset complete, new dailyCredits: ${dailyCredits}`
-    );
-  } else if (hasValidSubscription && dailyCredits < dailyCreditAmount) {
-    // Pro users should always have their full allocation if they have less than 100
-    console.log(
-      `[ensureDailyCredits] Pro user has insufficient daily credits (${dailyCredits} < ${dailyCreditAmount}), granting full allocation`
-    );
-    const updatedUser = await userDelegate.update({
-      where: { id: userId },
-      data: {
-        dailyCredits: dailyCreditAmount,
-      },
-      select: { dailyCredits: true },
-    });
-    dailyCredits = updatedUser.dailyCredits;
-    console.log(
-      `[ensureDailyCredits] Pro credit top-up complete, new dailyCredits: ${dailyCredits}`
     );
   }
 
@@ -205,12 +193,18 @@ export async function consumeMultipleCredits(
 
   const user = await userDelegate.findUnique({
     where: { id: userId },
-    select: { isAdmin: true, dailyCredits: true, credits: true },
+    select: {
+      isAdmin: true,
+      dailyCredits: true,
+      credits: true,
+      subscriptionStatus: true,
+    },
   });
 
   console.log(`[consumeMultipleCredits] User data:`, {
     userId,
     isAdmin: user?.isAdmin,
+    subscriptionStatus: user?.subscriptionStatus,
     dailyCredits: user?.dailyCredits,
     purchasedCredits: user?.credits,
   });
@@ -227,6 +221,12 @@ export async function consumeMultipleCredits(
     };
   }
 
+  // Note: Resume generation charges credits for ALL users (including Pro users)
+  // Only AI Writer is free for Pro users
+  console.log(
+    `[consumeMultipleCredits] Proceeding with credit consumption for user (Admin: ${user?.isAdmin}, SubscriptionStatus: ${user?.subscriptionStatus})`
+  );
+
   let remainingToConsume = creditsToConsume;
   let dailyCreditsUsed = 0;
   let purchasedCreditsUsed = 0;
@@ -238,12 +238,17 @@ export async function consumeMultipleCredits(
       `[consumeMultipleCredits] Consuming ${dailyCreditsToUse} daily credits (${user.dailyCredits} available)`
     );
 
-    await userDelegate.update({
+    const updateResult = await userDelegate.update({
       where: { id: userId },
       data: {
         dailyCredits: { decrement: dailyCreditsToUse },
       },
+      select: { dailyCredits: true },
     });
+
+    console.log(
+      `[consumeMultipleCredits] Daily credits after decrement: ${user.dailyCredits} → ${updateResult.dailyCredits}`
+    );
 
     dailyCreditsUsed = dailyCreditsToUse;
     remainingToConsume -= dailyCreditsToUse;
