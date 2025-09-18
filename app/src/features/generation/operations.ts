@@ -481,7 +481,7 @@ export const generateAiResumePoints: GenerateAiResumePoints<
   );
 
   // AI Writer access logic:
-  // 1. Users with valid subscriptions can use it
+  // 1. Users with valid subscriptions can use it (no credit requirement)
   // 2. Users with more than 3 credits (e.g., bought 50 credit package) can use it
   // 3. Free users with 3 or fewer credits cannot use it
   const hasAccessToAiWriter = hasValidSubscription || totalCredits > 3;
@@ -493,7 +493,8 @@ export const generateAiResumePoints: GenerateAiResumePoints<
     );
   }
 
-  if (totalCredits < 1) {
+  // Only check for credits if user is not subscribed (Pro users don't need credits)
+  if (!hasValidSubscription && totalCredits < 1) {
     throw new HttpError(
       402,
       "Insufficient credits. AI Writer requires 1 credit. Daily credits reset tomorrow or purchase more credits."
@@ -525,17 +526,24 @@ export const generateAiResumePoints: GenerateAiResumePoints<
       throw new HttpError(500, "AI response was empty.");
     }
 
-    // Consume 1 credit after successful generation
-    console.log(
-      `[generateAiResumePoints] About to consume 1 credit for user: ${context.user.id}`
-    );
-    const { consumedFrom } = await consumeCredit(
-      context.user.id,
-      context.entities.User
-    );
-    console.log(
-      `[generateAiResumePoints] Successfully consumed 1 credit from ${consumedFrom} for user: ${context.user.id}`
-    );
+    // Only consume credits for non-subscribed users
+    // Pro users (with valid subscriptions) get AI Writer for free
+    if (!hasValidSubscription) {
+      console.log(
+        `[generateAiResumePoints] About to consume 1 credit for non-subscribed user: ${context.user.id}`
+      );
+      const { consumedFrom } = await consumeCredit(
+        context.user.id,
+        context.entities.User
+      );
+      console.log(
+        `[generateAiResumePoints] Successfully consumed 1 credit from ${consumedFrom} for non-subscribed user: ${context.user.id}`
+      );
+    } else {
+      console.log(
+        `[generateAiResumePoints] No credit consumed for subscribed user: ${context.user.id} (Pro user benefit)`
+      );
+    }
 
     return { content };
   } catch (error: any) {

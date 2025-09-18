@@ -2,6 +2,7 @@ import { HttpError } from "wasp/server";
 import { chromium } from "playwright";
 import type { GenerateResumePdf } from "wasp/server/operations";
 import { createPdfTemplate } from "./pdfTemplate";
+import { ensureDailyCredits, consumeCredit } from "../server/utils";
 
 // Type definition for the PDF generation input
 type GeneratePdfPayload = {

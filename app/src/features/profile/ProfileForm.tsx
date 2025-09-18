@@ -126,11 +126,17 @@ const ProfileForm = ({
 
   // Get appropriate disabled message
   const getAiWriterDisabledReason = () => {
-    if (!hasValidSubscription && totalCredits <= 3) {
-      return "AI Writer requires a paid subscription or more than 3 credits. Purchase credits or upgrade to use this feature.";
+    // Pro users always have access, no credit requirement
+    if (hasValidSubscription) {
+      return ""; // No disabled reason for Pro users
+    }
+
+    // For non-subscribed users
+    if (totalCredits <= 3) {
+      return "🚀 Upgrade to Pro for unlimited AI Writer access, or purchase more than 3 credits to unlock this feature!";
     }
     if (totalCredits < 1) {
-      return "No credits available. Daily credits reset tomorrow or purchase more credits.";
+      return "⭐ No credits available. Upgrade to Pro for free AI Writer, or purchase more credits. Daily credits reset tomorrow!";
     }
     return "";
   };
@@ -895,19 +901,23 @@ Education History: ${educationContext}`;
                     type="button"
                     onClick={() => handleGenerateWorkDescription(index)}
                     className={`text-sm ${
-                      hasAccessToAiWriter && totalCredits >= 1
+                      hasAccessToAiWriter &&
+                      (hasValidSubscription ||
+                        (!hasValidSubscription && totalCredits >= 1))
                         ? "text-primary hover:underline cursor-pointer"
                         : "text-gray-400 cursor-not-allowed"
                     }`}
                     disabled={
                       isAiLoading.experience === index ||
                       !hasAccessToAiWriter ||
-                      totalCredits < 1
+                      (!hasValidSubscription && totalCredits < 1)
                     }
                     title={
-                      !hasAccessToAiWriter || totalCredits < 1
-                        ? getAiWriterDisabledReason()
-                        : undefined
+                      hasValidSubscription
+                        ? "AI Writer - Generate work description (Pro benefit - no credits required)"
+                        : hasAccessToAiWriter
+                          ? "AI Writer - Generate work description (1 credit will be consumed)"
+                          : getAiWriterDisabledReason()
                     }
                   >
                     {isAiLoading.experience === index
@@ -949,19 +959,23 @@ Education History: ${educationContext}`;
                   type="button"
                   onClick={handleGenerateProjectsAchievements}
                   className={`text-sm ${
-                    hasAccessToAiWriter && totalCredits >= 1
+                    hasAccessToAiWriter &&
+                    (hasValidSubscription ||
+                      (!hasValidSubscription && totalCredits >= 1))
                       ? "text-primary hover:underline cursor-pointer"
                       : "text-gray-400 cursor-not-allowed"
                   }`}
                   disabled={
                     isAiLoading.achievements ||
                     !hasAccessToAiWriter ||
-                    totalCredits < 1
+                    (!hasValidSubscription && totalCredits < 1)
                   }
                   title={
-                    !hasAccessToAiWriter || totalCredits < 1
-                      ? getAiWriterDisabledReason()
-                      : undefined
+                    hasValidSubscription
+                      ? "AI Writer - Generate projects & achievements (Pro benefit - no credits required)"
+                      : hasAccessToAiWriter
+                        ? "AI Writer - Generate projects & achievements (1 credit will be consumed)"
+                        : getAiWriterDisabledReason()
                   }
                 >
                   {isAiLoading.achievements ? "Generating..." : "✨ AI Writer"}

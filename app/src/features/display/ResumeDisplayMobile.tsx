@@ -80,11 +80,17 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
 
   // Get appropriate disabled message
   const getAiWriterDisabledReason = () => {
-    if (!hasValidSubscription && totalCredits <= 3) {
-      return "AI Writer requires a paid subscription or more than 3 credits. Purchase credits or upgrade to use this feature.";
+    // Pro users always have access, no credit requirement
+    if (hasValidSubscription) {
+      return ""; // No disabled reason for Pro users
+    }
+
+    // For non-subscribed users
+    if (totalCredits <= 3) {
+      return "🚀 Upgrade to Pro for unlimited AI Writer access, or purchase more than 3 credits to unlock this feature!";
     }
     if (totalCredits < 1) {
-      return "No credits available. Daily credits reset tomorrow or purchase more credits.";
+      return "⭐ No credits available. Upgrade to Pro for free AI Writer, or purchase more credits. Daily credits reset tomorrow!";
     }
     return "";
   };
