@@ -12,6 +12,7 @@ import type {
   UpdateGeneratedDocument,
   GenerateAiResumePoints,
 } from "wasp/server/operations";
+import { SubscriptionStatus } from "../../payment/plans";
 import {
   ensureDailyCredits,
   consumeCredit,
@@ -463,6 +464,12 @@ export const generateAiResumePoints: GenerateAiResumePoints<
     throw new HttpError(500, "OpenAI API key is not set.");
   }
 
+  // Check if user has a valid subscription or sufficient credits for AI Writer
+  const hasValidSubscription =
+    !!context.user.subscriptionStatus &&
+    context.user.subscriptionStatus !== SubscriptionStatus.Deleted &&
+    context.user.subscriptionStatus !== SubscriptionStatus.PastDue;
+
   // Check and ensure credits (daily + purchased)
   console.log(
     `[generateAiResumePoints] Checking credits for user: ${context.user.id}`
@@ -472,6 +479,19 @@ export const generateAiResumePoints: GenerateAiResumePoints<
   console.log(
     `[generateAiResumePoints] User has ${totalCredits} total credits (${dailyCredits} daily + ${purchasedCredits} purchased)`
   );
+
+  // AI Writer access logic:
+  // 1. Users with valid subscriptions can use it
+  // 2. Users with more than 3 credits (e.g., bought 50 credit package) can use it
+  // 3. Free users with 3 or fewer credits cannot use it
+  const hasAccessToAiWriter = hasValidSubscription || totalCredits > 3;
+
+  if (!hasAccessToAiWriter) {
+    throw new HttpError(
+      402,
+      "AI Writer requires a paid subscription or more than 3 credits. Purchase credits or upgrade to a paid plan to use this feature."
+    );
+  }
 
   if (totalCredits < 1) {
     throw new HttpError(

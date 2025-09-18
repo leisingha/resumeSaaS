@@ -5,6 +5,7 @@ import React, {
   useLayoutEffect,
   useMemo,
 } from "react";
+import { useAuth } from "wasp/client/auth";
 import type { CustomizationOptions, DocumentType } from "../../AppPage";
 import EditModal from "./EditModal";
 import { Pencil, Download, Copy, Settings } from "lucide-react";
@@ -14,7 +15,9 @@ import {
   generateAiResumePoints,
   generateResumePdf,
 } from "wasp/client/operations";
-import { useAction } from "wasp/client/operations";
+import { useAction, useQuery } from "wasp/client/operations";
+import { getCurrentDailyCredits } from "wasp/client/operations";
+import { SubscriptionStatus } from "../../payment/plans";
 import type { Section } from "../customizer/ManageSectionsPanel";
 import {
   filterContentBySections,
@@ -52,6 +55,10 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
   onOverflowDetected,
   onAdjustCustomizations,
 }) => {
+  const { data: user } = useAuth();
+  const { data: creditData, isLoading: creditsLoading } = useQuery(
+    getCurrentDailyCredits
+  );
   const [editedContent, setEditedContent] = useState(generatedContent || "");
   const [isOverflowing, setIsOverflowing] = useState(false);
   const [hasShownOverflowAlert, setHasShownOverflowAlert] = useState(false);
@@ -60,6 +67,27 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
   const instanceId = useRef(
     `mobile-resume-content-${Math.random().toString(36).substr(2, 9)}`
   ).current;
+
+  // Check if user has a valid subscription for AI Writer feature
+  const hasValidSubscription =
+    !!user?.subscriptionStatus &&
+    user.subscriptionStatus !== SubscriptionStatus.Deleted &&
+    user.subscriptionStatus !== SubscriptionStatus.PastDue;
+
+  // Check if user has access to AI Writer (subscription OR more than 3 credits)
+  const totalCredits = creditData?.totalCredits ?? 0;
+  const hasAccessToAiWriter = hasValidSubscription || totalCredits > 3;
+
+  // Get appropriate disabled message
+  const getAiWriterDisabledReason = () => {
+    if (!hasValidSubscription && totalCredits <= 3) {
+      return "AI Writer requires a paid subscription or more than 3 credits. Purchase credits or upgrade to use this feature.";
+    }
+    if (totalCredits < 1) {
+      return "No credits available. Daily credits reset tomorrow or purchase more credits.";
+    }
+    return "";
+  };
 
   // Edit states
   const [showSummaryEdit, setShowSummaryEdit] = useState(false);
@@ -1148,8 +1176,21 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
                       <button
                         type="button"
                         onClick={handleGenerateSummaryContent}
-                        className="text-sm text-primary hover:underline"
-                        disabled={isAiLoading.summary}
+                        disabled={
+                          !hasAccessToAiWriter ||
+                          creditsLoading ||
+                          isAiLoading.summary
+                        }
+                        className={`text-sm transition-colors ${
+                          hasAccessToAiWriter && !creditsLoading
+                            ? "text-primary hover:underline"
+                            : "text-gray-400 cursor-not-allowed"
+                        }`}
+                        title={
+                          hasAccessToAiWriter
+                            ? "AI Writer - Generate content with AI assistance"
+                            : getAiWriterDisabledReason()
+                        }
                       >
                         {isAiLoading.summary ? "Generating..." : "✨ AI Writer"}
                       </button>
@@ -1674,8 +1715,21 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
                       <button
                         type="button"
                         onClick={handleGenerateProjectsContent}
-                        className="text-sm text-primary hover:underline"
-                        disabled={isAiLoading.projects}
+                        disabled={
+                          !hasAccessToAiWriter ||
+                          creditsLoading ||
+                          isAiLoading.projects
+                        }
+                        className={`text-sm transition-colors ${
+                          hasAccessToAiWriter && !creditsLoading
+                            ? "text-primary hover:underline"
+                            : "text-gray-400 cursor-not-allowed"
+                        }`}
+                        title={
+                          hasAccessToAiWriter
+                            ? "AI Writer - Generate projects content with AI assistance"
+                            : getAiWriterDisabledReason()
+                        }
                       >
                         {isAiLoading.projects
                           ? "Generating..."

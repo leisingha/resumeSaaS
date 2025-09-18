@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useAction } from "wasp/client/operations";
+import { useAuth } from "wasp/client/auth";
 import {
   getUserProfile,
   saveUserProfile,
   generateAiResumePoints,
+  getCurrentDailyCredits,
 } from "wasp/client/operations";
+import { SubscriptionStatus } from "../../payment/plans";
 import UploadSection from "../upload/UploadSection";
 import SwitcherOne from "../../admin/elements/forms/SwitcherOne";
 import { Trash2 } from "lucide-react";
@@ -98,14 +101,39 @@ const ProfileForm = ({
   onShowSuccessAlert?: (message: string) => void;
   onCloseAccordion?: () => void;
 }) => {
+  const { data: user } = useAuth();
   const { data: userProfile, isLoading: isProfileLoading } =
     useQuery(getUserProfile);
+  const { data: creditData, isLoading: creditsLoading } = useQuery(
+    getCurrentDailyCredits
+  );
   const generateResumePointsAction = useAction(generateAiResumePoints);
   const [isAiLoading, setIsAiLoading] = useState({
     experience: -1,
     achievements: false,
   });
   const [isSaving, setIsSaving] = useState(false);
+
+  // Check if user has a valid subscription for AI Writer feature
+  const hasValidSubscription =
+    !!user?.subscriptionStatus &&
+    user.subscriptionStatus !== SubscriptionStatus.Deleted &&
+    user.subscriptionStatus !== SubscriptionStatus.PastDue;
+
+  // Check if user has access to AI Writer (subscription OR more than 3 credits)
+  const totalCredits = creditData?.totalCredits ?? 0;
+  const hasAccessToAiWriter = hasValidSubscription || totalCredits > 3;
+
+  // Get appropriate disabled message
+  const getAiWriterDisabledReason = () => {
+    if (!hasValidSubscription && totalCredits <= 3) {
+      return "AI Writer requires a paid subscription or more than 3 credits. Purchase credits or upgrade to use this feature.";
+    }
+    if (totalCredits < 1) {
+      return "No credits available. Daily credits reset tomorrow or purchase more credits.";
+    }
+    return "";
+  };
   const [formErrors, setFormErrors] = useState<Partial<typeof profileData>>({});
   const [currentLanguage, setCurrentLanguage] = useState("");
 
@@ -866,8 +894,21 @@ Education History: ${educationContext}`;
                   <button
                     type="button"
                     onClick={() => handleGenerateWorkDescription(index)}
-                    className="text-sm text-primary hover:underline"
-                    disabled={isAiLoading.experience === index}
+                    className={`text-sm ${
+                      hasAccessToAiWriter && totalCredits >= 1
+                        ? "text-primary hover:underline cursor-pointer"
+                        : "text-gray-400 cursor-not-allowed"
+                    }`}
+                    disabled={
+                      isAiLoading.experience === index ||
+                      !hasAccessToAiWriter ||
+                      totalCredits < 1
+                    }
+                    title={
+                      !hasAccessToAiWriter || totalCredits < 1
+                        ? getAiWriterDisabledReason()
+                        : undefined
+                    }
                   >
                     {isAiLoading.experience === index
                       ? "Generating..."
@@ -907,8 +948,21 @@ Education History: ${educationContext}`;
                 <button
                   type="button"
                   onClick={handleGenerateProjectsAchievements}
-                  className="text-sm text-primary hover:underline"
-                  disabled={isAiLoading.achievements}
+                  className={`text-sm ${
+                    hasAccessToAiWriter && totalCredits >= 1
+                      ? "text-primary hover:underline cursor-pointer"
+                      : "text-gray-400 cursor-not-allowed"
+                  }`}
+                  disabled={
+                    isAiLoading.achievements ||
+                    !hasAccessToAiWriter ||
+                    totalCredits < 1
+                  }
+                  title={
+                    !hasAccessToAiWriter || totalCredits < 1
+                      ? getAiWriterDisabledReason()
+                      : undefined
+                  }
                 >
                   {isAiLoading.achievements ? "Generating..." : "✨ AI Writer"}
                 </button>
