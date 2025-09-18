@@ -50,10 +50,10 @@ export const generateResumePdf: GenerateResumePdf<
 
   let browser;
   try {
-    // Launch Playwright browser with optimized settings for PDF generation
-    browser = await chromium.launch({
+    // Determine if we should use system chromium (production) or bundled chromium (development)
+    const isProduction = process.env.NODE_ENV === "production";
+    const launchOptions: any = {
       headless: true,
-      executablePath: "/usr/bin/chromium-browser", // Use system chromium
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -74,7 +74,15 @@ export const generateResumePdf: GenerateResumePdf<
         "--memory-pressure-off",
         "--max_old_space_size=1024",
       ],
-    });
+    };
+
+    // Only use system chromium path in production environments
+    if (isProduction) {
+      launchOptions.executablePath = "/usr/bin/chromium-browser";
+    }
+
+    // Launch Playwright browser with optimized settings for PDF generation
+    browser = await chromium.launch(launchOptions);
 
     const page = await browser.newPage();
 
