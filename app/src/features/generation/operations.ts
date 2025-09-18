@@ -393,6 +393,15 @@ export const generateAiResumePoints: GenerateAiResumePoints<
     throw new HttpError(500, 'OpenAI API key is not set.');
   }
 
+  // Check and ensure credits (daily + purchased)
+  console.log(`[generateAiResumePoints] Checking credits for user: ${context.user.id}`);
+  const { dailyCredits, purchasedCredits, totalCredits } = await ensureDailyCredits(context.user.id, context.entities.User);
+  console.log(`[generateAiResumePoints] User has ${totalCredits} total credits (${dailyCredits} daily + ${purchasedCredits} purchased)`);
+  
+  if (totalCredits < 1) {
+    throw new HttpError(402, 'Insufficient credits. AI Writer requires 1 credit. Daily credits reset tomorrow or purchase more credits.');
+  }
+
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4.1-nano',
@@ -417,6 +426,11 @@ export const generateAiResumePoints: GenerateAiResumePoints<
     if (!content) {
       throw new HttpError(500, 'AI response was empty.');
     }
+
+    // Consume 1 credit after successful generation
+    console.log(`[generateAiResumePoints] About to consume 1 credit for user: ${context.user.id}`);
+    const { consumedFrom } = await consumeCredit(context.user.id, context.entities.User);
+    console.log(`[generateAiResumePoints] Successfully consumed 1 credit from ${consumedFrom} for user: ${context.user.id}`);
 
     return { content };
   } catch (error: any) {
