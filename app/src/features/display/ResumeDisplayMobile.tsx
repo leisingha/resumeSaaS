@@ -291,15 +291,35 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
       
       #${instanceId} ul {
         list-style-type: disc !important;
+        list-style-position: outside !important;
         margin-left: 0.5rem !important;
-        padding-left: 0 !important;
+        padding-left: 0.5rem !important;
         margin-top: 2px !important;
         margin-bottom: 1px !important;
         line-height: 1.4 !important;
+        -webkit-padding-start: 0.5rem !important;
+        -moz-padding-start: 0.5rem !important;
       }
       
       #${instanceId} li {
         margin-bottom: 0.1rem !important;
+        display: list-item !important;
+        list-style-type: disc !important;
+        list-style-position: outside !important;
+        -webkit-text-size-adjust: none !important;
+      }
+      
+      /* Safari mobile specific fixes for bullet points */
+      @media screen and (-webkit-min-device-pixel-ratio: 1) {
+        #${instanceId} ul {
+          list-style: disc outside !important;
+          -webkit-list-style: disc outside !important;
+        }
+        #${instanceId} li {
+          list-style: disc outside !important;
+          -webkit-list-style: disc outside !important;
+          display: list-item !important;
+        }
       }
       
       #${instanceId} div {

@@ -13,6 +13,18 @@ import { Link as WaspRouterLink, routes } from "wasp/client/router";
 import { logout } from "wasp/client/auth";
 import { ModernProgress } from "../features/common/ModernProgress";
 import StyledButton from "../features/common/StyledButton";
+import { useState } from "react";
+import { 
+  User as UserIcon, 
+  Mail, 
+  CreditCard, 
+  Shield, 
+  Settings, 
+  Key,
+  Crown,
+  Calendar,
+  LogOut
+} from "lucide-react";
 
 // Helper function to calculate progress percentage safely
 function calculateProgress(
@@ -25,6 +37,14 @@ function calculateProgress(
 }
 
 export default function AccountPage({ user }: { user: User }) {
+  const [activeTab, setActiveTab] = useState<'account' | 'password'>('account');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
   // Get real daily credits from the server
   const {
     data: creditData,
@@ -32,10 +52,21 @@ export default function AccountPage({ user }: { user: User }) {
     error,
   } = useQuery(getCurrentDailyCredits);
 
-  if (creditsLoading) return <div>Loading account details...</div>;
+  if (creditsLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
   if (error) {
     console.error("Error loading credits:", error);
-    return <div>Error loading credits: {error.message}</div>;
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-red-600">Error loading account details: {error.message}</div>
+      </div>
+    );
   }
 
   // Use real credit data from server
@@ -47,75 +78,303 @@ export default function AccountPage({ user }: { user: User }) {
     isAdmin: creditData?.isAdmin ?? user.isAdmin,
   };
 
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsChangingPassword(true);
+    
+    // TODO: Implement password change logic
+    setTimeout(() => {
+      setIsChangingPassword(false);
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      // Show success message
+    }, 2000);
+  };
+
   return (
-    <div className="mt-10 px-6">
-      <div className="overflow-hidden border border-gray-900/10 shadow-lg sm:rounded-lg mb-4 lg:m-8 dark:border-gray-100/10">
-        <div className="px-4 py-5 sm:px-6 lg:px-8">
-          <h3 className="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-            Account Information
-          </h3>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Account Settings
+          </h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Manage your account information and preferences
+          </p>
         </div>
-        <div className="border-t border-gray-900/10 dark:border-gray-100/10 px-4 py-5 sm:p-0">
-          <dl className="sm:divide-y sm:divide-gray-900/10 sm:dark:divide-gray-100/10">
-            {!!accountDetails?.email && (
-              <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500 dark:text-white">
-                  Email address
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-400 sm:col-span-2 sm:mt-0">
-                  {accountDetails.email}
-                </dd>
+
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200 dark:border-gray-700 mb-8">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('account')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'account'
+                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Settings size={16} />
+                Account Settings
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('password')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'password'
+                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Key size={16} />
+                Password & Security
+              </div>
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
+          {activeTab === 'account' ? (
+            <AccountSettingsTab accountDetails={accountDetails} />
+          ) : (
+            <PasswordTab 
+              passwordForm={passwordForm}
+              setPasswordForm={setPasswordForm}
+              isChangingPassword={isChangingPassword}
+              onPasswordChange={handlePasswordChange}
+            />
+          )}
+        </div>
+
+        {/* Logout Button */}
+        <div className="mt-8 flex justify-end">
+          <button
+            onClick={logout}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-700 bg-white hover:bg-red-50 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 rounded-md font-medium text-sm transition-colors dark:border-red-600 dark:text-red-400 dark:bg-gray-800 dark:hover:bg-red-900/20"
+          >
+            <LogOut size={16} />
+            Sign Out
+          </button>
+      </div>
+    </div>
+  );
+}
+
+// Account Settings Tab Component
+function AccountSettingsTab({ accountDetails }: { accountDetails: any }) {
+  return (
+    <div className="p-6">
+      <div className="grid grid-cols-1 gap-6">
+        {/* User Information Card */}
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Personal Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {accountDetails?.username && (
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
+                    <UserIcon size={20} className="text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Username</p>
+                  <p className="text-sm text-gray-900 dark:text-white">{accountDetails.username}</p>
+                </div>
               </div>
             )}
-            {!!accountDetails?.username && (
-              <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500 dark:text-white">
-                  Username
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 dark:text-gray-400 sm:col-span-2 sm:mt-0">
-                  {accountDetails.username}
-                </dd>
+            {accountDetails?.email && (
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                    <Mail size={20} className="text-green-600 dark:text-green-400" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</p>
+                  <p className="text-sm text-gray-900 dark:text-white">{accountDetails.email}</p>
+                </div>
               </div>
             )}
-            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6 sm:items-center">
-              <dt className="text-sm font-medium text-gray-500 dark:text-white">
-                Your Plan
-              </dt>
-              <UserCurrentPaymentPlan
-                subscriptionStatus={
-                  accountDetails?.subscriptionStatus as SubscriptionStatus
-                }
-                subscriptionPlan={accountDetails?.subscriptionPlan}
-                datePaid={accountDetails?.datePaid}
-                credits={
-                  accountDetails?.purchasedCredits ?? accountDetails?.credits
-                }
-                dailyCredits={accountDetails?.dailyCredits}
-                totalCredits={accountDetails?.totalCredits}
-                isAdmin={accountDetails?.isAdmin}
-              />
+            {accountDetails?.datePaid && (
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                    <Calendar size={20} className="text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Member Since</p>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {new Date(accountDetails.datePaid).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            )}
+            {accountDetails?.isAdmin && (
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                    <Crown size={20} className="text-purple-600 dark:text-purple-400" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Role</p>
+                  <p className="text-sm text-purple-600 dark:text-purple-400 font-semibold">Administrator</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Subscription & Credits Card */}
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+              <CreditCard size={18} className="text-yellow-600 dark:text-yellow-400" />
             </div>
-            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500 dark:text-white">
-                About
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 dark:text-gray-400 sm:col-span-2 sm:mt-0">
-                I'm a cool customer.
-              </dd>
-            </div>
-          </dl>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Subscription & Credits
+            </h3>
+          </div>
+          
+          <UserCurrentPaymentPlan
+            subscriptionStatus={accountDetails?.subscriptionStatus as SubscriptionStatus}
+            subscriptionPlan={accountDetails?.subscriptionPlan}
+            datePaid={accountDetails?.datePaid}
+            credits={accountDetails?.purchasedCredits ?? accountDetails?.credits}
+            dailyCredits={accountDetails?.dailyCredits}
+            totalCredits={accountDetails?.totalCredits}
+            isAdmin={accountDetails?.isAdmin}
+          />
         </div>
       </div>
-      <div className="inline-flex w-full justify-end">
-        <div
-          style={{
-            width: "120px",
-            transform: "scale(0.7)",
-            transformOrigin: "right",
-          }}
-          className="mx-8"
-        >
-          <StyledButton onClick={logout} text="Logout" variant="yellow" />
+    </div>
+  );
+}
+
+// Password Tab Component
+function PasswordTab({ 
+  passwordForm, 
+  setPasswordForm, 
+  isChangingPassword, 
+  onPasswordChange 
+}: {
+  passwordForm: { currentPassword: string; newPassword: string; confirmPassword: string };
+  setPasswordForm: (form: any) => void;
+  isChangingPassword: boolean;
+  onPasswordChange: (e: React.FormEvent) => void;
+}) {
+  const passwordsMatch = passwordForm.newPassword === passwordForm.confirmPassword;
+  const isFormValid = passwordForm.currentPassword && 
+                     passwordForm.newPassword && 
+                     passwordForm.confirmPassword && 
+                     passwordsMatch &&
+                     passwordForm.newPassword.length >= 8;
+
+  return (
+    <div className="p-6">
+      <div className="max-w-md">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+            <Shield size={18} className="text-red-600 dark:text-red-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Change Password
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Keep your account secure with a strong password
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={onPasswordChange} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Current Password
+            </label>
+            <input
+              type="password"
+              value={passwordForm.currentPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Enter your current password"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              New Password
+            </label>
+            <input
+              type="password"
+              value={passwordForm.newPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Enter new password (min. 8 characters)"
+              minLength={8}
+              required
+            />
+            {passwordForm.newPassword && passwordForm.newPassword.length < 8 && (
+              <p className="mt-1 text-xs text-red-600">Password must be at least 8 characters long</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Confirm New Password
+            </label>
+            <input
+              type="password"
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Confirm your new password"
+              required
+            />
+            {passwordForm.confirmPassword && !passwordsMatch && (
+              <p className="mt-1 text-xs text-red-600">Passwords do not match</p>
+            )}
+          </div>
+
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={!isFormValid || isChangingPassword}
+              className="w-full inline-flex justify-center items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-600"
+            >
+              {isChangingPassword ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  Updating Password...
+                </>
+              ) : (
+                <>
+                  <Key size={16} />
+                  Update Password
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Password Requirements */}
+        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-900 dark:text-blue-200 mb-2">
+            Password Requirements:
+          </h4>
+          <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+            <li>• At least 8 characters long</li>
+            <li>• Mix of uppercase and lowercase letters (recommended)</li>
+            <li>• Include numbers and special characters (recommended)</li>
+            <li>• Avoid common words or personal information</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -151,93 +410,151 @@ function UserCurrentPaymentPlan({
 
   if (subscriptionStatus && subscriptionPlan && datePaid) {
     return (
-      <>
-        <dd className="mt-1 text-sm text-gray-900 dark:text-gray-400 sm:col-span-1 sm:mt-0">
-          <div className="space-y-2">
+      <div className="space-y-4">
+        {/* Subscription Status */}
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+              <Crown size={16} className="text-green-600 dark:text-green-400" />
+            </div>
             <div>
-              {getUserSubscriptionStatusDescription({
-                subscriptionPlan,
-                subscriptionStatus,
-                datePaid,
-              })}
+              <h4 className="font-medium text-gray-900 dark:text-white">
+                Current Plan
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {getUserSubscriptionStatusDescription({
+                  subscriptionPlan,
+                  subscriptionStatus,
+                  datePaid,
+                })}
+              </p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="font-medium text-gray-400 dark:text-gray-300">
-                Credits Available:
+          </div>
+          
+          {subscriptionStatus !== SubscriptionStatus.Deleted && (
+            <div className="flex justify-end">
+              <CustomerPortalButton />
+            </div>
+          )}
+        </div>
+
+        {/* Credits Information */}
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-medium text-gray-900 dark:text-white">
+              Available Credits
+            </h4>
+            <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+              {totalCredits ?? 0}
+            </span>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Daily Credits
               </span>
-              <span className="text-sm">{totalCredits ?? 0}</span>
-              <ModernProgress
-                value={calculateProgress(
-                  totalCredits,
-                  maxDailyCredits + (credits || 0)
-                )}
-                size="sm"
-                variant="circular"
-                showLabel={false}
-                color="bg-gradient-to-r from-green-400 to-green-600"
-              />
-              <span className="text-xs text-gray-500 ml-2">
-                Daily: {dailyCredits ?? 0}/{maxDailyCredits}
-              </span>
-              {credits && credits > 0 && (
-                <span className="text-xs text-blue-500 ml-2">
-                  + {credits} purchased
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  {dailyCredits ?? 0}/{maxDailyCredits}
                 </span>
-              )}
+                <ModernProgress
+                  value={calculateProgress(dailyCredits, maxDailyCredits)}
+                  size="sm"
+                  variant="circular"
+                  showLabel={false}
+                  color="bg-gradient-to-r from-green-400 to-green-600"
+                />
+              </div>
             </div>
-            <div className="text-xs text-green-600 dark:text-green-400">
-              ✨ Pro benefit: AI Writer costs no credits!
+            
+            {credits && credits > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Purchased Credits
+                </span>
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                  +{credits}
+                </span>
+              </div>
+            )}
+            
+            <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                  ✨
+                </div>
+                Pro benefit: AI Writer costs no credits!
+              </div>
             </div>
+            
             {isAdmin && (
-              <div className="text-xs text-blue-500 font-semibold">
-                ⚡ ADMIN: Unlimited credits
+              <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 font-semibold">
+                <div className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                  ⚡
+                </div>
+                ADMIN: Unlimited credits
               </div>
             )}
           </div>
-        </dd>
-        {subscriptionStatus !== SubscriptionStatus.Deleted && (
-          <CustomerPortalButton />
-        )}
-      </>
+        </div>
+      </div>
     );
   }
 
   return (
-    <>
-      <dd className="mt-1 text-sm text-gray-900 dark:text-gray-400 sm:col-span-1 sm:mt-0">
-        <div className="flex items-center gap-3">
-          <span className="font-medium text-gray-400 dark:text-gray-300">
-            Credits Available:
+    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-medium text-gray-900 dark:text-white">
+          Available Credits
+        </h4>
+        <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+          {totalCredits ?? dailyCredits ?? 0}
+        </span>
+      </div>
+      
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            Daily Credits
           </span>
-          <span className="text-sm">{totalCredits ?? dailyCredits ?? 0}</span>
-          <ModernProgress
-            value={calculateProgress(
-              totalCredits ?? dailyCredits ?? 0,
-              3 + (credits || 0)
-            )}
-            size="sm"
-            variant="circular"
-            showLabel={false}
-            color="bg-gradient-to-r from-green-400 to-green-600"
-          />
-          <span className="text-xs text-gray-500 ml-2">
-            Daily: {dailyCredits ?? 0}/3
-          </span>
-          {credits && credits > 0 && (
-            <span className="text-xs text-blue-500 ml-2">
-              + {credits} purchased
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">
+              {dailyCredits ?? 0}/3
             </span>
-          )}
+            <ModernProgress
+              value={calculateProgress(totalCredits ?? dailyCredits ?? 0, 3 + (credits || 0))}
+              size="sm"
+              variant="circular"
+              showLabel={false}
+              color="bg-gradient-to-r from-green-400 to-green-600"
+            />
+          </div>
         </div>
-        {isAdmin && (
-          <div className="pt-1 mt-2">
-            <span className="text-xs text-blue-500 font-semibold">
-              ⚡ ADMIN: Unlimited credits
+        
+        {credits && credits > 0 && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Purchased Credits
+            </span>
+            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              +{credits}
             </span>
           </div>
         )}
-      </dd>
-    </>
+        
+        {isAdmin && (
+          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 font-semibold">
+              <div className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                ⚡
+              </div>
+              ADMIN: Unlimited credits
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -299,14 +616,13 @@ function CustomerPortalButton() {
   };
 
   return (
-    <div className="ml-4 flex-shrink-0 sm:col-span-1 sm:mt-0">
-      <button
-        onClick={handleClick}
-        disabled={isCustomerPortalUrlLoading}
-        className="font-medium text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
-      >
-        Manage Subscription
-      </button>
-    </div>
+    <button
+      onClick={handleClick}
+      disabled={isCustomerPortalUrlLoading}
+      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:text-indigo-400 dark:hover:text-indigo-300 dark:hover:bg-indigo-900/20"
+    >
+      <Settings size={14} />
+      Manage Subscription
+    </button>
   );
 }
