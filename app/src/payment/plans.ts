@@ -39,7 +39,7 @@ export const paymentPlans: Record<PaymentPlanId, PaymentPlan> = {
   [PaymentPlanId.Credits10]: {
     getPaymentProcessorPlanId: () =>
       requireNodeEnvVar("PAYMENTS_CREDITS_10_PLAN_ID"),
-    effect: { kind: "credits", amount: 10 },
+    effect: { kind: "credits", amount: 50 },
   },
 };
 

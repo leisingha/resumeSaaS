@@ -167,7 +167,10 @@ function UserCurrentPaymentPlan({
               </span>
               <span className="text-sm">{totalCredits ?? 0}</span>
               <ModernProgress
-                value={calculateProgress(dailyCredits, maxDailyCredits)}
+                value={calculateProgress(
+                  totalCredits,
+                  maxDailyCredits + (credits || 0)
+                )}
                 size="sm"
                 variant="circular"
                 showLabel={false}
@@ -206,15 +209,25 @@ function UserCurrentPaymentPlan({
           <span className="font-medium text-gray-400 dark:text-gray-300">
             Credits Available:
           </span>
-          <span className="text-sm">{dailyCredits ?? 0}/3</span>
+          <span className="text-sm">{totalCredits ?? dailyCredits ?? 0}</span>
           <ModernProgress
-            value={calculateProgress(dailyCredits, 3)}
+            value={calculateProgress(
+              totalCredits ?? dailyCredits ?? 0,
+              3 + (credits || 0)
+            )}
             size="sm"
             variant="circular"
             showLabel={false}
             color="bg-gradient-to-r from-green-400 to-green-600"
           />
-          <span className="text-xs text-gray-500 ml-2">Resets daily</span>
+          <span className="text-xs text-gray-500 ml-2">
+            Daily: {dailyCredits ?? 0}/3
+          </span>
+          {credits && credits > 0 && (
+            <span className="text-xs text-blue-500 ml-2">
+              + {credits} purchased
+            </span>
+          )}
         </div>
         {isAdmin && (
           <div className="pt-1 mt-2">
