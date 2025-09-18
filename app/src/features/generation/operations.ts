@@ -7,7 +7,7 @@ import type {
   UpdateGeneratedDocument,
   GenerateAiResumePoints,
 } from 'wasp/server/operations';
-import { ensureDailyCredits, consumeCredit } from '../../server/utils';
+import { ensureDailyCredits, consumeCredit, consumeMultipleCredits } from '../../server/utils';
 
 // Setup OpenAI client
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : undefined;
@@ -135,8 +135,8 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
   const { dailyCredits, purchasedCredits, totalCredits } = await ensureDailyCredits(context.user.id, context.entities.User);
   console.log(`[generateDocument] User has ${totalCredits} total credits (${dailyCredits} daily + ${purchasedCredits} purchased)`);
   
-  if (totalCredits <= 0) {
-    throw new HttpError(402, 'No credits remaining. Daily credits reset tomorrow or purchase more credits.');
+  if (totalCredits < 3) {
+    throw new HttpError(402, 'Insufficient credits. Resume generation requires 3 credits. Daily credits reset tomorrow or purchase more credits.');
   }
 
   const userProfile = await context.entities.UserProfile.findFirst({
@@ -332,10 +332,10 @@ export const generateDocument: GenerateDocument<GenerateDocumentPayload, Generat
       },
     });
 
-    // Consume 1 credit after successful generation (daily first, then purchased)
-    console.log(`[generateDocument] About to consume 1 credit for user: ${context.user.id}`);
-    const { consumedFrom } = await consumeCredit(context.user.id, context.entities.User);
-    console.log(`[generateDocument] Successfully consumed 1 ${consumedFrom} credit for user: ${context.user.id}`);
+    // Consume 3 credits after successful generation (daily first, then purchased)
+    console.log(`[generateDocument] About to consume 3 credits for user: ${context.user.id}`);
+    const { consumedFrom, dailyCreditsUsed, purchasedCreditsUsed } = await consumeMultipleCredits(context.user.id, context.entities.User, 3);
+    console.log(`[generateDocument] Successfully consumed 3 credits from ${consumedFrom} (${dailyCreditsUsed} daily + ${purchasedCreditsUsed} purchased) for user: ${context.user.id}`);
 
     return generatedDocument;
   } catch (error: any) {

@@ -129,9 +129,9 @@ function UserCurrentPaymentPlan({
       <dd className='mt-1 text-sm text-gray-900 dark:text-gray-400 sm:col-span-1 sm:mt-0'>
         <div className='flex items-center gap-3'>
           <span className='font-medium text-gray-400 dark:text-gray-300'>Credits Available:</span> 
-          <span className='text-sm'>{dailyCredits ?? 0}/10</span>
+          <span className='text-sm'>{dailyCredits ?? 0}/3</span>
           <ModernProgress 
-            value={calculateProgress(dailyCredits, 10)} 
+            value={calculateProgress(dailyCredits, 3)} 
             size="sm"
             variant="circular"
             showLabel={false}

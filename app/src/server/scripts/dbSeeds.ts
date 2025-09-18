@@ -37,12 +37,11 @@ function generateMockUserData(): MockUserData {
     isAdmin: false,
     credits,
     subscriptionStatus,
-    lemonSqueezyCustomerPortalUrl: null,
     paymentProcessorUserId: hasUserPaidOnStripe ? `cus_test_${faker.string.uuid()}` : null,
     datePaid: hasUserPaidOnStripe ? faker.date.between({ from: createdAt, to: timePaid }) : null,
     subscriptionPlan: subscriptionStatus ? faker.helpers.arrayElement(getSubscriptionPaymentPlanIds()) : null,
     // Daily credit system fields
-    dailyCredits: faker.number.int({ min: 0, max: 10 }),
+    dailyCredits: faker.number.int({ min: 0, max: 3 }),
     lastCreditReset: faker.date.recent({ days: 1 }),
   };
 }

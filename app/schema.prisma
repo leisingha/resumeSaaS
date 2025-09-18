@@ -93,14 +93,13 @@ model User {
   isAdmin                   Boolean         @default(false)
 
   paymentProcessorUserId    String?         @unique
-  lemonSqueezyCustomerPortalUrl String?     // You can delete this if you're not using Lemon Squeezy as your payments processor.
   subscriptionStatus        String?         // 'active', 'cancel_at_period_end', 'past_due', 'deleted'
   subscriptionPlan          String?         // 'hobby', 'pro'
   datePaid                  DateTime?
   credits                   Int             @default(0)
   
   // Daily credit system
-  dailyCredits              Int             @default(10)  // Daily credits (resets to 10 each day)
+  dailyCredits              Int             @default(3)  // Daily credits (resets to 3 each day)
   lastCreditReset           DateTime        @default(now()) // Last time credits were reset
 
   gptResponses              GptResponse[]
