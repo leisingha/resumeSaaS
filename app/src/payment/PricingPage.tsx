@@ -1,10 +1,19 @@
-import { useAuth } from 'wasp/client/auth';
-import { generateCheckoutSession, getCustomerPortalUrl, useQuery } from 'wasp/client/operations';
-import { PaymentPlanId, paymentPlans, prettyPaymentPlanName, SubscriptionStatus } from './plans';
-import { AiFillCheckCircle } from 'react-icons/ai';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { cn } from '../client/cn';
+import { useAuth } from "wasp/client/auth";
+import {
+  generateCheckoutSession,
+  getCustomerPortalUrl,
+  useQuery,
+} from "wasp/client/operations";
+import {
+  PaymentPlanId,
+  paymentPlans,
+  prettyPaymentPlanName,
+  SubscriptionStatus,
+} from "./plans";
+import { AiFillCheckCircle } from "react-icons/ai";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { cn } from "../client/cn";
 
 const bestDealPaymentPlanId: PaymentPlanId = PaymentPlanId.Pro;
 
@@ -18,22 +27,26 @@ interface PaymentPlanCard {
 export const paymentPlanCards: Record<PaymentPlanId, PaymentPlanCard> = {
   [PaymentPlanId.Hobby]: {
     name: prettyPaymentPlanName(PaymentPlanId.Hobby),
-    price: 'TBA',
-    description: 'All you need to get started',
-    features: ['Limited monthly usage', 'Basic support'],
+    price: "$0",
+    description: "All you need to get started",
+    features: ["3 AI credit per day"],
   },
   [PaymentPlanId.Pro]: {
     name: prettyPaymentPlanName(PaymentPlanId.Pro),
-    price: 'TBA',
-    description: 'Our most popular plan',
-    features: ['Unlimited monthly usage', 'Priority customer support'],
+    price: "14.99",
+    description: "Our most popular plan",
+    features: [
+      "100 AI credits per day",
+      "Unlimited AI editor usage",
+      "1 free Resume review per month",
+    ],
   },
   [PaymentPlanId.Credits10]: {
     name: prettyPaymentPlanName(PaymentPlanId.Credits10),
-    price: 'TBA',
-    description: 'Premium features for enhanced experience',
+    price: "4.99",
+    description: "Premium features for enhanced experience",
     // End of Selection
-    features: ['Unlimited monthly usage', 'Priority customer support', 'Resume reviews'],
+    features: ["50 AI credits", "Limited AI editor usage"],
   },
 };
 
@@ -42,12 +55,12 @@ const PricingPage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { data: user, isLoading: isAuthLoading, error: authError } = useAuth();
-  
+
   // Only consider user subscribed if they are authenticated and have a valid subscription status
   const isUserSubscribed =
-    !!user && 
-    !isAuthLoading && 
-    !!user.subscriptionStatus && 
+    !!user &&
+    !isAuthLoading &&
+    !!user.subscriptionStatus &&
     user.subscriptionStatus !== SubscriptionStatus.Deleted;
 
   // Additional safety check to ensure user is fully authenticated
@@ -57,38 +70,50 @@ const PricingPage = () => {
     data: customerPortalUrl,
     isLoading: isCustomerPortalUrlLoading,
     error: customerPortalUrlError,
-  } = useQuery(getCustomerPortalUrl, { 
+  } = useQuery(getCustomerPortalUrl, {
     enabled: isUserSubscribed && isUserFullyAuthenticated,
     retry: false, // Don't retry on auth errors
     onError: (error: unknown) => {
-      console.error('Customer portal URL query error:', error);
+      console.error("Customer portal URL query error:", error);
       // If it's an auth error, don't show it to the user as it will be handled by the auth error handler
-      if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
-        console.log('Auth error detected in customer portal query, redirecting to login');
+      if (
+        error &&
+        typeof error === "object" &&
+        "status" in error &&
+        error.status === 401
+      ) {
+        console.log(
+          "Auth error detected in customer portal query, redirecting to login"
+        );
       }
-    }
+    },
   });
 
   const navigate = useNavigate();
 
   // Handle auth errors by redirecting to login
   if (authError && !isAuthLoading) {
-    console.log('Auth error detected, redirecting to login');
+    console.log("Auth error detected, redirecting to login");
     // Redirect to login if there's an auth error
-    navigate('/login');
+    navigate("/login");
     return null;
   }
 
   // Handle customer portal query auth errors
-  if (customerPortalUrlError && typeof customerPortalUrlError === 'object' && 'status' in customerPortalUrlError && customerPortalUrlError.status === 401) {
-    console.log('Customer portal query auth error, redirecting to login');
-    navigate('/login');
+  if (
+    customerPortalUrlError &&
+    typeof customerPortalUrlError === "object" &&
+    "status" in customerPortalUrlError &&
+    customerPortalUrlError.status === 401
+  ) {
+    console.log("Customer portal query auth error, redirecting to login");
+    navigate("/login");
     return null;
   }
 
   async function handleBuyNowClick(paymentPlanId: PaymentPlanId) {
     if (!user) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
     try {
@@ -97,16 +122,16 @@ const PricingPage = () => {
       const checkoutResults = await generateCheckoutSession(paymentPlanId);
 
       if (checkoutResults?.sessionUrl) {
-        window.open(checkoutResults.sessionUrl, '_self');
+        window.open(checkoutResults.sessionUrl, "_self");
       } else {
-        throw new Error('Error generating checkout session URL');
+        throw new Error("Error generating checkout session URL");
       }
     } catch (error: unknown) {
       console.error(error);
       if (error instanceof Error) {
         setErrorMessage(error.message);
       } else {
-        setErrorMessage('Error processing payment. Please try again later.');
+        setErrorMessage("Error processing payment. Please try again later.");
       }
       setIsPaymentLoading(false); // We only set this to false here and not in the try block because we redirect to the checkout url within the same window
     }
@@ -114,12 +139,12 @@ const PricingPage = () => {
 
   const handleCustomerPortalClick = () => {
     if (!user) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
     if (customerPortalUrlError) {
-      setErrorMessage('Error fetching Customer Portal URL');
+      setErrorMessage("Error fetching Customer Portal URL");
       return;
     }
 
@@ -128,16 +153,18 @@ const PricingPage = () => {
       return;
     }
 
-    window.open(customerPortalUrl, '_blank');
+    window.open(customerPortalUrl, "_blank");
   };
 
   // Show loading state while auth is being determined
   if (isAuthLoading) {
     return (
-      <div className='py-10 lg:mt-10'>
-        <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-          <div className='flex justify-center items-center h-64'>
-            <div className='text-lg text-gray-600 dark:text-white'>Loading...</div>
+      <div className="py-10 lg:mt-10">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-lg text-gray-600 dark:text-white">
+              Loading...
+            </div>
           </div>
         </div>
       </div>
@@ -145,77 +172,90 @@ const PricingPage = () => {
   }
 
   // Debug logging to help identify issues
-  console.log('PricingPage render state:', {
+  console.log("PricingPage render state:", {
     user: !!user,
     isAuthLoading,
     authError: !!authError,
     isUserSubscribed,
-    customerPortalUrlError: !!customerPortalUrlError
+    customerPortalUrlError: !!customerPortalUrlError,
   });
 
   return (
-    <div className='py-10 lg:mt-10'>
-      <div className='mx-auto max-w-7xl px-6 lg:px-8'>
-        <div id='pricing' className='mx-auto max-w-4xl text-center'>
-          <h2 className='mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-white'>
-            Pricing comes after we <span className='text-yellow-500'>perfect</span> the product
+    <div className="py-10 lg:mt-10">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div id="pricing" className="mx-auto max-w-4xl text-center">
+          <h2 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-white">
+            Pricing comes after we{" "}
+            <span className="text-yellow-500">perfect</span> the product
           </h2>
         </div>
-        <p className='mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-600 dark:text-white'>
-        Right now, we're focused on building something incredible. Pricing will be announced once we exit beta — but for now, everything is completely free. <br />
+        <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-600 dark:text-white">
+          Right now, we're focused on building something incredible. Pricing
+          will be announced once we exit beta — but for now, everything is
+          completely free. <br />
           {/* <span className='px-2 py-1 bg-gray-100 rounded-md text-gray-500'>4242 4242 4242 4242 4242</span> */}
         </p>
         {errorMessage && (
-          <div className='mt-8 p-4 bg-red-100 text-red-600 rounded-md dark:bg-red-200 dark:text-red-800'>
+          <div className="mt-8 p-4 bg-red-100 text-red-600 rounded-md dark:bg-red-200 dark:text-red-800">
             {errorMessage}
           </div>
         )}
-        <div className='isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 lg:gap-x-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3'>
+        <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 lg:gap-x-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
           {Object.values(PaymentPlanId).map((planId) => (
             <div
               key={planId}
               className={cn(
-                'relative flex flex-col grow justify-between rounded-3xl ring-gray-900/10 dark:ring-gray-100/10 overflow-hidden p-8 xl:p-10',
+                "relative flex flex-col grow justify-between rounded-3xl ring-gray-900/10 dark:ring-gray-100/10 overflow-hidden p-8 xl:p-10",
                 {
-                  'ring-2': planId === bestDealPaymentPlanId,
-                  'ring-1 lg:mt-8': planId !== bestDealPaymentPlanId,
+                  "ring-2": planId === bestDealPaymentPlanId,
+                  "ring-1 lg:mt-8": planId !== bestDealPaymentPlanId,
                 }
               )}
             >
               {planId === bestDealPaymentPlanId && (
                 <div
-                  className='absolute top-0 right-0 -z-10 w-full h-full transform-gpu blur-3xl'
-                  aria-hidden='true'
+                  className="absolute top-0 right-0 -z-10 w-full h-full transform-gpu blur-3xl"
+                  aria-hidden="true"
                 >
                   <div
-                    className='absolute w-full h-full bg-gradient-to-br from-amber-400 to-purple-300 opacity-30 dark:opacity-50'
+                    className="absolute w-full h-full bg-gradient-to-br from-amber-400 to-purple-300 opacity-30 dark:opacity-50"
                     style={{
-                      clipPath: 'circle(670% at 50% 50%)',
+                      clipPath: "circle(670% at 50% 50%)",
                     }}
                   />
                 </div>
               )}
-              <div className='mb-8'>
-                <div className='flex items-center justify-between gap-x-4'>
-                  <h3 id={planId} className='text-gray-900 text-lg font-semibold leading-8 dark:text-white'>
+              <div className="mb-8">
+                <div className="flex items-center justify-between gap-x-4">
+                  <h3
+                    id={planId}
+                    className="text-gray-900 text-lg font-semibold leading-8 dark:text-white"
+                  >
                     {paymentPlanCards[planId].name}
                   </h3>
                 </div>
-                <p className='mt-4 text-sm leading-6 text-gray-600 dark:text-white'>
+                <p className="mt-4 text-sm leading-6 text-gray-600 dark:text-white">
                   {paymentPlanCards[planId].description}
                 </p>
-                <p className='mt-6 flex items-baseline gap-x-1 dark:text-white'>
-                  <span className='text-4xl font-bold tracking-tight text-gray-900 dark:text-white'>
+                <p className="mt-6 flex items-baseline gap-x-1 dark:text-white">
+                  <span className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
                     {paymentPlanCards[planId].price}
                   </span>
-                  <span className='text-sm font-semibold leading-6 text-gray-600 dark:text-white'>
-                    {paymentPlans[planId].effect.kind === 'subscription' && '/month'}
+                  <span className="text-sm font-semibold leading-6 text-gray-600 dark:text-white">
+                    {paymentPlans[planId].effect.kind === "subscription" &&
+                      "/month"}
                   </span>
                 </p>
-                <ul role='list' className='mt-8 space-y-3 text-sm leading-6 text-gray-600 dark:text-white'>
+                <ul
+                  role="list"
+                  className="mt-8 space-y-3 text-sm leading-6 text-gray-600 dark:text-white"
+                >
                   {paymentPlanCards[planId].features.map((feature) => (
-                    <li key={feature} className='flex gap-x-3'>
-                      <AiFillCheckCircle className='h-6 w-5 flex-none text-yellow-500' aria-hidden='true' />
+                    <li key={feature} className="flex gap-x-3">
+                      <AiFillCheckCircle
+                        className="h-6 w-5 flex-none text-yellow-500"
+                        aria-hidden="true"
+                      />
                       {feature}
                     </li>
                   ))}
@@ -225,13 +265,13 @@ const PricingPage = () => {
                 <button
                   onClick={handleCustomerPortalClick}
                   disabled={isCustomerPortalUrlLoading}
-                  aria-describedby='manage-subscription'
+                  aria-describedby="manage-subscription"
                   className={cn(
-                    'mt-8 block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400',
+                    "mt-8 block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400",
                     {
-                      'bg-yellow-500 text-white hover:text-white shadow-sm hover:bg-yellow-400':
+                      "bg-yellow-500 text-white hover:text-white shadow-sm hover:bg-yellow-400":
                         planId === bestDealPaymentPlanId,
-                      'text-gray-600 ring-1 ring-inset ring-purple-200 hover:ring-purple-400':
+                      "text-gray-600 ring-1 ring-inset ring-purple-200 hover:ring-purple-400":
                         planId !== bestDealPaymentPlanId,
                     }
                   )}
@@ -244,19 +284,19 @@ const PricingPage = () => {
                   aria-describedby={planId}
                   className={cn(
                     {
-                      'bg-yellow-500 text-white hover:text-white shadow-sm hover:bg-yellow-400':
+                      "bg-yellow-500 text-white hover:text-white shadow-sm hover:bg-yellow-400":
                         planId === bestDealPaymentPlanId,
-                      'text-gray-600  ring-1 ring-inset ring-purple-200 hover:ring-purple-400':
+                      "text-gray-600  ring-1 ring-inset ring-purple-200 hover:ring-purple-400":
                         planId !== bestDealPaymentPlanId,
                     },
                     {
-                      'opacity-50 cursor-wait': isPaymentLoading,
+                      "opacity-50 cursor-wait": isPaymentLoading,
                     },
-                    'mt-8 block rounded-md py-2 px-3 text-center text-sm dark:text-white font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400'
+                    "mt-8 block rounded-md py-2 px-3 text-center text-sm dark:text-white font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400"
                   )}
                   disabled={isPaymentLoading}
                 >
-                  {!!user ? 'Buy plan' : 'Log in to buy plan'}
+                  {!!user ? "Buy plan" : "Log in to buy plan"}
                 </button>
               )}
             </div>
