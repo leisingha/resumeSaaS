@@ -1,11 +1,14 @@
-import * as z from 'zod';
-import { type UpdateIsUserAdminById, type GetPaginatedUsers } from 'wasp/server/operations';
-import { type User } from 'wasp/entities';
-import { HttpError, prisma } from 'wasp/server';
-import { SubscriptionStatus } from '../payment/plans';
-import { type Prisma } from '@prisma/client';
-import { ensureArgsSchemaOrThrowHttpError } from '../server/validation';
-import { ensureDailyCredits } from '../server/utils';
+import * as z from "zod";
+import {
+  type UpdateIsUserAdminById,
+  type GetPaginatedUsers,
+} from "wasp/server/operations";
+import { type User } from "wasp/entities";
+import { HttpError, prisma } from "wasp/server";
+import { SubscriptionStatus } from "../payment/plans";
+import { type Prisma } from "@prisma/client";
+import { ensureArgsSchemaOrThrowHttpError } from "../server/validation";
+import { ensureDailyCredits } from "../server/utils";
 
 const updateUserAdminByIdInputSchema = z.object({
   id: z.string().nonempty(),
@@ -14,18 +17,27 @@ const updateUserAdminByIdInputSchema = z.object({
 
 type UpdateUserAdminByIdInput = z.infer<typeof updateUserAdminByIdInputSchema>;
 
-export const updateIsUserAdminById: UpdateIsUserAdminById<UpdateUserAdminByIdInput, User> = async (
-  rawArgs,
-  context
-) => {
-  const { id, isAdmin } = ensureArgsSchemaOrThrowHttpError(updateUserAdminByIdInputSchema, rawArgs);
+export const updateIsUserAdminById: UpdateIsUserAdminById<
+  UpdateUserAdminByIdInput,
+  User
+> = async (rawArgs, context) => {
+  const { id, isAdmin } = ensureArgsSchemaOrThrowHttpError(
+    updateUserAdminByIdInputSchema,
+    rawArgs
+  );
 
   if (!context.user) {
-    throw new HttpError(401, 'Only authenticated users are allowed to perform this operation');
+    throw new HttpError(
+      401,
+      "Only authenticated users are allowed to perform this operation"
+    );
   }
 
   if (!context.user.isAdmin) {
-    throw new HttpError(403, 'Only admins are allowed to perform this operation');
+    throw new HttpError(
+      403,
+      "Only admins are allowed to perform this operation"
+    );
   }
 
   return context.entities.User.update({
@@ -34,10 +46,60 @@ export const updateIsUserAdminById: UpdateIsUserAdminById<UpdateUserAdminByIdInp
   });
 };
 
+const updateUserProfileInputSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  username: z.string().optional(),
+  phoneNumber: z.string().optional(),
+});
+
+type UpdateUserProfileInput = z.infer<typeof updateUserProfileInputSchema>;
+
+export const updateUserProfile = async (
+  rawArgs: UpdateUserProfileInput,
+  context: any
+): Promise<User> => {
+  const { firstName, lastName, username, phoneNumber } =
+    ensureArgsSchemaOrThrowHttpError(updateUserProfileInputSchema, rawArgs);
+
+  if (!context.user) {
+    throw new HttpError(
+      401,
+      "Only authenticated users are allowed to perform this operation"
+    );
+  }
+
+  // Check if username is already taken by another user
+  if (username) {
+    const existingUser = await context.entities.User.findUnique({
+      where: { username },
+    });
+
+    if (existingUser && existingUser.id !== context.user.id) {
+      throw new HttpError(400, "Username is already taken");
+    }
+  }
+
+  return context.entities.User.update({
+    where: { id: context.user.id },
+    data: {
+      firstName,
+      lastName,
+      username,
+      phoneNumber,
+    },
+  });
+};
+
 type GetPaginatedUsersOutput = {
   users: Pick<
     User,
-    'id' | 'email' | 'username' | 'subscriptionStatus' | 'paymentProcessorUserId' | 'isAdmin'
+    | "id"
+    | "email"
+    | "username"
+    | "subscriptionStatus"
+    | "paymentProcessorUserId"
+    | "isAdmin"
   >[];
   totalPages: number;
 };
@@ -47,31 +109,47 @@ const getPaginatorArgsSchema = z.object({
   filter: z.object({
     emailContains: z.string().nonempty().optional(),
     isAdmin: z.boolean().optional(),
-    subscriptionStatusIn: z.array(z.nativeEnum(SubscriptionStatus).nullable()).optional(),
+    subscriptionStatusIn: z
+      .array(z.nativeEnum(SubscriptionStatus).nullable())
+      .optional(),
   }),
 });
 
 type GetPaginatedUsersInput = z.infer<typeof getPaginatorArgsSchema>;
 
-export const getPaginatedUsers: GetPaginatedUsers<GetPaginatedUsersInput, GetPaginatedUsersOutput> = async (
-  rawArgs,
-  context
-) => {
+export const getPaginatedUsers: GetPaginatedUsers<
+  GetPaginatedUsersInput,
+  GetPaginatedUsersOutput
+> = async (rawArgs, context) => {
   if (!context.user) {
-    throw new HttpError(401, 'Only authenticated users are allowed to perform this operation');
+    throw new HttpError(
+      401,
+      "Only authenticated users are allowed to perform this operation"
+    );
   }
 
   if (!context.user.isAdmin) {
-    throw new HttpError(403, 'Only admins are allowed to perform this operation');
+    throw new HttpError(
+      403,
+      "Only admins are allowed to perform this operation"
+    );
   }
 
   const {
     skipPages,
-    filter: { subscriptionStatusIn: subscriptionStatus, emailContains, isAdmin },
+    filter: {
+      subscriptionStatusIn: subscriptionStatus,
+      emailContains,
+      isAdmin,
+    },
   } = ensureArgsSchemaOrThrowHttpError(getPaginatorArgsSchema, rawArgs);
 
-  const includeUnsubscribedUsers = !!subscriptionStatus?.some((status) => status === null);
-  const desiredSubscriptionStatuses = subscriptionStatus?.filter((status) => status !== null);
+  const includeUnsubscribedUsers = !!subscriptionStatus?.some(
+    (status) => status === null
+  );
+  const desiredSubscriptionStatuses = subscriptionStatus?.filter(
+    (status) => status !== null
+  );
 
   const pageSize = 10;
 
@@ -83,7 +161,7 @@ export const getPaginatedUsers: GetPaginatedUsers<GetPaginatedUsersInput, GetPag
         {
           email: {
             contains: emailContains,
-            mode: 'insensitive',
+            mode: "insensitive",
           },
           isAdmin,
         },
@@ -110,7 +188,7 @@ export const getPaginatedUsers: GetPaginatedUsers<GetPaginatedUsersInput, GetPag
       paymentProcessorUserId: true,
     },
     orderBy: {
-      username: 'asc',
+      username: "asc",
     },
   };
 
@@ -126,17 +204,36 @@ export const getPaginatedUsers: GetPaginatedUsers<GetPaginatedUsersInput, GetPag
   };
 };
 
-type UserAccountDetails = Pick<User, 'id' | 'email' | 'username' | 'subscriptionStatus' | 'subscriptionPlan' | 'datePaid' | 'credits' | 'isAdmin'> & {
+type UserAccountDetails = Pick<
+  User,
+  | "id"
+  | "email"
+  | "username"
+  | "subscriptionStatus"
+  | "subscriptionPlan"
+  | "datePaid"
+  | "credits"
+  | "isAdmin"
+> & {
   dailyCredits: number;
 };
 
-export const getUserAccountDetails = async (_args: void, context: any): Promise<UserAccountDetails> => {
+export const getUserAccountDetails = async (
+  _args: void,
+  context: any
+): Promise<UserAccountDetails> => {
   if (!context.user) {
-    throw new HttpError(401, 'Only authenticated users are allowed to perform this operation');
+    throw new HttpError(
+      401,
+      "Only authenticated users are allowed to perform this operation"
+    );
   }
 
   // Ensure daily credits are up to date
-  const { dailyCredits } = await ensureDailyCredits(context.user.id, context.entities.User);
+  const { dailyCredits } = await ensureDailyCredits(
+    context.user.id,
+    context.entities.User
+  );
 
   const user = await context.entities.User.findUnique({
     where: { id: context.user.id },
@@ -149,11 +246,11 @@ export const getUserAccountDetails = async (_args: void, context: any): Promise<
       datePaid: true,
       credits: true,
       isAdmin: true,
-    }
+    },
   });
 
   if (!user) {
-    throw new HttpError(404, 'User not found');
+    throw new HttpError(404, "User not found");
   }
 
   return {
@@ -163,27 +260,36 @@ export const getUserAccountDetails = async (_args: void, context: any): Promise<
 };
 
 // Get current credits with enhanced fallback system
-export const getCurrentDailyCredits = async (_args: void, context: any): Promise<{ dailyCredits: number; purchasedCredits: number; totalCredits: number; isAdmin: boolean }> => {
+export const getCurrentDailyCredits = async (
+  _args: void,
+  context: any
+): Promise<{
+  dailyCredits: number;
+  purchasedCredits: number;
+  totalCredits: number;
+  isAdmin: boolean;
+}> => {
   if (!context.user) {
-    throw new HttpError(401, 'Not authorized');
+    throw new HttpError(401, "Not authorized");
   }
-  
+
   // Use the enhanced credit system
-  const { dailyCredits, purchasedCredits, totalCredits } = await ensureDailyCredits(context.user.id, context.entities.User);
-  
+  const { dailyCredits, purchasedCredits, totalCredits } =
+    await ensureDailyCredits(context.user.id, context.entities.User);
+
   const user = await context.entities.User.findUnique({
     where: { id: context.user.id },
-    select: { isAdmin: true }
+    select: { isAdmin: true },
   });
-  
+
   if (!user) {
-    throw new HttpError(404, 'User not found');
+    throw new HttpError(404, "User not found");
   }
-  
+
   return {
     dailyCredits,
     purchasedCredits,
     totalCredits,
-    isAdmin: user.isAdmin
+    isAdmin: user.isAdmin,
   };
 };
