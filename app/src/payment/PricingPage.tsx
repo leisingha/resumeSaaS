@@ -14,6 +14,7 @@ import { AiFillCheckCircle } from "react-icons/ai";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../client/cn";
+import StyledButton from "../features/common/StyledButton";
 
 const bestDealPaymentPlanId: PaymentPlanId = PaymentPlanId.Pro;
 
@@ -29,7 +30,7 @@ export const paymentPlanCards: Record<PaymentPlanId, PaymentPlanCard> = {
     name: prettyPaymentPlanName(PaymentPlanId.Hobby),
     price: "$0",
     description: "All you need to get started",
-    features: ["3 AI credit per day"],
+    features: ["5 AI credits per day"],
   },
   [PaymentPlanId.Pro]: {
     name: prettyPaymentPlanName(PaymentPlanId.Pro),
@@ -44,8 +45,7 @@ export const paymentPlanCards: Record<PaymentPlanId, PaymentPlanCard> = {
   [PaymentPlanId.Credits10]: {
     name: prettyPaymentPlanName(PaymentPlanId.Credits10),
     price: "4.99",
-    description: "Premium features for enhanced experience",
-    // End of Selection
+    description: "No subscriptions. Just credits when you need them",
     features: ["50 AI credits", "Limited AI editor usage"],
   },
 };
@@ -159,7 +159,7 @@ const PricingPage = () => {
   // Show loading state while auth is being determined
   if (isAuthLoading) {
     return (
-      <div className="py-10 lg:mt-10">
+      <div className="py-10">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="flex justify-center items-center h-64">
             <div className="text-lg text-gray-600 dark:text-white">
@@ -184,16 +184,16 @@ const PricingPage = () => {
     <div className="py-10 lg:mt-10">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div id="pricing" className="mx-auto max-w-4xl text-center">
-          <h2 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-white">
-            Pricing comes after we{" "}
-            <span className="text-yellow-500">perfect</span> the product
+          <h2 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-white">
+            Start Applify for{" "}
+            <span className="italic bg-gradient-to-r from-[#d946ef] to-[#fc0] bg-clip-text text-transparent px-1">
+              free
+            </span>
           </h2>
         </div>
         <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-600 dark:text-white">
-          Right now, we're focused on building something incredible. Pricing
-          will be announced once we exit beta — but for now, everything is
-          completely free. <br />
-          {/* <span className='px-2 py-1 bg-gray-100 rounded-md text-gray-500'>4242 4242 4242 4242 4242</span> */}
+          Unlock more AI credits, advanced editing tools, and monthly resume
+          reviews to maximize your job search success.
         </p>
         {errorMessage && (
           <div className="mt-8 p-4 bg-red-100 text-red-600 rounded-md dark:bg-red-200 dark:text-red-800">
@@ -211,6 +211,10 @@ const PricingPage = () => {
                   "ring-1 lg:mt-8": planId !== bestDealPaymentPlanId,
                 }
               )}
+              style={{
+                boxShadow:
+                  "rgba(240, 46, 170, 0.4) 5px 5px, rgba(240, 46, 170, 0.3) 10px 10px, rgba(240, 46, 170, 0.2) 15px 15px, rgba(240, 46, 170, 0.1) 20px 20px, rgba(240, 46, 170, 0.05) 25px 25px",
+              }}
             >
               {planId === bestDealPaymentPlanId && (
                 <div
@@ -262,42 +266,42 @@ const PricingPage = () => {
                 </ul>
               </div>
               {isUserSubscribed ? (
-                <button
-                  onClick={handleCustomerPortalClick}
-                  disabled={isCustomerPortalUrlLoading}
-                  aria-describedby="manage-subscription"
-                  className={cn(
-                    "mt-8 block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400",
-                    {
-                      "bg-yellow-500 text-white hover:text-white shadow-sm hover:bg-yellow-400":
-                        planId === bestDealPaymentPlanId,
-                      "text-gray-600 ring-1 ring-inset ring-purple-200 hover:ring-purple-400":
-                        planId !== bestDealPaymentPlanId,
-                    }
-                  )}
+                <div
+                  className="mt-8"
+                  style={{ transform: "scale(0.8)", transformOrigin: "center" }}
                 >
-                  Manage Subscription
-                </button>
+                  <StyledButton
+                    onClick={handleCustomerPortalClick}
+                    text="Manage Subscription"
+                    variant="yellow"
+                  />
+                </div>
               ) : (
-                <button
-                  onClick={() => handleBuyNowClick(planId)}
-                  aria-describedby={planId}
-                  className={cn(
-                    {
-                      "bg-yellow-500 text-white hover:text-white shadow-sm hover:bg-yellow-400":
-                        planId === bestDealPaymentPlanId,
-                      "text-gray-600  ring-1 ring-inset ring-purple-200 hover:ring-purple-400":
-                        planId !== bestDealPaymentPlanId,
-                    },
-                    {
-                      "opacity-50 cursor-wait": isPaymentLoading,
-                    },
-                    "mt-8 block rounded-md py-2 px-3 text-center text-sm dark:text-white font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-400"
-                  )}
-                  disabled={isPaymentLoading}
+                <div
+                  className="mt-8"
+                  style={{ transform: "scale(0.8)", transformOrigin: "center" }}
                 >
-                  {!!user ? "Buy plan" : "Log in to buy plan"}
-                </button>
+                  <StyledButton
+                    onClick={() => {
+                      if (planId === PaymentPlanId.Hobby) {
+                        // For Free plan, navigate to main app
+                        navigate("/");
+                      } else {
+                        handleBuyNowClick(planId);
+                      }
+                    }}
+                    text={
+                      planId === PaymentPlanId.Hobby
+                        ? "Get Started"
+                        : planId === PaymentPlanId.Credits10
+                          ? "Buy Credits"
+                          : !!user
+                            ? "Buy plan"
+                            : "Log in to buy plan"
+                    }
+                    variant="yellow"
+                  />
+                </div>
               )}
             </div>
           ))}
