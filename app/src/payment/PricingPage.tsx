@@ -266,42 +266,99 @@ const PricingPage = () => {
                 </ul>
               </div>
               {isUserSubscribed ? (
-                <div
-                  className="mt-8"
-                  style={{ transform: "scale(0.8)", transformOrigin: "center" }}
-                >
-                  <StyledButton
-                    onClick={handleCustomerPortalClick}
-                    text="Manage Subscription"
-                    variant="yellow"
-                  />
-                </div>
-              ) : (
-                <div
-                  className="mt-8"
-                  style={{ transform: "scale(0.8)", transformOrigin: "center" }}
-                >
-                  <StyledButton
-                    onClick={() => {
-                      if (planId === PaymentPlanId.Hobby) {
-                        // For Free plan, navigate to main app
-                        navigate("/");
-                      } else {
-                        handleBuyNowClick(planId);
-                      }
-                    }}
-                    text={
-                      planId === PaymentPlanId.Hobby
-                        ? "Get Started"
-                        : planId === PaymentPlanId.Credits10
-                          ? "Buy Credits"
-                          : !!user
-                            ? "Buy plan"
-                            : "Log in to buy plan"
+                <button
+                  onClick={handleCustomerPortalClick}
+                  disabled={isCustomerPortalUrlLoading}
+                  className="w-full rounded-md text-white py-3 px-6 transition-all duration-150 hover:transform hover:-translate-x-1 hover:-translate-y-1 active:transform active:translate-x-1 active:translate-y-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none mt-8"
+                  style={{
+                    background: "#1A222C",
+                    fontWeight: 900,
+                    fontSize: "16px",
+                    border: "3px solid #fbca1f",
+                    borderRadius: "0.4em",
+                    boxShadow: "0.1em 0.1em #fbca1f",
+                    cursor: isCustomerPortalUrlLoading
+                      ? "not-allowed"
+                      : "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isCustomerPortalUrlLoading) {
+                      e.currentTarget.style.boxShadow = "0.15em 0.15em #fbca1f";
                     }
-                    variant="yellow"
-                  />
-                </div>
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = "0.1em 0.1em #fbca1f";
+                  }}
+                  onMouseDown={(e) => {
+                    if (!isCustomerPortalUrlLoading) {
+                      e.currentTarget.style.boxShadow = "0.05em 0.05em #fbca1f";
+                    }
+                  }}
+                  onMouseUp={(e) => {
+                    if (!isCustomerPortalUrlLoading) {
+                      e.currentTarget.style.boxShadow = "0.15em 0.15em #fbca1f";
+                    }
+                  }}
+                >
+                  {isCustomerPortalUrlLoading
+                    ? "Loading..."
+                    : "Manage Subscription"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (planId === PaymentPlanId.Hobby) {
+                      // For Free plan, navigate to main app
+                      navigate("/");
+                    } else {
+                      handleBuyNowClick(planId);
+                    }
+                  }}
+                  disabled={isPaymentLoading}
+                  className="w-full rounded-md text-white py-3 px-6 transition-all duration-150 hover:transform hover:-translate-x-1 hover:-translate-y-1 active:transform active:translate-x-1 active:translate-y-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none mt-8"
+                  style={{
+                    background: "transparent",
+                    fontWeight: 900,
+                    fontSize: "16px",
+                    border: "3px solid #fbca1f",
+                    borderRadius: "0.4em",
+                    boxShadow: "0.1em 0.1em #fbca1f",
+                    cursor: isPaymentLoading ? "not-allowed" : "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isPaymentLoading) {
+                      e.currentTarget.style.boxShadow = "0.15em 0.15em #fbca1f";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = "0.1em 0.1em #fbca1f";
+                  }}
+                  onMouseDown={(e) => {
+                    if (!isPaymentLoading) {
+                      e.currentTarget.style.boxShadow = "0.05em 0.05em #fbca1f";
+                    }
+                  }}
+                  onMouseUp={(e) => {
+                    if (!isPaymentLoading) {
+                      e.currentTarget.style.boxShadow = "0.15em 0.15em #fbca1f";
+                    }
+                  }}
+                >
+                  {isPaymentLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      Loading...
+                    </div>
+                  ) : planId === PaymentPlanId.Hobby ? (
+                    "Get Started"
+                  ) : planId === PaymentPlanId.Credits10 ? (
+                    "Buy Credits"
+                  ) : !!user ? (
+                    "Buy plan"
+                  ) : (
+                    "Log in to buy plan"
+                  )}
+                </button>
               )}
             </div>
           ))}
