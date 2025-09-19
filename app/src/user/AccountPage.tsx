@@ -30,6 +30,24 @@ function calculateProgress(
   return Math.max(0, Math.min((safeCurrentValue / safeMaxValue) * 100, 100));
 }
 
+// Helper function to calculate time until daily credits reset
+function getTimeUntilReset(): string {
+  const now = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0); // Set to midnight
+
+  const diff = tomorrow.getTime() - now.getTime();
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else {
+    return `${minutes}m`;
+  }
+}
+
 export default function AccountPage({ user }: { user: User }) {
   // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
@@ -396,13 +414,25 @@ function UserCurrentPaymentPlan({
   totalCredits,
   isAdmin,
 }: UserCurrentPaymentPlanProps) {
+  // State for tracking reset time
+  const [resetTime, setResetTime] = useState(getTimeUntilReset());
+
+  // Update reset time every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setResetTime(getTimeUntilReset());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Determine if user is Pro/subscribed
   const hasValidSubscription =
     !!subscriptionStatus &&
     subscriptionStatus !== SubscriptionStatus.Deleted &&
     subscriptionStatus !== SubscriptionStatus.PastDue;
 
-  const maxDailyCredits = hasValidSubscription ? 100 : 3;
+  const maxDailyCredits = hasValidSubscription ? 100 : 5;
 
   if (subscriptionStatus && subscriptionPlan && datePaid) {
     return (
@@ -425,8 +455,15 @@ function UserCurrentPaymentPlan({
 
         <div>
           <label className="mb-2 block text-sm font-medium text-black dark:text-white">
-            Credits Available
+            Available Credits: {(dailyCredits ?? 0) + (credits || 0)}
           </label>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 space-y-1">
+            <div>
+              Daily Credits: {dailyCredits ?? 0} / {maxDailyCredits} used
+              (Resets in {resetTime})
+            </div>
+            <div>Purchased Credits: {credits || 0}</div>
+          </div>
           <div className="text-xs text-green-600 dark:text-green-400 mt-2">
             ✨ Pro benefit: AI Writer costs no credits!
           </div>
@@ -435,27 +472,6 @@ function UserCurrentPaymentPlan({
               ⚡ ADMIN: Unlimited credits
             </div>
           )}
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-black dark:text-white">
-              Daily Credits
-            </span>
-            <span className="text-sm font-bold text-black dark:text-white">
-              {totalCredits ?? 0}
-            </span>
-          </div>
-          <ModernProgress
-            value={calculateProgress(
-              totalCredits,
-              maxDailyCredits + (credits || 0)
-            )}
-            size="lg"
-            variant="linear"
-            showLabel={false}
-            color="bg-gradient-to-r from-violet-500 to-cyan-500"
-          />
           <div className="mt-3">
             <BuyMoreCreditsButton />
           </div>
@@ -486,34 +502,19 @@ function UserCurrentPaymentPlan({
 
       <div>
         <label className="mb-2 block text-sm font-medium text-black dark:text-white">
-          Credits Available
+          Available Credits: {(dailyCredits ?? 0) + (credits || 0)}
         </label>
+        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 space-y-1">
+          <div>
+            Daily Credits: {dailyCredits ?? 0} / 5 used (Resets in {resetTime})
+          </div>
+          <div>Purchased Credits: {credits || 0}</div>
+        </div>
         {isAdmin && (
           <div className="text-xs text-blue-500 font-semibold mt-2">
             ⚡ ADMIN: Unlimited credits
           </div>
         )}
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-black dark:text-white">
-            Daily Credits
-          </span>
-          <span className="text-sm font-bold text-black dark:text-white">
-            {totalCredits ?? dailyCredits ?? 0}
-          </span>
-        </div>
-        <ModernProgress
-          value={calculateProgress(
-            totalCredits ?? dailyCredits ?? 0,
-            3 + (credits || 0)
-          )}
-          size="lg"
-          variant="linear"
-          showLabel={false}
-          color="bg-gradient-to-r from-violet-500 to-cyan-500"
-        />
         <div className="mt-3">
           <BuyMoreCreditsButton />
         </div>
