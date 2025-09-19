@@ -412,6 +412,14 @@ action sendContactMessage {
 }
 //#endregion
 
+//#region Resume Service
+route ResumeServiceRoute { path: "/resume-service", to: ResumeServicePage }
+page ResumeServicePage {
+  authRequired: true,
+  component: import ResumeServicePage from "@src/resume-service/ResumeServicePage"
+}
+//#endregion
+
 //#region Contact Form Messages
 // TODO: 
 // add functionality to allow users to send messages to admin

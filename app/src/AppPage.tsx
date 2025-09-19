@@ -23,6 +23,8 @@ import ResumeReviewIllustration from "./features/common/ResumeReviewIllustration
 import ManageSectionsPanel, {
   Section,
 } from "./features/customizer/ManageSectionsPanel";
+import { useNavigate } from "react-router-dom";
+import { routes } from "wasp/client/router";
 
 // Define types for customization options
 export interface CustomizationOptions {
@@ -41,6 +43,7 @@ export type DocumentType = "resume" | "coverLetter"; // Export DocumentType
 const AppPage = () => {
   const { data: userProfile } = useQuery(getUserProfile);
   const updateGeneratedDocumentAction = useAction(updateGeneratedDocument);
+  const navigate = useNavigate();
 
   const [isAccordionOpen, setIsAccordionOpen] = useState(true);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
@@ -357,9 +360,7 @@ const AppPage = () => {
               <div className="flex-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    /* TODO: Add resume service action */
-                  }}
+                  onClick={() => navigate("/resume-service")}
                   className="flex w-full h-full items-center justify-center gap-3 rounded-lg bg-white py-3 px-4 text-black shadow-sm transition-all hover:shadow-md dark:bg-boxdark dark:text-white"
                 >
                   <span className="text-xl">📝</span>
@@ -405,7 +406,10 @@ const AppPage = () => {
                 <ResumeReviewIllustration />
               </div>
             </div>
-            <button className="mt-4 w-full rounded-lg border border-stroke py-2 font-medium text-blue-600 transition hover:bg-blue-50 focus:outline-none dark:border-strokedark dark:text-blue-400 dark:hover:bg-blue-900/20">
+            <button
+              className="mt-4 w-full rounded-lg border border-stroke py-2 font-medium text-blue-600 transition hover:bg-blue-50 focus:outline-none dark:border-strokedark dark:text-blue-400 dark:hover:bg-blue-900/20"
+              onClick={() => navigate("/resume-service")}
+            >
               Request Resume Review
             </button>
           </div>
