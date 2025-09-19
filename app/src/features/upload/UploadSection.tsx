@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, DropzoneOptions } from "react-dropzone";
 import { useAction } from "wasp/client/operations";
 import {
   createFile,
@@ -35,8 +35,9 @@ const UploadSection: React.FC<UploadSectionProps> = ({ onResumeParsed }) => {
     accept: {
       "application/pdf": [".pdf"],
     },
-  } as const;
+  };
 
+  // @ts-ignore
   const {
     getRootProps,
     getInputProps,
