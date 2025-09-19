@@ -405,6 +405,11 @@ route ContactUsRoute { path: "/contact-us", to: ContactUsPage }
 page ContactUsPage {
   component: import ContactUsPage from "@src/contact-us/ContactUsPage"
 }
+
+action sendContactMessage {
+  fn: import { sendContactMessage } from "@src/contact-us/operations",
+  entities: []
+}
 //#endregion
 
 //#region Contact Form Messages

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import Footer from "../landing-page/components/Footer";
+import { useAction, sendContactMessage } from "wasp/client/operations";
+import SuccessAlert from "../features/common/SuccessAlert";
 
 interface ContactFormData {
   firstName: string;
@@ -29,6 +31,10 @@ export default function ContactUsPage() {
 
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+
+  // Use the contact message action
+  const sendContactMessageAction = useAction(sendContactMessage);
 
   // Class names consistent with the app's styling
   const newStandardInputClass =
@@ -96,11 +102,11 @@ export default function ContactUsPage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement actual form submission logic
-      // For now, we'll just simulate a successful submission
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Send the contact message using the Wasp action
+      await sendContactMessageAction(formData);
 
-      toast.success("Thank you for contacting us! We'll get back to you soon.");
+      // Show success alert instead of toast
+      setShowSuccessAlert(true);
 
       // Reset form
       setFormData({
@@ -110,8 +116,9 @@ export default function ContactUsPage() {
         subject: "",
         message: "",
       });
-    } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+    } catch (error: any) {
+      console.error("Error sending contact message:", error);
+      toast.error(error.message || "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -119,6 +126,15 @@ export default function ContactUsPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-boxdark-2 py-12">
+      {/* Success Alert */}
+      {showSuccessAlert && (
+        <SuccessAlert
+          message="Thank you for contacting us!"
+          details="We'll get back to you soon."
+          onClose={() => setShowSuccessAlert(false)}
+        />
+      )}
+
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">

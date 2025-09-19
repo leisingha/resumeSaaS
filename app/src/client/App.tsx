@@ -8,6 +8,7 @@ import { routes } from "wasp/client/router";
 import { Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "wasp/client/auth";
 import { useIsLandingPage } from "./hooks/useIsLandingPage";
+import { Toaster } from "react-hot-toast";
 
 /**
  * use this component to wrap all child components
@@ -76,6 +77,30 @@ export default function App() {
         )}
       </div>
       <CookieConsentBanner />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+          success: {
+            duration: 4000,
+            style: {
+              background: "#10B981",
+              color: "#fff",
+            },
+          },
+          error: {
+            duration: 5000,
+            style: {
+              background: "#EF4444",
+              color: "#fff",
+            },
+          },
+        }}
+      />
     </>
   );
 }
