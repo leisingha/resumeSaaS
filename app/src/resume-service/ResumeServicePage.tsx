@@ -49,7 +49,7 @@ const StyledRadioButton = ({
           }`}
         >
           {checked && (
-            <div className="w-2 h-2 rounded-full bg-white transition-all duration-200" />
+            <div className="w-2 h-2 rounded-full bg-white dark:bg-boxdark-2 transition-all duration-200" />
           )}
         </div>
         <input
@@ -118,12 +118,12 @@ export default function ResumeServicePage() {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [currentJobTitle, setCurrentJobTitle] = useState("");
 
-  // Class names consistent with the app's styling - increased text size by 1pt
+  // Class names consistent with the app's styling - matching checkbox text size
   const newStandardInputClass =
-    "w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-lg text-base font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary";
+    "w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-base font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary";
 
   const labelClassName =
-    "mb-2.5 block mobile-break:text-lg text-base font-medium text-black dark:text-white";
+    "mb-2.5 block mobile-break:text-base text-base font-medium text-black dark:text-white";
 
   const resumeFocusOptions = [
     "Making my resume content stand out to employers",
