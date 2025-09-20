@@ -16,7 +16,9 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "../client/cn";
 import StyledButton from "../features/common/StyledButton";
 
-const bestDealPaymentPlanId: PaymentPlanId = PaymentPlanId.Pro;
+type PricingPagePlanId = Exclude<PaymentPlanId, PaymentPlanId.ResumeReview | PaymentPlanId.ResumeWriting>;
+
+const bestDealPaymentPlanId: PricingPagePlanId = PaymentPlanId.Pro;
 
 interface PaymentPlanCard {
   name: string;
@@ -25,7 +27,7 @@ interface PaymentPlanCard {
   features: string[];
 }
 
-export const paymentPlanCards: Record<Exclude<PaymentPlanId, 'resume_review' | 'resume_writing'>, PaymentPlanCard> = {
+export const paymentPlanCards: Record<PricingPagePlanId, PaymentPlanCard> = {
   [PaymentPlanId.Hobby]: {
     name: prettyPaymentPlanName(PaymentPlanId.Hobby),
     price: "$0",
@@ -111,7 +113,7 @@ const PricingPage = () => {
     return null;
   }
 
-  async function handleBuyNowClick(paymentPlanId: PaymentPlanId) {
+  async function handleBuyNowClick(paymentPlanId: PricingPagePlanId) {
     if (!user) {
       navigate("/login");
       return;
@@ -201,7 +203,7 @@ const PricingPage = () => {
           </div>
         )}
         <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 lg:gap-x-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-          {Object.values(PaymentPlanId).map((planId) => (
+          {(Object.keys(paymentPlanCards) as PricingPagePlanId[]).map((planId) => (
             <div
               key={planId}
               className={cn(
@@ -254,7 +256,7 @@ const PricingPage = () => {
                   role="list"
                   className="mt-8 space-y-3 text-sm leading-6 text-gray-600 dark:text-white"
                 >
-                  {paymentPlanCards[planId].features.map((feature) => (
+                  {paymentPlanCards[planId].features.map((feature: string) => (
                     <li key={feature} className="flex gap-x-3">
                       <AiFillCheckCircle
                         className="h-6 w-5 flex-none text-yellow-500"
