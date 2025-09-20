@@ -166,7 +166,7 @@ export const sendResumeServiceNotification = async (
       : JSON.stringify(request.jobTitles);
 
     // Generate download link for resume file if it exists
-    let resumeDownloadUrl = null;
+    let resumeDownloadUrl: string | null = null;
     if (request.resumeFileKey) {
       try {
         resumeDownloadUrl = await getDownloadFileSignedURLFromS3({
