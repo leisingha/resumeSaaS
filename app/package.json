@@ -11,6 +11,7 @@
     "@google-analytics/data": "4.1.0",
     "@headlessui/react": "1.7.13",
     "@lemonsqueezy/lemonsqueezy.js": "^3.2.0",
+    "@react-email/components": "0.5.3",
     "@tailwindcss/forms": "^0.5.3",
     "@tailwindcss/typography": "^0.5.7",
     "@types/styled-components": "^5.1.34",

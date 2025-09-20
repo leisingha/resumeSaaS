@@ -11,6 +11,9 @@ import {
   getDownloadFileSignedURLFromS3,
 } from "../file-upload/s3Utils";
 import { ALLOWED_FILE_TYPES } from "../file-upload/validation";
+import React from "react";
+import { SimpleResumeServiceNotification } from "../emails/SimpleResumeServiceNotification";
+import { renderEmailToHtml, renderEmailToText } from "../emails/renderEmail";
 
 // Zod schemas for validation
 const resumeServiceFormSchema = z.object({
@@ -149,21 +152,10 @@ export const sendResumeServiceNotification = async (
       throw new Error(`Resume service request not found: ${requestId}`);
     }
 
-    // Create email content
     const serviceTypeDisplay =
       request.serviceType === "review"
         ? "Resume Review"
         : "Resume Writing Service";
-    const priceDisplay =
-      request.serviceType === "review" ? "$50 CAD" : "$100 CAD";
-
-    const focusAreas = Array.isArray(request.resumeFocusAreas)
-      ? request.resumeFocusAreas.join(", ")
-      : JSON.stringify(request.resumeFocusAreas);
-
-    const jobTitles = Array.isArray(request.jobTitles)
-      ? request.jobTitles.join(", ")
-      : JSON.stringify(request.jobTitles);
 
     // Generate download link for resume file if it exists
     let resumeDownloadUrl: string | null = null;
@@ -177,166 +169,50 @@ export const sendResumeServiceNotification = async (
       }
     }
 
+    // Prepare data for React Email component
+    const emailProps = {
+      requestId: request.id,
+      firstName: request.firstName,
+      lastName: request.lastName,
+      email: request.email,
+      phone: request.phone,
+      serviceType: request.serviceType,
+      resumeFocusAreas: Array.isArray(request.resumeFocusAreas)
+        ? request.resumeFocusAreas
+        : [request.resumeFocusAreas].filter(Boolean),
+      jobTitles: Array.isArray(request.jobTitles)
+        ? request.jobTitles
+        : [request.jobTitles].filter(Boolean),
+      experience: request.experience,
+      additionalInfo: request.additionalInfo,
+      resumeFileName: request.resumeFileName,
+      resumeDownloadUrl,
+      resumeFileKey: request.resumeFileKey,
+      paymentStatus: request.paymentStatus,
+      stripeSessionId: request.stripeSessionId,
+      stripePaymentIntentId: request.stripePaymentIntentId,
+      paidAt: request.paidAt,
+      submittedAt: request.createdAt,
+      isRegisteredUser: !!request.user,
+    };
+
+    // Create React Email component
+    const emailComponent = React.createElement(SimpleResumeServiceNotification, emailProps);
+
+    // Render email to HTML and text
+    const [htmlContent, textContent] = await Promise.all([
+      renderEmailToHtml(emailComponent),
+      renderEmailToText(emailComponent),
+    ]);
+
     const emailSubject = `New ${serviceTypeDisplay} Request - ${request.firstName} ${request.lastName}`;
 
-    const emailContent = `
-New resume service request received:
-
-Service Details:
-- Service Type: ${serviceTypeDisplay} (${priceDisplay})
-- Request ID: ${request.id}
-- Submitted: ${request.createdAt.toLocaleString()}
-- Payment Status: ${request.paymentStatus}
-
-Client Information:
-- Name: ${request.firstName} ${request.lastName}
-- Email: ${request.email}
-- Phone: ${request.phone || "Not provided"}
-- User Account: ${request.user ? "Registered User" : "Guest User"}
-
-Service Requirements:
-- Focus Areas: ${focusAreas}
-- Target Job Titles: ${jobTitles}
-- Experience Level: ${request.experience || "Not specified"}
-
-${
-  request.resumeFileName
-    ? `Resume File: ${request.resumeFileName}${
-        resumeDownloadUrl
-          ? `\nDownload Link: ${resumeDownloadUrl}`
-          : `\nS3 Key: ${request.resumeFileKey}`
-      }`
-    : "No resume file uploaded"
-}
-
-Additional Information:
-${request.additionalInfo || "None provided"}
-
-Payment Information:
-- Stripe Session ID: ${request.stripeSessionId}
-- Payment Intent ID: ${request.stripePaymentIntentId || "Pending"}
-- Paid At: ${request.paidAt ? request.paidAt.toLocaleString() : "Pending"}
-
----
-Request submitted through Applify Resume Service
-    `.trim();
-
-    // Send email notification
+    // Send email notification using React Email
     await emailSender.send({
       to: "lsingha@torontomu.ca",
       subject: emailSubject,
-      text: emailContent,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333; border-bottom: 2px solid #fbca1f; padding-bottom: 10px;">
-            New ${serviceTypeDisplay} Request
-          </h2>
-
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">Service Details</h3>
-            <p><strong>Service Type:</strong> ${serviceTypeDisplay} (${priceDisplay})</p>
-            <p><strong>Request ID:</strong> ${request.id}</p>
-            <p><strong>Submitted:</strong> ${request.createdAt.toLocaleString()}</p>
-            <p><strong>Payment Status:</strong> <span style="color: ${
-              request.paymentStatus === "completed" ? "green" : "orange"
-            };">${request.paymentStatus}</span></p>
-          </div>
-
-          <div style="background-color: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">Client Information</h3>
-            <p><strong>Name:</strong> ${request.firstName} ${
-              request.lastName
-            }</p>
-            <p><strong>Email:</strong> <a href="mailto:${request.email}">${
-              request.email
-            }</a></p>
-            <p><strong>Phone:</strong> ${request.phone || "Not provided"}</p>
-            <p><strong>Account Type:</strong> ${
-              request.user ? "Registered User" : "Guest User"
-            }</p>
-          </div>
-
-          <div style="background-color: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">Service Requirements</h3>
-            <p><strong>Focus Areas:</strong></p>
-            <ul>
-              ${
-                Array.isArray(request.resumeFocusAreas)
-                  ? request.resumeFocusAreas
-                      .map((area: string) => `<li>${area}</li>`)
-                      .join("")
-                  : `<li>${request.resumeFocusAreas}</li>`
-              }
-            </ul>
-            <p><strong>Target Job Titles:</strong></p>
-            <ul>
-              ${
-                Array.isArray(request.jobTitles)
-                  ? request.jobTitles
-                      .map((title: string) => `<li>${title}</li>`)
-                      .join("")
-                  : `<li>${request.jobTitles}</li>`
-              }
-            </ul>
-            <p><strong>Experience Level:</strong> ${
-              request.experience || "Not specified"
-            }</p>
-          </div>
-
-          ${
-            request.resumeFileName
-              ? `
-          <div style="background-color: #e7f3ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">📄 Resume File</h3>
-            <p><strong>Filename:</strong> ${request.resumeFileName}</p>
-            ${
-              resumeDownloadUrl
-                ? `
-            <p><strong>Download Link:</strong> <a href="${resumeDownloadUrl}" style="color: #007bff; text-decoration: none;">Click here to download</a></p>
-            `
-                : `
-            <p><strong>S3 Key:</strong> <code style="background: #f1f1f1; padding: 2px 4px; border-radius: 3px;">${request.resumeFileKey}</code></p>
-            `
-            }
-          </div>
-          `
-              : `
-          <div style="background-color: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-            <p><strong>⚠️ No resume file uploaded</strong></p>
-          </div>
-          `
-          }
-
-          ${
-            request.additionalInfo
-              ? `
-          <div style="background-color: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">Additional Information</h3>
-            <p style="white-space: pre-wrap; line-height: 1.6;">${request.additionalInfo}</p>
-          </div>
-          `
-              : ""
-          }
-
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">Payment Information</h3>
-            <p><strong>Stripe Session ID:</strong> <code style="background: #f1f1f1; padding: 2px 4px; border-radius: 3px;">${
-              request.stripeSessionId
-            }</code></p>
-            <p><strong>Payment Intent ID:</strong> <code style="background: #f1f1f1; padding: 2px 4px; border-radius: 3px;">${
-              request.stripePaymentIntentId || "Pending"
-            }</code></p>
-            <p><strong>Paid At:</strong> ${
-              request.paidAt ? request.paidAt.toLocaleString() : "Pending"
-            }</p>
-          </div>
-
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
-          <p style="color: #666; font-size: 12px; text-align: center;">
-            Request submitted through Applify Resume Service at ${new Date().toLocaleString()}
-          </p>
-        </div>
-      `,
+      text: textContent,
+      html: htmlContent,
     });
 
     console.log(

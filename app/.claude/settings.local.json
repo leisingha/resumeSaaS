@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(wasp db:*)"
+      "Bash(wasp db:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
