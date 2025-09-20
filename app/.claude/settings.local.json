@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wasp db:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -112,6 +112,7 @@ model User {
   userProfile               UserProfile?       // Added for resume SaaS
   uploadedResumes           UploadedResume[]   // Added for resume SaaS
   generatedDocuments        GeneratedDocument[] // Added for resume SaaS
+  resumeServiceRequests     ResumeServiceRequest[] // Resume service requests
 }
 
 model GptResponse {
@@ -196,4 +197,42 @@ model ContactFormMessage {
   content                   String
   isRead                    Boolean         @default(false)
   repliedAt                 DateTime?
+}
+
+model ResumeServiceRequest {
+  id                        String          @id @default(uuid())
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+
+  // Service details
+  serviceType               String          // "review" or "writing"
+
+  // Contact information (for both logged in and guest users)
+  firstName                 String
+  lastName                  String
+  email                     String
+  phone                     String?
+
+  // Service-specific details
+  resumeFocusAreas          Json            // Array of selected focus areas
+  jobTitles                 Json            // Array of job titles
+  experience                String?
+  additionalInfo            String?
+
+  // File upload
+  resumeFileKey             String?         // S3 key for uploaded resume file
+  resumeFileName            String?         // Original filename
+
+  // Payment details
+  stripeSessionId           String?         // Stripe checkout session ID
+  stripePaymentIntentId     String?         // Payment intent ID after completion
+  paymentStatus             String          @default("pending") // "pending", "completed", "failed"
+  paidAt                    DateTime?
+
+  // Processing status
+  requestStatus             String          @default("submitted") // "submitted", "in_progress", "completed"
+
+  // Optional user relation (null for guest users)
+  user                      User?           @relation(fields: [userId], references: [id])
+  userId                    String?
 }

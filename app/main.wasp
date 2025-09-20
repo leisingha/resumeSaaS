@@ -286,7 +286,7 @@ action generateCheckoutSession {
 
 api paymentsWebhook {
   fn: import { paymentsWebhook } from "@src/payment/webhook",
-  entities: [User],
+  entities: [User, ResumeServiceRequest],
   middlewareConfigFn: import { paymentsMiddlewareConfigFn } from "@src/payment/webhook",
   httpRoute: (POST, "/payments-webhook")
 }
@@ -415,8 +415,17 @@ action sendContactMessage {
 //#region Resume Service
 route ResumeServiceRoute { path: "/resume-service", to: ResumeServicePage }
 page ResumeServicePage {
-  authRequired: true,
+  authRequired: false, // Allow both guests and authenticated users
   component: import ResumeServicePage from "@src/resume-service/ResumeServicePage"
+}
+
+action submitResumeService {
+  fn: import { submitResumeService } from "@src/resume-service/operations",
+  entities: [User, ResumeServiceRequest]
+}
+
+action createResumeFileUpload {
+  fn: import { createResumeFileUpload } from "@src/resume-service/operations"
 }
 //#endregion
 

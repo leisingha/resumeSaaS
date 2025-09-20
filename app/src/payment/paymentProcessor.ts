@@ -9,6 +9,9 @@ export interface CreateCheckoutSessionArgs {
   userEmail: string;
   paymentPlan: PaymentPlan;
   prismaUserDelegate: PrismaClient["user"];
+  metadata?: Record<string, string>;
+  successUrl?: string;
+  cancelUrl?: string;
 }
 export interface FetchCustomerPortalUrlArgs {
   userId: string;

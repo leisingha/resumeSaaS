@@ -12,6 +12,8 @@ export enum PaymentPlanId {
   Hobby = "hobby",
   Pro = "pro",
   Credits10 = "credits10",
+  ResumeReview = "resume_review",
+  ResumeWriting = "resume_writing",
 }
 
 export interface PaymentPlan {
@@ -23,7 +25,8 @@ export interface PaymentPlan {
 
 export type PaymentPlanEffect =
   | { kind: "subscription" }
-  | { kind: "credits"; amount: number };
+  | { kind: "credits"; amount: number }
+  | { kind: "service"; serviceType: "review" | "writing" };
 
 export const paymentPlans: Record<PaymentPlanId, PaymentPlan> = {
   [PaymentPlanId.Hobby]: {
@@ -41,6 +44,16 @@ export const paymentPlans: Record<PaymentPlanId, PaymentPlan> = {
       requireNodeEnvVar("PAYMENTS_CREDITS_10_PLAN_ID"),
     effect: { kind: "credits", amount: 50 },
   },
+  [PaymentPlanId.ResumeReview]: {
+    getPaymentProcessorPlanId: () =>
+      requireNodeEnvVar("PAYMENTS_RESUME_REVIEW_PLAN_ID"),
+    effect: { kind: "service", serviceType: "review" },
+  },
+  [PaymentPlanId.ResumeWriting]: {
+    getPaymentProcessorPlanId: () =>
+      requireNodeEnvVar("PAYMENTS_RESUME_WRITING_PLAN_ID"),
+    effect: { kind: "service", serviceType: "writing" },
+  },
 };
 
 export function prettyPaymentPlanName(planId: PaymentPlanId): string {
@@ -48,6 +61,8 @@ export function prettyPaymentPlanName(planId: PaymentPlanId): string {
     [PaymentPlanId.Hobby]: "Free",
     [PaymentPlanId.Pro]: "Pro",
     [PaymentPlanId.Credits10]: "50 Credits",
+    [PaymentPlanId.ResumeReview]: "Resume Review",
+    [PaymentPlanId.ResumeWriting]: "Resume Writing",
   };
   return planToName[planId];
 }

@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import Footer from "../landing-page/components/Footer";
 import SuccessAlert from "../features/common/SuccessAlert";
+import { submitResumeService, createResumeFileUpload } from "wasp/client/operations";
+import { useAuth } from "wasp/client/auth";
+import { validateFile } from "../file-upload/fileUploading";
 
 // Styled radio button component matching template design
 const StyledRadioButton = ({
@@ -100,11 +103,13 @@ interface FormErrors {
 }
 
 export default function ResumeServicePage() {
+  const { data: user } = useAuth();
+
   const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    phone: user?.phoneNumber || "",
     serviceType: "",
     resumeFocusAreas: [],
     jobTitles: [],
@@ -117,6 +122,18 @@ export default function ResumeServicePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [currentJobTitle, setCurrentJobTitle] = useState("");
+  const [uploadedFileKey, setUploadedFileKey] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Check for success parameter in URL (from Stripe redirect)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      setShowSuccessAlert(true);
+      // Clear the URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Class names consistent with the app's styling - matching checkbox text size
   const newStandardInputClass =
@@ -264,18 +281,71 @@ export default function ResumeServicePage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setFormData((prev) => ({
-      ...prev,
-      resumeFile: file,
-    }));
 
+    if (!file) {
+      setFormData((prev) => ({ ...prev, resumeFile: null }));
+      setUploadedFileKey(null);
+      return;
+    }
+
+    // Validate file
+    const fileValidationError = validateFile(file);
+    if (fileValidationError) {
+      setFormErrors((prev) => ({
+        ...prev,
+        resumeFile: fileValidationError.message,
+      }));
+      return;
+    }
+
+    // Clear any previous errors
     if (formErrors.resumeFile) {
       setFormErrors((prev) => ({
         ...prev,
         resumeFile: undefined,
       }));
+    }
+
+    // Upload file immediately
+    setIsUploading(true);
+    try {
+      // Create file upload URL
+      const { s3UploadUrl, s3UploadFields, key } = await createResumeFileUpload({
+        fileType: file.type as any,
+        fileName: file.name,
+      });
+
+      // Upload to S3
+      const formData = new FormData();
+      Object.entries(s3UploadFields).forEach(([fieldKey, value]) => {
+        formData.append(fieldKey, value);
+      });
+      formData.append('file', file);
+
+      const uploadResponse = await fetch(s3UploadUrl, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Upload failed');
+      }
+
+      // Store the file key for submission
+      setUploadedFileKey(key);
+      setFormData((prev) => ({ ...prev, resumeFile: file }));
+
+      console.log('File uploaded successfully:', key);
+    } catch (error) {
+      console.error('File upload error:', error);
+      setFormErrors((prev) => ({
+        ...prev,
+        resumeFile: 'Failed to upload file. Please try again.',
+      }));
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -289,34 +359,33 @@ export default function ResumeServicePage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement resume service submission logic
-      // For now, we'll just simulate a successful submission
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Prepare form data for submission
+      const submissionData = {
+        serviceType: formData.serviceType as "review" | "writing",
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        resumeFocusAreas: formData.resumeFocusAreas,
+        jobTitles: formData.jobTitles,
+        experience: formData.experience,
+        additionalInfo: formData.additionalInfo,
+        resumeFileKey: uploadedFileKey || undefined,
+        resumeFileName: formData.resumeFile?.name,
+      };
 
-      // Show success alert
-      setShowSuccessAlert(true);
+      // Submit to backend
+      const response = await submitResumeService(submissionData);
+      console.log("Resume service submission response:", response);
 
-      // Reset form
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        serviceType: "",
-        resumeFocusAreas: [],
-        jobTitles: [],
-        experience: "",
-        additionalInfo: "",
-        resumeFile: null,
-      });
-
-      // Reset file input
-      const fileInput = document.getElementById(
-        "resumeFile"
-      ) as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = "";
+      // Redirect to Stripe checkout
+      if (response.checkoutUrl) {
+        console.log("Redirecting to Stripe checkout:", response.checkoutUrl);
+        window.location.href = response.checkoutUrl;
+      } else {
+        throw new Error("No checkout URL received");
       }
+
     } catch (error: any) {
       console.error("Error submitting resume service request:", error);
       toast.error(error.message || "Something went wrong. Please try again.");
@@ -621,9 +690,14 @@ export default function ResumeServicePage() {
                   name="resumeFile"
                   accept=".pdf,.doc,.docx"
                   onChange={handleFileChange}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isUploading}
                   className={`${newStandardInputClass} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90`}
                 />
+                {isUploading && (
+                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                    Uploading file...
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Accepted formats: PDF, DOC, DOCX (Max 10MB)
                 </p>

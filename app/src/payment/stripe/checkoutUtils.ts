@@ -1,11 +1,11 @@
-import type { StripeMode } from './paymentProcessor';
+import type { StripeMode } from "./paymentProcessor";
 
-import Stripe from 'stripe';
-import { stripe } from './stripeClient';
-import { assertUnreachable } from '../../shared/utils';
+import Stripe from "stripe";
+import { stripe } from "./stripeClient";
+import { assertUnreachable } from "../../shared/utils";
 
 // WASP_WEB_CLIENT_URL will be set up by Wasp when deploying to production: https://wasp.sh/docs/deploying
-const DOMAIN = process.env.WASP_WEB_CLIENT_URL || 'http://localhost:3000';
+const DOMAIN = process.env.WASP_WEB_CLIENT_URL || "http://localhost:3000";
 
 export async function fetchStripeCustomer(customerEmail: string) {
   let customer: Stripe.Customer;
@@ -14,12 +14,12 @@ export async function fetchStripeCustomer(customerEmail: string) {
       email: customerEmail,
     });
     if (!stripeCustomers.data.length) {
-      console.log('creating customer');
+      console.log("creating customer");
       customer = await stripe.customers.create({
         email: customerEmail,
       });
     } else {
-      console.log('using existing customer');
+      console.log("using existing customer");
       customer = stripeCustomers.data[0];
     }
     return customer;
@@ -33,15 +33,21 @@ interface CreateStripeCheckoutSessionParams {
   priceId: string;
   customerId: string;
   mode: StripeMode;
+  metadata?: Record<string, string>;
+  successUrl?: string;
+  cancelUrl?: string;
 }
 
 export async function createStripeCheckoutSession({
   priceId,
   customerId,
   mode,
+  metadata,
+  successUrl,
+  cancelUrl,
 }: CreateStripeCheckoutSessionParams) {
   try {
-    const paymentIntentData = getPaymentIntentData({ mode, priceId });
+    const paymentIntentData = getPaymentIntentData({ mode, priceId, metadata });
 
     return await stripe.checkout.sessions.create({
       line_items: [
@@ -51,13 +57,23 @@ export async function createStripeCheckoutSession({
         },
       ],
       mode: mode,
-      success_url: `${DOMAIN}/checkout?success=true`,
-      cancel_url: `${DOMAIN}/checkout?canceled=true`,
+      success_url: successUrl || `${DOMAIN}/checkout?success=true`,
+      cancel_url: cancelUrl || `${DOMAIN}/checkout?canceled=true`,
       automatic_tax: { enabled: true },
       customer_update: {
-        address: 'auto',
+        address: "auto",
       },
       customer: customerId,
+      // Enable automatic receipt emails from Stripe
+      invoice_creation:
+        mode === "payment"
+          ? {
+              enabled: true,
+              invoice_data: {
+                metadata: metadata || {},
+              },
+            }
+          : undefined,
       // Stripe only allows us to pass payment intent metadata for one-time payments, not subscriptions.
       // We do this so that we can capture priceId in the payment_intent.succeeded webhook
       // and easily confirm the user's payment based on the price id. For subscriptions, we can get the price id
@@ -70,16 +86,24 @@ export async function createStripeCheckoutSession({
   }
 }
 
-function getPaymentIntentData({ mode, priceId }: { mode: StripeMode; priceId: string }):
+function getPaymentIntentData({
+  mode,
+  priceId,
+  metadata,
+}: {
+  mode: StripeMode;
+  priceId: string;
+  metadata?: Record<string, string>;
+}):
   | {
-      metadata: { priceId: string };
+      metadata: Record<string, string>;
     }
   | undefined {
   switch (mode) {
-    case 'subscription':
+    case "subscription":
       return undefined;
-    case 'payment':
-      return { metadata: { priceId } };
+    case "payment":
+      return { metadata: { priceId, ...metadata } };
     default:
       assertUnreachable(mode);
   }

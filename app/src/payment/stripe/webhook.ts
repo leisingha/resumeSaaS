@@ -9,6 +9,7 @@ import { updateUserStripePaymentDetails } from './paymentDetails';
 import { emailSender } from 'wasp/server/email';
 import { assertUnreachable } from '../../shared/utils';
 import { requireNodeEnvVar } from '../../server/utils';
+import { sendResumeServiceNotification, sendCustomerReceipt } from '../../resume-service/operations';
 import { z } from 'zod';
 
 export const stripeWebhook: PaymentsWebhook = async (request, response, context) => {
@@ -35,7 +36,7 @@ export const stripeWebhook: PaymentsWebhook = async (request, response, context)
       break;
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      await handlePaymentIntentSucceeded(paymentIntent, prismaUserDelegate);
+      await handlePaymentIntentSucceeded(paymentIntent, prismaUserDelegate, context);
       break;
     case 'customer.subscription.updated':
       const updatedSubscription = event.data.object as Stripe.Subscription;
@@ -95,7 +96,8 @@ export async function handleInvoicePaid(invoice: Stripe.Invoice, prismaUserDeleg
 
 export async function handlePaymentIntentSucceeded(
   paymentIntent: Stripe.PaymentIntent,
-  prismaUserDelegate: PrismaClient['user']
+  prismaUserDelegate: PrismaClient['user'],
+  context: any
 ) {
   // We handle invoices in the invoice.paid webhook. Invoices exist for subscription payments,
   // but not for one-time payment/credits products which use the Stripe `payment` mode on checkout sessions.
@@ -120,12 +122,19 @@ export async function handlePaymentIntentSucceeded(
     return;
   }
 
-  const { numOfCreditsPurchased } = getPlanEffectPaymentDetails({ planId, planEffect: plan.effect });
+  if (plan.effect.kind === 'credits') {
+    const { numOfCreditsPurchased } = getPlanEffectPaymentDetails({ planId, planEffect: plan.effect });
+    return updateUserStripePaymentDetails(
+      { userStripeId, numOfCreditsPurchased, datePaid },
+      prismaUserDelegate
+    );
+  }
 
-  return updateUserStripePaymentDetails(
-    { userStripeId, numOfCreditsPurchased, datePaid },
-    prismaUserDelegate
-  );
+  if (plan.effect.kind === 'service') {
+    // Handle resume service payments
+    await handleResumeServicePayment(paymentIntent, metadata, context);
+    return;
+  }
 }
 
 export async function handleCustomerSubscriptionUpdated(
@@ -229,7 +238,53 @@ function getPlanEffectPaymentDetails({
       return { subscriptionPlan: planId, numOfCreditsPurchased: undefined };
     case 'credits':
       return { subscriptionPlan: undefined, numOfCreditsPurchased: planEffect.amount };
+    case 'service':
+      return { subscriptionPlan: undefined, numOfCreditsPurchased: undefined };
     default:
       assertUnreachable(planEffect);
+  }
+}
+
+// Handle resume service payment completion
+async function handleResumeServicePayment(
+  paymentIntent: Stripe.PaymentIntent,
+  metadata: Record<string, string>,
+  context: any
+) {
+  console.log('[handleResumeServicePayment] Processing resume service payment:', paymentIntent.id);
+
+  const resumeServiceRequestId = metadata.resumeServiceRequestId;
+  if (!resumeServiceRequestId) {
+    console.error('[handleResumeServicePayment] No resumeServiceRequestId in metadata');
+    throw new HttpError(400, 'Resume service request ID not found in payment metadata');
+  }
+
+  try {
+    // Update the resume service request with payment completion
+    const updatedRequest = await context.entities.ResumeServiceRequest.update({
+      where: { id: resumeServiceRequestId },
+      data: {
+        stripePaymentIntentId: paymentIntent.id,
+        paymentStatus: 'completed',
+        paidAt: new Date(paymentIntent.created * 1000),
+        requestStatus: 'in_progress', // Move to in_progress after payment
+      },
+    });
+
+    console.log('[handleResumeServicePayment] Updated resume service request:', resumeServiceRequestId);
+
+    // Send notification email
+    await sendResumeServiceNotification(resumeServiceRequestId, context);
+
+    console.log('[handleResumeServicePayment] Notification email sent for request:', resumeServiceRequestId);
+
+    // Send customer receipt email
+    await sendCustomerReceipt(resumeServiceRequestId, context);
+
+    console.log('[handleResumeServicePayment] Customer receipt sent for request:', resumeServiceRequestId);
+
+  } catch (error) {
+    console.error('[handleResumeServicePayment] Error processing resume service payment:', error);
+    throw new HttpError(500, 'Failed to process resume service payment');
   }
 }

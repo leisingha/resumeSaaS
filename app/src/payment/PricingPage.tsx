@@ -25,7 +25,7 @@ interface PaymentPlanCard {
   features: string[];
 }
 
-export const paymentPlanCards: Record<PaymentPlanId, PaymentPlanCard> = {
+export const paymentPlanCards: Record<Exclude<PaymentPlanId, 'resume_review' | 'resume_writing'>, PaymentPlanCard> = {
   [PaymentPlanId.Hobby]: {
     name: prettyPaymentPlanName(PaymentPlanId.Hobby),
     price: "$0",
