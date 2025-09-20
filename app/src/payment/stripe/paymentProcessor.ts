@@ -17,6 +17,7 @@ export const stripePaymentProcessor: PaymentProcessor = {
       metadata,
       successUrl,
       cancelUrl,
+      customerEmail: userEmail,
     });
     // Only update user record if we have a real user ID (not a guest request ID)
     try {

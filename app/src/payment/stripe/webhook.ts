@@ -9,7 +9,7 @@ import { updateUserStripePaymentDetails } from './paymentDetails';
 import { emailSender } from 'wasp/server/email';
 import { assertUnreachable } from '../../shared/utils';
 import { requireNodeEnvVar } from '../../server/utils';
-import { sendResumeServiceNotification, sendCustomerReceipt } from '../../resume-service/operations';
+import { sendResumeServiceNotification } from '../../resume-service/operations';
 import { z } from 'zod';
 
 export const stripeWebhook: PaymentsWebhook = async (request, response, context) => {
@@ -278,10 +278,7 @@ async function handleResumeServicePayment(
 
     console.log('[handleResumeServicePayment] Notification email sent for request:', resumeServiceRequestId);
 
-    // Send customer receipt email
-    await sendCustomerReceipt(resumeServiceRequestId, context);
-
-    console.log('[handleResumeServicePayment] Customer receipt sent for request:', resumeServiceRequestId);
+    // Customer receipt will be sent automatically by Stripe
 
   } catch (error) {
     console.error('[handleResumeServicePayment] Error processing resume service payment:', error);

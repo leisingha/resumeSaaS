@@ -36,6 +36,7 @@ interface CreateStripeCheckoutSessionParams {
   metadata?: Record<string, string>;
   successUrl?: string;
   cancelUrl?: string;
+  customerEmail?: string;
 }
 
 export async function createStripeCheckoutSession({
@@ -45,9 +46,10 @@ export async function createStripeCheckoutSession({
   metadata,
   successUrl,
   cancelUrl,
+  customerEmail,
 }: CreateStripeCheckoutSessionParams) {
   try {
-    const paymentIntentData = getPaymentIntentData({ mode, priceId, metadata });
+    const paymentIntentData = getPaymentIntentData({ mode, priceId, metadata, customerEmail });
 
     return await stripe.checkout.sessions.create({
       line_items: [
@@ -90,20 +92,27 @@ function getPaymentIntentData({
   mode,
   priceId,
   metadata,
+  customerEmail,
 }: {
   mode: StripeMode;
   priceId: string;
   metadata?: Record<string, string>;
+  customerEmail?: string;
 }):
   | {
       metadata: Record<string, string>;
+      receipt_email?: string;
     }
   | undefined {
   switch (mode) {
     case "subscription":
       return undefined;
     case "payment":
-      return { metadata: { priceId, ...metadata } };
+      return {
+        metadata: { priceId, ...metadata },
+        // Enable automatic receipt emails for one-time payments
+        receipt_email: customerEmail
+      };
     default:
       assertUnreachable(mode);
   }

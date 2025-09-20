@@ -263,7 +263,7 @@ Request submitted through Applify Resume Service
               ${
                 Array.isArray(request.resumeFocusAreas)
                   ? request.resumeFocusAreas
-                      .map((area) => `<li>${area}</li>`)
+                      .map((area: string) => `<li>${area}</li>`)
                       .join("")
                   : `<li>${request.resumeFocusAreas}</li>`
               }
@@ -273,7 +273,7 @@ Request submitted through Applify Resume Service
               ${
                 Array.isArray(request.jobTitles)
                   ? request.jobTitles
-                      .map((title) => `<li>${title}</li>`)
+                      .map((title: string) => `<li>${title}</li>`)
                       .join("")
                   : `<li>${request.jobTitles}</li>`
               }
