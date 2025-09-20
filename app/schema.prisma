@@ -102,7 +102,7 @@ model User {
   credits                   Int             @default(0)
   
   // Daily credit system
-  dailyCredits              Int             @default(3)  // Daily credits (resets to 3 each day)
+  dailyCredits              Int             @default(5)  // Daily credits (resets to 5 each day)
   lastCreditReset           DateTime        @default(now()) // Last time credits were reset
 
   gptResponses              GptResponse[]

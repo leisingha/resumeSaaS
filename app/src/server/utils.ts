@@ -75,7 +75,7 @@ export async function ensureDailyCredits(
     user.subscriptionStatus !== SubscriptionStatus.Deleted &&
     user.subscriptionStatus !== SubscriptionStatus.PastDue;
 
-  const dailyCreditAmount = hasValidSubscription ? 100 : 3; // Pro users get 100, free users get 3
+  const dailyCreditAmount = hasValidSubscription ? 100 : 5; // Pro users get 100, free users get 5
 
   // Check if we need to reset daily credits
   const needsReset = isNewDay(user.lastCreditReset);
