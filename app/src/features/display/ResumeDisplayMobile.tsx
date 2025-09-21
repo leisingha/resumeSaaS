@@ -382,7 +382,7 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
       btn.style.cursor = "pointer";
       btn.style.width = "24px";
       btn.style.height = "24px";
-      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
       btn.onclick = () => {
         setEditingSummaryContent(summaryP.outerHTML);
         setShowSummaryEdit(true);
@@ -430,7 +430,7 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         btn.style.cursor = "pointer";
         btn.style.width = "24px";
         btn.style.height = "24px";
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
         btn.onclick = () => {
           const degree = entry.querySelector("h3")?.textContent || "";
           const pElement = entry.querySelector("p");
@@ -480,13 +480,15 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         btn.style.background = "white";
         btn.style.borderRadius = "6px";
         btn.style.boxShadow = "0 1.6px 6.4px rgba(0,0,0,0.08)";
-        btn.style.padding = "4.8px";
+        btn.style.padding = "4px";
         btn.style.border = "1px solid #e2e8f0";
         btn.style.display = "flex";
         btn.style.alignItems = "center";
         btn.style.justifyContent = "center";
         btn.style.cursor = "pointer";
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14.4" height="14.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+        btn.style.width = "24px";
+        btn.style.height = "24px";
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
         btn.onclick = () => {
           const title = entry.querySelector("h3")?.textContent || "";
           const pElement = entry.querySelector("p");
@@ -538,13 +540,15 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         btn.style.background = "white";
         btn.style.borderRadius = "6px";
         btn.style.boxShadow = "0 1.6px 6.4px rgba(0,0,0,0.08)";
-        btn.style.padding = "4.8px";
+        btn.style.padding = "4px";
         btn.style.border = "1px solid #e2e8f0";
         btn.style.display = "flex";
         btn.style.alignItems = "center";
         btn.style.justifyContent = "center";
         btn.style.cursor = "pointer";
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14.4" height="14.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+        btn.style.width = "24px";
+        btn.style.height = "24px";
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
         btn.onclick = () => {
           // Try different selectors to extract skills from various formats
           let skillsList: string[] = [];
@@ -617,13 +621,15 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         btn.style.background = "white";
         btn.style.borderRadius = "6px";
         btn.style.boxShadow = "0 1.6px 6.4px rgba(0,0,0,0.08)";
-        btn.style.padding = "4.8px";
+        btn.style.padding = "4px";
         btn.style.border = "1px solid #e2e8f0";
         btn.style.display = "flex";
         btn.style.alignItems = "center";
         btn.style.justifyContent = "center";
         btn.style.cursor = "pointer";
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14.4" height="14.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+        btn.style.width = "24px";
+        btn.style.height = "24px";
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
         btn.onclick = () => {
           setEditingProjectsContent(projectsContainer.outerHTML);
           setShowProjectsEdit(true);
@@ -657,13 +663,15 @@ const ResumeDisplayMobile: React.FC<ResumeDisplayProps> = ({
         btn.style.background = "white";
         btn.style.borderRadius = "6px";
         btn.style.boxShadow = "0 1.6px 6.4px rgba(0,0,0,0.08)";
-        btn.style.padding = "4.8px";
+        btn.style.padding = "4px";
         btn.style.border = "1px solid #e2e8f0";
         btn.style.display = "flex";
         btn.style.alignItems = "center";
         btn.style.justifyContent = "center";
         btn.style.cursor = "pointer";
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14.4" height="14.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
+        btn.style.width = "24px";
+        btn.style.height = "24px";
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M15.232 5.232 18 8l-9 9H6v-3l9-9z"/><path d="M17.207 2.793a2.5 2.5 0 0 1 3.535 3.535l-1.414 1.414a2.5 2.5 0 0 1-3.535-3.535l1.414-1.414z"/></svg>`;
         btn.onclick = () => {
           // Try different selectors to extract languages from various formats
           let languagesList: string[] = [];
