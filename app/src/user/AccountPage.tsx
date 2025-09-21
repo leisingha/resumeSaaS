@@ -155,13 +155,13 @@ export default function AccountPage({ user }: { user: User }) {
                   {!isEditing && (
                     <button
                       onClick={handleEdit}
-                      className="p-2 text-white hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                      className="p-1 text-white hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                       title="Edit Profile"
                     >
                       <svg
                         className="fill-white"
-                        width="24"
-                        height="24"
+                        width="20"
+                        height="20"
                         viewBox="0 0 20 20"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
@@ -332,9 +332,11 @@ export default function AccountPage({ user }: { user: User }) {
           <div className="col-span-5 xl:col-span-2">
             <div className="rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke py-4 px-7 dark:border-strokedark">
-                <h3 className="font-medium text-black dark:text-white">
-                  Plan Details
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-black dark:text-white">
+                    Plan Details
+                  </h3>
+                </div>
               </div>
               <div className="p-7">
                 <UserCurrentPaymentPlan
@@ -357,9 +359,11 @@ export default function AccountPage({ user }: { user: User }) {
             <div className="mt-6">
               <div className="rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
                 <div className="border-b border-stroke py-4 px-7 dark:border-strokedark">
-                  <h3 className="font-medium text-black dark:text-white">
-                    Change Password
-                  </h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-black dark:text-white">
+                      Change Password
+                    </h3>
+                  </div>
                 </div>
                 <div className="p-7">
                   <div className="mb-4">
