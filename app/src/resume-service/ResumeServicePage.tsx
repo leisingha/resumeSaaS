@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 import Footer from "../landing-page/components/Footer";
 import SuccessAlert from "../features/common/SuccessAlert";
@@ -124,6 +125,7 @@ export default function ResumeServicePage() {
   const [currentJobTitle, setCurrentJobTitle] = useState("");
   const [uploadedFileKey, setUploadedFileKey] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Check for success parameter in URL (from Stripe redirect)
   useEffect(() => {
@@ -137,7 +139,7 @@ export default function ResumeServicePage() {
 
   // Class names consistent with the app's styling - matching checkbox text size
   const newStandardInputClass =
-    "w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-base font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary";
+    "w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-sm text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary";
 
   const labelClassName =
     "mb-2.5 block mobile-break:text-base text-base font-medium text-black dark:text-white";
@@ -274,6 +276,33 @@ export default function ResumeServicePage() {
     }));
   };
 
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles && acceptedFiles.length > 0) {
+      handleFileUpload(acceptedFiles[0]);
+    }
+    setIsDragging(false);
+  }, []);
+
+  const dropzoneOptions = {
+    onDrop,
+    onDragEnter: () => setIsDragging(true),
+    onDragLeave: () => setIsDragging(false),
+    onDragOver: () => setIsDragging(true),
+    multiple: false,
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/msword": [".doc"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+    },
+  };
+
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    fileRejections,
+  } = useDropzone(dropzoneOptions);
+
   const handleJobTitleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -281,8 +310,7 @@ export default function ResumeServicePage() {
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
+  const handleFileUpload = async (file: File | null) => {
 
     if (!file) {
       setFormData((prev) => ({ ...prev, resumeFile: null }));
@@ -429,7 +457,7 @@ export default function ResumeServicePage() {
                 <label className={labelClassName}>
                   Select Service Type <span className="text-red-500">*</span>
                 </label>
-                <div className="space-y-3">
+                <div className="flex flex-col gap-3 md:flex-row md:gap-4">
                   <StyledRadioButton
                     id="review"
                     name="serviceType"
@@ -441,10 +469,11 @@ export default function ResumeServicePage() {
                       <div className="font-bold text-lg text-black dark:text-white">
                         Resume Review - $50 CAD
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                        Expert review of your existing resume with detailed
-                        feedback and improvement suggestions.
-                      </div>
+                      <ul className="text-xs text-gray-600 dark:text-gray-300 mt-1 space-y-1">
+                        <li>• Tips to help your resume pass applicant tracking systems (ATS)</li>
+                        <li>• Recommended sentences to include in your work experience</li>
+                        <li>• Personalized suggestions to improve your format and layout</li>
+                      </ul>
                     </div>
                   </StyledRadioButton>
 
@@ -457,12 +486,13 @@ export default function ResumeServicePage() {
                   >
                     <div>
                       <div className="font-bold text-lg text-black dark:text-white">
-                        Resume Writing Service - $100 CAD
+                        Resume Creation - $100 CAD
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                        Complete professional rewrite of your resume to maximize
-                        your job application success.
-                      </div>
+                      <ul className="text-xs text-gray-600 dark:text-gray-300 mt-1 space-y-1">
+                        <li>• A professionally rewritten resume highlighting your strengths</li>
+                        <li>• An optimized layout designed to pass applicant tracking systems</li>
+                        <li>• 1 round of follow-up edits to tailor your resume for success</li>
+                      </ul>
                     </div>
                   </StyledRadioButton>
                 </div>
@@ -669,7 +699,7 @@ export default function ResumeServicePage() {
 
               {/* Resume Upload */}
               <div className="mb-4.5">
-                <label className={labelClassName} htmlFor="resumeFile">
+                <label className={labelClassName}>
                   Upload Your Resume{" "}
                   {formData.serviceType === "review" && (
                     <span className="text-red-500">*</span>
@@ -684,26 +714,104 @@ export default function ResumeServicePage() {
                     reference, or leave blank for a fresh start.
                   </p>
                 )}
-                <input
-                  type="file"
-                  id="resumeFile"
-                  name="resumeFile"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileChange}
-                  disabled={isSubmitting || isUploading}
-                  className={`${newStandardInputClass} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90`}
-                />
+
+                {/* Drag and Drop Upload Section */}
+                <div className="rounded-lg border border-stroke dark:border-form-strokedark bg-white dark:bg-boxdark p-5 shadow-default">
+                  <div
+                    {...getRootProps({
+                      className: `relative mb-5.5 block w-full cursor-pointer appearance-none rounded-lg border-2 border-dashed ${
+                        isDragActive || isDragging
+                          ? "border-primary"
+                          : "border-gray-300 dark:border-gray-600"
+                      } bg-gray-50 dark:bg-gray-700 hover:border-primary dark:hover:border-primary transition-all duration-150 ease-in-out p-6 text-center`,
+                    })}
+                  >
+                    <input {...getInputProps()} disabled={isSubmitting || isUploading} />
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <span
+                        className={`flex h-12 w-12 items-center justify-center rounded-full ${
+                          isDragActive || isDragging
+                            ? "bg-primary text-white"
+                            : "bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
+                        } transition-colors duration-150 ease-in-out`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="w-6 h-6"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.344 11.097h-1.264"
+                          />
+                        </svg>
+                      </span>
+                      {formData.resumeFile ? (
+                        <p className="text-sm font-medium text-black dark:text-white mt-2">
+                          {formData.resumeFile.name}
+                        </p>
+                      ) : (
+                        <>
+                          <p className="text-sm font-medium text-black dark:text-white">
+                            <span className="text-primary">Click to upload</span> or drag
+                            and drop
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            PDF, DOC, DOCX only (MAX. 10MB)
+                          </p>
+                        </>
+                      )}
+                      {fileRejections.length > 0 && (
+                        <p className="mt-2 text-xs text-red-500 dark:text-red-400">
+                          File type not accepted. Please upload PDF, DOC, or DOCX only.
+                        </p>
+                      )}
+                      {isUploading && (
+                        <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: "100%" }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {formData.resumeFile && !isUploading && (
+                    <div className="flex justify-end gap-3 mb-4">
+                      <button
+                        className="flex justify-center rounded-md border border-stroke py-2 px-4 text-sm font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white disabled:opacity-50"
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, resumeFile: null }));
+                          setUploadedFileKey(null);
+                          if (formErrors.resumeFile) {
+                            setFormErrors((prev) => ({
+                              ...prev,
+                              resumeFile: undefined,
+                            }));
+                          }
+                        }}
+                        disabled={isSubmitting}
+                      >
+                        Remove File
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {isUploading && (
                   <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                     Uploading file...
                   </p>
                 )}
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Accepted formats: PDF, DOC, DOCX (Max 10MB)
-                </p>
-                {formData.resumeFile && (
+                {formData.resumeFile && !isUploading && (
                   <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                    ✓ {formData.resumeFile.name} uploaded
+                    ✓ {formData.resumeFile.name} uploaded successfully
                   </p>
                 )}
                 {formErrors.resumeFile && (
