@@ -10,6 +10,7 @@ const wendyAvatar = "/wendy.jpeg";
 
 export const landingPageNavigationItems: NavigationItem[] = [
   { name: "Features", to: "#features" },
+  { name: "Resume Services", to: "/resume-service" },
   { name: "Pricing", to: routes.PricingPageRoute.to },
   { name: "Blog", to: BlogUrl },
   { name: "Contact us", to: "/contact-us" },

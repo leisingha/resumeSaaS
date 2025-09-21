@@ -477,11 +477,6 @@ function UserCurrentPaymentPlan({
           </div>
         </div>
 
-        {subscriptionStatus !== SubscriptionStatus.Deleted && (
-          <div className="pt-2">
-            <CustomerPortalButton />
-          </div>
-        )}
       </div>
     );
   }
