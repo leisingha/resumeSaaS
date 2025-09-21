@@ -44,7 +44,7 @@ const StyledWrapper = styled.div<{
   .pushable {
     position: relative;
     background: transparent;
-    padding: 0px;
+    padding: 6px 0px 4px 0px;
     border: none;
     cursor: pointer;
     outline-offset: 4px;
@@ -56,9 +56,9 @@ const StyledWrapper = styled.div<{
 
   .edge {
     position: absolute;
-    top: 0;
+    top: 6px;
     left: 0;
-    height: 100%;
+    height: calc(100% - 10px);
     width: 100%;
     border-radius: 8px;
     background: ${(props) =>
@@ -110,7 +110,7 @@ const StyledWrapper = styled.div<{
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-size: 0.875rem; /* 14px for mobile */
-    transform: translateY(-4px);
+    transform: translateY(2px);
     transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
     text-align: center;
     width: 100%;
@@ -181,12 +181,12 @@ const StyledWrapper = styled.div<{
   }
 
   .pushable:hover .front {
-    transform: translateY(-6px);
+    transform: translateY(-4px);
     transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
   }
 
   .pushable:active .front {
-    transform: translateY(-2px);
+    transform: translateY(4px);
     transition: transform 34ms;
   }
 
