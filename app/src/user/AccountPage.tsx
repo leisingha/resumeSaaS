@@ -17,6 +17,7 @@ import { Link as WaspRouterLink, routes } from "wasp/client/router";
 import { logout } from "wasp/client/auth";
 import { ModernProgress } from "../features/common/ModernProgress";
 import StyledButton from "../features/common/StyledButton";
+import SuccessAlert from "../features/common/SuccessAlert";
 import { useState, FormEvent, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -58,6 +59,10 @@ export default function AccountPage({ user }: { user: User }) {
     phoneNumber: "",
   });
 
+  // State for success alert
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
   // Get real daily credits from the server
   const {
     data: creditData,
@@ -85,9 +90,11 @@ export default function AccountPage({ user }: { user: User }) {
     event.preventDefault();
     try {
       await updateUserProfileAction(formData);
-      toast.success("Profile updated successfully!");
+      setAlertMessage("Profile updated successfully!");
+      setShowSuccessAlert(true);
       setIsEditing(false);
-      // Optionally refresh the page data here
+      // Auto-hide alert after 5 seconds
+      setTimeout(() => setShowSuccessAlert(false), 5000);
     } catch (error: any) {
       toast.error(error.message || "Failed to update profile");
     }
@@ -142,6 +149,13 @@ export default function AccountPage({ user }: { user: User }) {
 
   return (
     <div className="mt-10 px-6">
+      {/* Success Alert */}
+      {showSuccessAlert && (
+        <SuccessAlert
+          message={alertMessage}
+          onClose={() => setShowSuccessAlert(false)}
+        />
+      )}
       <div className="mx-auto max-w-270">
         <div className="grid grid-cols-5 gap-8">
           {/* Account Information Column */}
