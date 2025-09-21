@@ -166,10 +166,20 @@ const AppPage = () => {
       setShowSuccessAlert(true);
     } catch (error: any) {
       console.error("Error generating document: ", error);
-      alert(
-        "Error generating document: " +
-          (error.message || "Something went wrong.")
-      );
+
+      // Handle specific error cases with user-friendly messages
+      if (error.message === "User profile not found") {
+        setWarningMessage("Complete Your Profile First");
+        setWarningDetails("Please fill out your profile information in the accordion above before generating a resume. This helps us create a personalized resume for you.");
+      } else if (error.message?.includes("Insufficient credits")) {
+        setWarningMessage("Insufficient Credits");
+        setWarningDetails(error.message);
+      } else {
+        setWarningMessage("Generation Failed");
+        setWarningDetails(error.message || "Something went wrong while generating your document. Please try again.");
+      }
+
+      setShowWarningAlert(true);
     } finally {
       setIsGenerating(false);
     }
@@ -406,12 +416,19 @@ const AppPage = () => {
                 <ResumeReviewIllustration />
               </div>
             </div>
-            <button
-              className="mt-4 w-full rounded-lg border border-stroke py-2 font-medium text-blue-600 transition hover:bg-blue-50 focus:outline-none dark:border-strokedark dark:text-blue-400 dark:hover:bg-blue-900/20"
-              onClick={() => navigate("/resume-service")}
+            <div
+              className="mt-4"
+              style={{
+                transform: "scale(0.7)",
+                transformOrigin: "center",
+              }}
             >
-              Request Resume Review
-            </button>
+              <StyledButton
+                onClick={() => navigate("/resume-service")}
+                text="Get Help"
+                variant="gradient"
+              />
+            </div>
           </div>
         </div>
 
@@ -440,20 +457,25 @@ const AppPage = () => {
                   >
                     Resume
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDocumentTypeChange("coverLetter")}
-                    className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
-                      ${
-                        documentType === "coverLetter"
-                          ? "bg-white shadow-sm text-black dark:bg-white dark:text-black"
-                          : "bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
-                      }
-                    `}
-                    disabled
-                  >
-                    Cover Letter
-                  </button>
+                  <div className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => handleDocumentTypeChange("coverLetter")}
+                      className={`transition-all duration-200 ease-in-out py-1.5 px-4 text-sm font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
+                        ${
+                          documentType === "coverLetter"
+                            ? "bg-white shadow-sm text-black dark:bg-white dark:text-black"
+                            : "bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
+                        }
+                      `}
+                      disabled
+                    >
+                      Cover Letter
+                    </button>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                      Coming soon!
+                    </div>
+                  </div>
                 </div>
               </div>
               <ResumeCustomizer
@@ -553,20 +575,25 @@ const AppPage = () => {
                   >
                     Resume
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDocumentTypeChange("coverLetter")}
-                    className={`transition-all duration-200 ease-in-out mobile-break:py-1.5 mobile-break:px-4 py-1.5 px-3 mobile-break:text-sm text-xs font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
-                      ${
-                        documentType === "coverLetter"
-                          ? "bg-white shadow-sm text-black dark:bg-white dark:text-black"
-                          : "bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
-                      }
-                    `}
-                    disabled
-                  >
-                    Cover Letter
-                  </button>
+                  <div className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => handleDocumentTypeChange("coverLetter")}
+                      className={`transition-all duration-200 ease-in-out mobile-break:py-1.5 mobile-break:px-4 py-1.5 px-3 mobile-break:text-sm text-xs font-medium rounded-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
+                        ${
+                          documentType === "coverLetter"
+                            ? "bg-white shadow-sm text-black dark:bg-white dark:text-black"
+                            : "bg-transparent text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
+                        }
+                      `}
+                      disabled
+                    >
+                      Cover Letter
+                    </button>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                      Coming soon!
+                    </div>
+                  </div>
                 </div>
               </div>
               <ResumeCustomizer

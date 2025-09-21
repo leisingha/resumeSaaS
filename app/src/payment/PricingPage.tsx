@@ -45,7 +45,7 @@ export const paymentPlanCards: Record<PricingPagePlanId, PaymentPlanCard> = {
     ],
   },
   [PaymentPlanId.Credits10]: {
-    name: prettyPaymentPlanName(PaymentPlanId.Credits10),
+    name: "Credit Pack",
     price: "4.99",
     description: "No subscriptions. Just credits when you need them",
     features: ["50 AI credits", "Limited AI editor usage"],
@@ -269,22 +269,22 @@ const PricingPage = () => {
               </div>
               {isUserSubscribed ? (
                 <button
-                  onClick={handleCustomerPortalClick}
-                  disabled={isCustomerPortalUrlLoading}
+                  onClick={planId === PaymentPlanId.Credits10 ? () => handleBuyNowClick(planId) : handleCustomerPortalClick}
+                  disabled={planId === PaymentPlanId.Credits10 ? isPaymentLoading : isCustomerPortalUrlLoading}
                   className="w-full rounded-md text-white py-3 px-6 transition-all duration-150 hover:transform hover:-translate-x-1 hover:-translate-y-1 active:transform active:translate-x-1 active:translate-y-1 disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none mt-8"
                   style={{
-                    background: "#1A222C",
+                    background: planId === PaymentPlanId.Pro ? "transparent" : "#1A222C",
                     fontWeight: 900,
                     fontSize: "16px",
                     border: "3px solid #fbca1f",
                     borderRadius: "0.4em",
                     boxShadow: "0.1em 0.1em #fbca1f",
-                    cursor: isCustomerPortalUrlLoading
+                    cursor: (planId === PaymentPlanId.Credits10 ? isPaymentLoading : isCustomerPortalUrlLoading)
                       ? "not-allowed"
                       : "pointer",
                   }}
                   onMouseEnter={(e) => {
-                    if (!isCustomerPortalUrlLoading) {
+                    if (!(planId === PaymentPlanId.Credits10 ? isPaymentLoading : isCustomerPortalUrlLoading)) {
                       e.currentTarget.style.boxShadow = "0.15em 0.15em #fbca1f";
                     }
                   }}
@@ -292,19 +292,30 @@ const PricingPage = () => {
                     e.currentTarget.style.boxShadow = "0.1em 0.1em #fbca1f";
                   }}
                   onMouseDown={(e) => {
-                    if (!isCustomerPortalUrlLoading) {
+                    if (!(planId === PaymentPlanId.Credits10 ? isPaymentLoading : isCustomerPortalUrlLoading)) {
                       e.currentTarget.style.boxShadow = "0.05em 0.05em #fbca1f";
                     }
                   }}
                   onMouseUp={(e) => {
-                    if (!isCustomerPortalUrlLoading) {
+                    if (!(planId === PaymentPlanId.Credits10 ? isPaymentLoading : isCustomerPortalUrlLoading)) {
                       e.currentTarget.style.boxShadow = "0.15em 0.15em #fbca1f";
                     }
                   }}
                 >
-                  {isCustomerPortalUrlLoading
-                    ? "Loading..."
-                    : "Manage Subscription"}
+                  {planId === PaymentPlanId.Credits10 ? (
+                    isPaymentLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        Loading...
+                      </div>
+                    ) : (
+                      "Buy Credits"
+                    )
+                  ) : (
+                    isCustomerPortalUrlLoading
+                      ? "Loading..."
+                      : "Manage Subscription"
+                  )}
                 </button>
               ) : (
                 <button
