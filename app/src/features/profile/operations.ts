@@ -231,7 +231,7 @@ export const parseResumeAndPopulateProfile = async (args: { key: string }, conte
     `;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4.1-nano',
+      model: 'gpt-5-nano',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: resumeText },

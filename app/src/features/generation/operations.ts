@@ -182,6 +182,8 @@ export const generateDocument: GenerateDocument<
 
     IMPORTANT: You must use the user's actual profile data as the foundation, but strategically reframe, emphasize, and optimize it to match the target position. Alter the content to match the target job description and company if you have to.
 
+    The final resume content MUST be exactly 350-400 words. You must intelligently distribute words across available sections based on the user's actual data richness. Compensate for missing/incomplete sections in user profile data by focusing on ther sections.
+
     OUTPUT FORMAT: Generate a professional resume in JSON format that strictly adheres to this schema:
     \`\`\`json
     ${resumeJsonSchema}
@@ -220,30 +222,34 @@ export const generateDocument: GenerateDocument<
        - Highlight the most relevant aspects of their background
 
     2. EXPERIENCE SECTION OPTIMIZATION:
-       - Keep job titles, companies, and dates from the user's profile as reference points
+       - Keep job titles, companies, and dates from the user's profile as reference points. If experience section is missing from user's profile data, shift focus on 'PROJECTS & ACHIEVEMENTS' to buff up the user's resume. 
        - COMPLETELY REWRITE job descriptions to showcase responsibilities and achievements that directly relate to the target role
        - Transform generic tasks into specific accomplishments that match job requirements
        - Create compelling bullet points that demonstrate competencies required for the target position
        - Use quantified achievements and metrics that impress in the target industry
        - Incorporate job description keywords and requirements throughout experience descriptions
        - Frame all work experience to tell a story of progression toward the target role
+       - Generate exactly 3 bullet points for each Experience
 
     3. SKILLS SECTION TARGETING:
-       - Prioritize skills from the user's profile that match the job requirements
+       - Try to find skills from the user's profile that match the job requirements. If not, generate skills that match the job description.
        - Include the specified key skills prominently
-       - Add relevant technical/soft skills mentioned in the job description that the user likely possesses
-       - Organize skills by relevance to the target role
+       - Add relevant technical/soft skills mentioned in the job description that the user likely possesses or not.
+       - Organize skills by relevance to the target role.
+       - Only add 5-10 skills.
 
     4. EDUCATION OPTIMIZATION:
        - Present education information as provided
        - If relevant coursework/projects align with the target role, emphasize those connections
 
     5. PROJECTS & ACHIEVEMENTS ALIGNMENT:
-       - Transform the user's awards/projects into compelling bullet points that showcase skills needed for the target role
-       - Each bullet point should describe a separate project/achievement with relevant technologies and quantified impact
+       - Transform the user's awards/projects into compelling bullet points that showcase skills needed for the target role if available in user data.
+       - IMPORTATNT - Atleast one project/achievment should be directly related to the target job role.
+       - Each bullet point should describe a separate project/achievement with relevant technologies and quantified impact for the job requirements/job description.
        - Use industry-specific language and metrics that resonate with the target position
-       - Present each project as a standalone bullet point that directly correlates to job requirements
+       - Present each project as a standalone bullet point that directly correlates to job requirements. Do not parrot the experinence section points, user the 'PROJECTS & ACHIEVEMENTS' in user profile data or come up with new points.
        - Include technologies, tools, and measurable outcomes for each project
+       - Generate exactly 3 bullet points highly relavant to the target job
 
     TRANSFORMATION APPROACH:
     - AGGRESSIVELY customize all content to fit the target job while maintaining the structural foundation (companies, titles, dates)
@@ -253,9 +259,9 @@ export const generateDocument: GenerateDocument<
     - CREATE compelling narratives from the user's background that position them as the perfect candidate
     - The tone should be: ${toneLabel}
 
-    FINAL GOAL: Transform this resume into a laser-focused, highly persuasive document that makes the candidate irresistible for the target role.
+    WORD COUNT MONITORING: As you generate each section, track your progress toward 350-400 words. If approaching 350 words and still have sections to write, expand current sections with job-relevant details. If exceeding 400 words, prioritize the most impactful content.
 
-    Transform the user's profile into a compelling, targeted resume that makes them appear as the perfect candidate for this specific role. Minimum 300 words.
+    FINAL GOAL: Transform the user's profile into a compelling, targeted resume that makes them appear as the perfect candidate for this specific role while intelligently reaching exactly 350-400 words based on their available data. If job description is provided, the generated resume should contain all the key attributes for the candidate to be the first choice for that role.
   `;
 
   try {
@@ -263,7 +269,7 @@ export const generateDocument: GenerateDocument<
       throw new HttpError(500, "OpenAI API key is not set.");
     }
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-nano",
+      model: "gpt-5-nano",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: profileContext },
@@ -508,7 +514,7 @@ export const generateAiResumePoints: GenerateAiResumePoints<
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-nano",
+      model: "gpt-5-nano",
       messages: [
         {
           role: "system",
