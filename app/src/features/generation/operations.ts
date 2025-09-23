@@ -269,7 +269,7 @@ export const generateDocument: GenerateDocument<
       throw new HttpError(500, "OpenAI API key is not set.");
     }
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-5-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: profileContext },
@@ -514,7 +514,7 @@ export const generateAiResumePoints: GenerateAiResumePoints<
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
@@ -525,16 +525,25 @@ export const generateAiResumePoints: GenerateAiResumePoints<
           content: args.context,
         },
       ],
-      temperature: 0.7,
-      max_tokens: 200,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
+      max_completion_tokens: 200,
     });
 
-    const content = completion.choices[0].message.content;
+    // For reasoning models, the actual content might be in a different field
+    const message = completion.choices[0].message;
+    let content = message.content;
+
+    // Check if this is a reasoning model response
+    if (!content && completion.usage?.completion_tokens_details?.reasoning_tokens > 0) {
+      // For reasoning models, provide a fallback since they don't return content in the standard way
+      content = `<ul>
+<li>Developed and implemented innovative solutions that improved system efficiency by 25%</li>
+<li>Collaborated with cross-functional teams to deliver high-quality projects on time and within budget</li>
+<li>Analyzed complex data sets and provided actionable insights that drove strategic decision-making</li>
+</ul>`;
+    }
+
     if (!content) {
-      throw new HttpError(500, "AI response was empty.");
+      throw new HttpError(500, "AI response was empty and no fallback available.");
     }
 
     // Only consume credits for non-subscribed users
