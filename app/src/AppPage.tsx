@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AccordionLayout from "./features/topsection/AccordionLayout";
-import ResumeCustomizer from "./features/customizer/ResumeCustomizer";
+import ResumeCustomizer, { ResumeCustomizerRef } from "./features/customizer/ResumeCustomizer";
 import ResumeDisplay from "./features/display/ResumeDisplay";
 import ResumeDisplayMobile from "./features/display/ResumeDisplayMobile";
 import SuccessAlert from "./features/common/SuccessAlert";
@@ -44,6 +44,7 @@ const AppPage = () => {
   const { data: userProfile } = useQuery(getUserProfile);
   const updateGeneratedDocumentAction = useAction(updateGeneratedDocument);
   const navigate = useNavigate();
+  const customizerRef = useRef<ResumeCustomizerRef>(null);
 
   const [isAccordionOpen, setIsAccordionOpen] = useState(true);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
@@ -140,6 +141,11 @@ const AppPage = () => {
   }, [userProfile, isProfileComplete]);
 
   const handleGenerateResume = async () => {
+    // Validate Target Job Title before proceeding
+    if (customizerRef.current && !customizerRef.current.validateForm()) {
+      return;
+    }
+
     setIsGenerating(true);
     // Clear any existing alerts
     setShowWarningAlert(false);
@@ -479,6 +485,7 @@ const AppPage = () => {
                 </div>
               </div>
               <ResumeCustomizer
+                ref={customizerRef}
                 part="detailControls"
                 options={customizationOptions}
                 onOptionsChange={setCustomizationOptions}
@@ -597,6 +604,7 @@ const AppPage = () => {
                 </div>
               </div>
               <ResumeCustomizer
+                ref={customizerRef}
                 part="detailControls"
                 options={customizationOptions}
                 onOptionsChange={setCustomizationOptions}

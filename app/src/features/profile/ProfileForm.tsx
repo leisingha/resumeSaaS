@@ -141,6 +141,7 @@ const ProfileForm = ({
     return "";
   };
   const [formErrors, setFormErrors] = useState<Partial<typeof profileData>>({});
+  const [educationErrors, setEducationErrors] = useState<Array<{school?: string; fieldOfStudy?: string; graduationDate?: string}>>([]);
   const [currentLanguage, setCurrentLanguage] = useState("");
 
   useEffect(() => {
@@ -388,8 +389,24 @@ const ProfileForm = ({
       errors.lastName = "Last Name is required.";
     if (!profileData.phone.trim()) errors.phone = "Phone is required.";
     if (!profileData.email.trim()) errors.email = "Email is required."; // Email is auto-filled but good to keep validation
+
+    // Education validation
+    const eduErrors: Array<{school?: string; fieldOfStudy?: string; graduationDate?: string}> = [];
+    educationEntries.forEach((edu, index) => {
+      const eduError: {school?: string; fieldOfStudy?: string; graduationDate?: string} = {};
+      if (!edu.school?.trim()) eduError.school = "School is required.";
+      if (!edu.fieldOfStudy?.trim()) eduError.fieldOfStudy = "Field of Study is required.";
+      if (!edu.graduationDate?.trim()) eduError.graduationDate = "Graduation Date is required.";
+      eduErrors[index] = eduError;
+    });
+
     setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    setEducationErrors(eduErrors);
+
+    const hasContactErrors = Object.keys(errors).length > 0;
+    const hasEducationErrors = eduErrors.some(eduError => Object.keys(eduError).length > 0);
+
+    return !hasContactErrors && !hasEducationErrors;
   };
 
   const handleGenerateProjectsAchievements = async () => {
@@ -542,6 +559,7 @@ Education History: ${educationContext}`;
       setAchievements(userProfile.awards || "");
     }
     setFormErrors({});
+    setEducationErrors([]);
 
     // Close the accordion after resetting the form
     if (onCloseAccordion) {
@@ -696,6 +714,11 @@ Education History: ${educationContext}`;
                     className={newStandardInputClass}
                     placeholder="e.g., University of Example"
                   />
+                  {educationErrors[index]?.school && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {educationErrors[index].school}
+                    </p>
+                  )}
                 </div>
                 <div className="w-full mobile-break:w-1/2">
                   <label
@@ -713,6 +736,11 @@ Education History: ${educationContext}`;
                     className={newStandardInputClass}
                     placeholder="e.g., Computer Science"
                   />
+                  {educationErrors[index]?.fieldOfStudy && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {educationErrors[index].fieldOfStudy}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col mobile-break:flex-row gap-4">
@@ -732,6 +760,11 @@ Education History: ${educationContext}`;
                     className={newStandardInputClass}
                     placeholder="e.g., May 2024"
                   />
+                  {educationErrors[index]?.graduationDate && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {educationErrors[index].graduationDate}
+                    </p>
+                  )}
                 </div>
                 <div className="w-full mobile-break:w-1/2">
                   <label htmlFor={`gpa-${index}`} className={labelClassName}>

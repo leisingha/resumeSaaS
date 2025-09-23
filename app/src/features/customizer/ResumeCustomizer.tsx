@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import type { CustomizationOptions, DocumentType } from "../../AppPage"; // Import the interface
 import ModernSlider from "../customization/ModernSlider";
 
@@ -20,14 +20,18 @@ interface ResumeCustomizerProps {
   isResumeGenerated?: boolean;
 }
 
-const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
+export interface ResumeCustomizerRef {
+  validateForm: () => boolean;
+}
+
+const ResumeCustomizer = forwardRef<ResumeCustomizerRef, ResumeCustomizerProps>(({
   options,
   onOptionsChange,
   part,
   documentType,
   onDocumentTypeChange,
   isResumeGenerated,
-}) => {
+}, ref) => {
   const [currentSkill, setCurrentSkill] = useState("");
   const [skillsList, setSkillsList] = useState<string[]>(
     options.keySkills
@@ -39,6 +43,7 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
   );
   const [isJobDescriptionVisible, setIsJobDescriptionVisible] = useState(false);
   const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState<{targetJobTitle?: string}>({});
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -58,10 +63,31 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
     };
   }, []);
 
+  // Validation function
+  const validateForm = () => {
+    const errors: {targetJobTitle?: string} = {};
+    if (!options.targetJobTitle?.trim()) {
+      errors.targetJobTitle = "Target Job Title is required.";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Expose validation function to parent component
+  useImperativeHandle(ref, () => ({
+    validateForm
+  }));
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    onOptionsChange({ ...options, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    onOptionsChange({ ...options, [name]: value });
+
+    // Clear errors when user starts typing
+    if (name === "targetJobTitle" && formErrors.targetJobTitle) {
+      setFormErrors({ ...formErrors, targetJobTitle: undefined });
+    }
   };
 
   const handleColorChange = (color: string) => {
@@ -250,6 +276,11 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
                 onChange={handleInputChange}
                 className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              {formErrors.targetJobTitle && (
+                <p className="text-sm text-red-500 mt-1">
+                  {formErrors.targetJobTitle}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col">
@@ -372,6 +403,8 @@ const ResumeCustomizer: React.FC<ResumeCustomizerProps> = ({
       )}
     </div>
   );
-};
+});
+
+ResumeCustomizer.displayName = 'ResumeCustomizer';
 
 export default ResumeCustomizer;
