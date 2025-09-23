@@ -742,4 +742,69 @@ export const getJobTitleSuggestions = async (args: { input: string }, context: a
     console.error('[getJobTitleSuggestions] Error:', error);
     throw new HttpError(500, `Failed to get job title suggestions: ${error.message}`);
   }
+};
+
+export const getSkillsSuggestions = async ({ input }: { input: string }) => {
+  try {
+    if (!input || input.trim().length < 2) {
+      return [];
+    }
+
+    const CLIENT_ID = process.env.LIGHTCAST_CLIENT_ID;
+    const CLIENT_SECRET = process.env.LIGHTCAST_CLIENT_SECRET;
+
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+      console.error('Lightcast API credentials not configured');
+      return [];
+    }
+
+    // Step 1: Get OAuth token
+    const tokenResponse = await fetch('https://auth.emsicloud.com/connect/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        grant_type: 'client_credentials',
+        scope: 'emsi_open'
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      console.error('Failed to get Lightcast token:', tokenResponse.status);
+      return [];
+    }
+
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+
+    // Step 2: Search for skills
+    const skillsResponse = await fetch(`https://emsiservices.com/skills/versions/latest/skills?q=${encodeURIComponent(input)}&limit=10`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!skillsResponse.ok) {
+      console.error('Failed to get skills:', skillsResponse.status);
+      return [];
+    }
+
+    const skillsData = await skillsResponse.json();
+
+    // Transform the response to match our expected format
+    return skillsData.data.map((skill: any) => ({
+      id: skill.id,
+      description: skill.name,
+    }));
+
+  } catch (error: any) {
+    console.error('[getSkillsSuggestions] Error:', error);
+    // Return empty array instead of throwing error to gracefully handle API failures
+    return [];
+  }
 }; 

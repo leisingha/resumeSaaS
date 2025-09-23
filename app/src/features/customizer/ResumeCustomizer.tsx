@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import type { CustomizationOptions, DocumentType } from "../../AppPage"; // Import the interface
 import ModernSlider from "../customization/ModernSlider";
+import { useAction } from "wasp/client/operations";
+import { getJobTitleSuggestions, getSkillsSuggestions } from "wasp/client/operations";
 
 const colorOptions = [
   { name: "black", hex: "#2D3748" },
@@ -44,7 +46,22 @@ const ResumeCustomizer = forwardRef<ResumeCustomizerRef, ResumeCustomizerProps>(
   const [isJobDescriptionVisible, setIsJobDescriptionVisible] = useState(false);
   const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
   const [formErrors, setFormErrors] = useState<{targetJobTitle?: string}>({});
+
+  // Job title autocomplete state
+  const [jobTitleSuggestions, setJobTitleSuggestions] = useState<Array<{description: string; id: string}>>([]);
+  const [showJobTitleSuggestions, setShowJobTitleSuggestions] = useState(false);
+  const [isLoadingJobTitleSuggestions, setIsLoadingJobTitleSuggestions] = useState(false);
+
+  // Skills autocomplete state
+  const [skillsSuggestions, setSkillsSuggestions] = useState<Array<{description: string; id: string}>>([]);
+  const [showSkillsSuggestions, setShowSkillsSuggestions] = useState(false);
+  const [isLoadingSkillsSuggestions, setIsLoadingSkillsSuggestions] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const jobTitleSearchTimeoutRef = useRef<NodeJS.Timeout>();
+  const skillsSearchTimeoutRef = useRef<NodeJS.Timeout>();
+  const getJobTitleSuggestionsAction = useAction(getJobTitleSuggestions);
+  const getSkillsSuggestionsAction = useAction(getSkillsSuggestions);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -63,6 +80,52 @@ const ResumeCustomizer = forwardRef<ResumeCustomizerRef, ResumeCustomizerProps>(
     };
   }, []);
 
+  // Job title search handler
+  const handleJobTitleSearch = async (input: string) => {
+    if (input.trim().length < 1) return;
+
+    setIsLoadingJobTitleSuggestions(true);
+    try {
+      const suggestions = await getJobTitleSuggestionsAction({ input });
+      setJobTitleSuggestions(suggestions);
+      setShowJobTitleSuggestions(true);
+    } catch (error) {
+      console.error('Error fetching job title suggestions:', error);
+      setJobTitleSuggestions([]);
+    } finally {
+      setIsLoadingJobTitleSuggestions(false);
+    }
+  };
+
+  // Skills search handler
+  const handleSkillsSearch = async (input: string) => {
+    if (input.trim().length < 2) return;
+
+    setIsLoadingSkillsSuggestions(true);
+    try {
+      const suggestions = await getSkillsSuggestionsAction({ input });
+      setSkillsSuggestions(suggestions);
+      setShowSkillsSuggestions(true);
+    } catch (error) {
+      console.error('Error fetching skills suggestions:', error);
+      setSkillsSuggestions([]);
+    } finally {
+      setIsLoadingSkillsSuggestions(false);
+    }
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (jobTitleSearchTimeoutRef.current) {
+        clearTimeout(jobTitleSearchTimeoutRef.current);
+      }
+      if (skillsSearchTimeoutRef.current) {
+        clearTimeout(skillsSearchTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Validation function
   const validateForm = () => {
     const errors: {targetJobTitle?: string} = {};
@@ -78,6 +141,23 @@ const ResumeCustomizer = forwardRef<ResumeCustomizerRef, ResumeCustomizerProps>(
     validateForm
   }));
 
+  const handleJobTitleSuggestionClick = (suggestion: {description: string; id: string}) => {
+    onOptionsChange({ ...options, targetJobTitle: suggestion.description });
+    setShowJobTitleSuggestions(false);
+    setJobTitleSuggestions([]);
+  };
+
+  const handleSkillsSuggestionClick = (suggestion: {description: string; id: string}) => {
+    const trimmedSkill = suggestion.description.trim();
+    if (trimmedSkill && !skillsList.includes(trimmedSkill)) {
+      const newSkillsList = [...skillsList, trimmedSkill];
+      setSkillsList(newSkillsList);
+      updateSkillsInOptions(newSkillsList);
+    }
+    setShowSkillsSuggestions(false);
+    setSkillsSuggestions([]);
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -87,6 +167,24 @@ const ResumeCustomizer = forwardRef<ResumeCustomizerRef, ResumeCustomizerProps>(
     // Clear errors when user starts typing
     if (name === "targetJobTitle" && formErrors.targetJobTitle) {
       setFormErrors({ ...formErrors, targetJobTitle: undefined });
+    }
+
+    // Handle job title autocomplete
+    if (name === 'targetJobTitle') {
+      // Clear existing timeout
+      if (jobTitleSearchTimeoutRef.current) {
+        clearTimeout(jobTitleSearchTimeoutRef.current);
+      }
+
+      if (value.trim().length >= 1) {
+        // Set new timeout
+        jobTitleSearchTimeoutRef.current = setTimeout(() => {
+          handleJobTitleSearch(value);
+        }, 300);
+      } else {
+        setJobTitleSuggestions([]);
+        setShowJobTitleSuggestions(false);
+      }
     }
   };
 
@@ -103,7 +201,23 @@ const ResumeCustomizer = forwardRef<ResumeCustomizerRef, ResumeCustomizerProps>(
   };
 
   const handleSkillInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentSkill(e.target.value);
+    const value = e.target.value;
+    setCurrentSkill(value);
+
+    // Clear existing timeout
+    if (skillsSearchTimeoutRef.current) {
+      clearTimeout(skillsSearchTimeoutRef.current);
+    }
+
+    if (value.trim().length >= 2) {
+      // Set new timeout for skills search
+      skillsSearchTimeoutRef.current = setTimeout(() => {
+        handleSkillsSearch(value);
+      }, 300);
+    } else {
+      setSkillsSuggestions([]);
+      setShowSkillsSuggestions(false);
+    }
   };
 
   const addSkill = () => {
@@ -268,14 +382,49 @@ const ResumeCustomizer = forwardRef<ResumeCustomizerRef, ResumeCustomizerProps>(
               <label className="mb-2.5 block text-black dark:text-white mobile-break:text-base text-sm">
                 🎯 Target Job Title
               </label>
-              <input
-                type="text"
-                name="targetJobTitle"
-                placeholder="e.g., Software Engineer"
-                value={options.targetJobTitle}
-                onChange={handleInputChange}
-                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="targetJobTitle"
+                  placeholder="e.g., Software Engineer"
+                  value={options.targetJobTitle}
+                  onChange={handleInputChange}
+                  onFocus={() => {
+                    if (jobTitleSuggestions.length > 0) {
+                      setShowJobTitleSuggestions(true);
+                    }
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => setShowJobTitleSuggestions(false), 200);
+                  }}
+                  className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                />
+
+                {/* Job Title Suggestions Dropdown */}
+                {showJobTitleSuggestions && jobTitleSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white dark:bg-boxdark border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {isLoadingJobTitleSuggestions ? (
+                      <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
+                        Loading...
+                      </div>
+                    ) : (
+                      jobTitleSuggestions.map((suggestion) => (
+                        <button
+                          key={suggestion.id}
+                          type="button"
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-black dark:text-white focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleJobTitleSuggestionClick(suggestion);
+                          }}
+                        >
+                          {suggestion.description}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
               {formErrors.targetJobTitle && (
                 <p className="text-sm text-red-500 mt-1">
                   {formErrors.targetJobTitle}
@@ -297,8 +446,41 @@ const ResumeCustomizer = forwardRef<ResumeCustomizerRef, ResumeCustomizerProps>(
                   value={currentSkill}
                   onChange={handleSkillInputChange}
                   onKeyDown={handleSkillInputKeyDown}
+                  onFocus={() => {
+                    if (skillsSuggestions.length > 0) {
+                      setShowSkillsSuggestions(true);
+                    }
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => setShowSkillsSuggestions(false), 200);
+                  }}
                   className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent mobile-break:py-3 mobile-break:px-5 py-2 px-3 mobile-break:text-base text-sm font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary pr-12"
                 />
+
+                {/* Skills Suggestions Dropdown */}
+                {showSkillsSuggestions && skillsSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white dark:bg-boxdark border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {isLoadingSkillsSuggestions ? (
+                      <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
+                        Loading...
+                      </div>
+                    ) : (
+                      skillsSuggestions.map((suggestion) => (
+                        <button
+                          key={suggestion.id}
+                          type="button"
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-black dark:text-white focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSkillsSuggestionClick(suggestion);
+                          }}
+                        >
+                          {suggestion.description}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={addSkill}
