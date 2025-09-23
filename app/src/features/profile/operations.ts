@@ -248,4 +248,106 @@ export const parseResumeAndPopulateProfile = async (args: { key: string }, conte
     console.error('[parseResumeAndPopulateProfile] Error calling OpenAI:', error);
     throw new HttpError(500, `Failed to analyze resume with AI: ${error.message}`);
   }
+};
+
+export const getLocationSuggestions = async (args: { input: string }, context: any) => {
+  if (!context.user) {
+    throw new HttpError(401);
+  }
+
+  const { input } = args;
+
+  if (!input || input.trim().length < 2) {
+    return [];
+  }
+
+  const googlePlacesApiKey = process.env.GOOGLE_PLACES_API_KEY;
+
+  if (!googlePlacesApiKey) {
+    throw new HttpError(500, 'Google Places API key is not configured');
+  }
+
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&types=(cities)&key=${googlePlacesApiKey}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Google Places API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+      throw new Error(`Google Places API status: ${data.status}`);
+    }
+
+    return data.predictions?.map((prediction: any) => ({
+      description: prediction.description,
+      placeId: prediction.place_id,
+    })) || [];
+
+  } catch (error: any) {
+    console.error('[getLocationSuggestions] Error:', error);
+    throw new HttpError(500, `Failed to get location suggestions: ${error.message}`);
+  }
+};
+
+export const getSchoolSuggestions = async (args: { input: string }, context: any) => {
+  if (!context.user) {
+    throw new HttpError(401);
+  }
+
+  const { input } = args;
+
+  if (!input || input.trim().length < 2) {
+    return [];
+  }
+
+  const googlePlacesApiKey = process.env.GOOGLE_PLACES_API_KEY;
+
+  if (!googlePlacesApiKey) {
+    throw new HttpError(500, 'Google Places API key is not configured');
+  }
+
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&types=establishment&key=${googlePlacesApiKey}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Google Places API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+      throw new Error(`Google Places API status: ${data.status}`);
+    }
+
+    // Filter results for educational institutions
+    const educationalKeywords = [
+      'university', 'college', 'school', 'institute', 'academy', 'seminary',
+      'polytechnic', 'conservatory', 'campus', 'educational', 'education'
+    ];
+
+    const filteredPredictions = data.predictions?.filter((prediction: any) => {
+      const description = prediction.description.toLowerCase();
+      return educationalKeywords.some(keyword => description.includes(keyword));
+    }) || [];
+
+    return filteredPredictions.map((prediction: any) => {
+      // Extract just the institution name (before the first comma)
+      const institutionName = prediction.description.split(',')[0].trim();
+
+      return {
+        description: institutionName,
+        placeId: prediction.place_id,
+      };
+    });
+
+  } catch (error: any) {
+    console.error('[getSchoolSuggestions] Error:', error);
+    throw new HttpError(500, `Failed to get school suggestions: ${error.message}`);
+  }
 }; 

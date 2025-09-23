@@ -6,6 +6,8 @@ import {
   saveUserProfile,
   generateAiResumePoints,
   getCurrentDailyCredits,
+  getLocationSuggestions,
+  getSchoolSuggestions,
 } from "wasp/client/operations";
 import { SubscriptionStatus } from "../../payment/plans";
 import UploadSection from "../upload/UploadSection";
@@ -108,11 +110,26 @@ const ProfileForm = ({
     getCurrentDailyCredits
   );
   const generateResumePointsAction = useAction(generateAiResumePoints);
+  const getLocationSuggestionsAction = useAction(getLocationSuggestions);
+  const getSchoolSuggestionsAction = useAction(getSchoolSuggestions);
   const [isAiLoading, setIsAiLoading] = useState({
     experience: -1,
     achievements: false,
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState<Array<{description: string; placeId: string}>>([]);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [isLoadingLocationSuggestions, setIsLoadingLocationSuggestions] = useState(false);
+
+  // Experience location autocomplete state
+  const [experienceLocationSuggestions, setExperienceLocationSuggestions] = useState<Record<number, Array<{description: string; placeId: string}>>>({});
+  const [showExperienceLocationSuggestions, setShowExperienceLocationSuggestions] = useState<Record<number, boolean>>({});
+  const [isLoadingExperienceLocationSuggestions, setIsLoadingExperienceLocationSuggestions] = useState<Record<number, boolean>>({});
+
+  // Education school autocomplete state
+  const [schoolSuggestions, setSchoolSuggestions] = useState<Record<number, Array<{description: string; placeId: string}>>>({});
+  const [showSchoolSuggestions, setShowSchoolSuggestions] = useState<Record<number, boolean>>({});
+  const [isLoadingSchoolSuggestions, setIsLoadingSchoolSuggestions] = useState<Record<number, boolean>>({});
 
   // Check if user has a valid subscription for AI Writer feature
   const hasValidSubscription =
@@ -283,11 +300,122 @@ const ProfileForm = ({
     setAchievements(parsedData.awards || "");
   };
 
+  // Debounced location search
+  const handleLocationSearch = async (input: string) => {
+    if (input.trim().length < 2) return;
+
+    setIsLoadingLocationSuggestions(true);
+    try {
+      const suggestions = await getLocationSuggestionsAction({ input });
+      setLocationSuggestions(suggestions);
+      setShowLocationSuggestions(true);
+    } catch (error) {
+      console.error('Error fetching location suggestions:', error);
+      setLocationSuggestions([]);
+    } finally {
+      setIsLoadingLocationSuggestions(false);
+    }
+  };
+
+  // Debounce timer refs
+  const locationSearchTimeoutRef = React.useRef<NodeJS.Timeout>();
+  const experienceLocationSearchTimeoutRefs = React.useRef<Record<number, NodeJS.Timeout>>({});
+  const schoolSearchTimeoutRefs = React.useRef<Record<number, NodeJS.Timeout>>({});
+
+  // Experience location search handler
+  const handleExperienceLocationSearch = async (input: string, index: number) => {
+    if (input.trim().length < 2) return;
+
+    setIsLoadingExperienceLocationSuggestions(prev => ({ ...prev, [index]: true }));
+    try {
+      const suggestions = await getLocationSuggestionsAction({ input });
+      setExperienceLocationSuggestions(prev => ({ ...prev, [index]: suggestions }));
+      setShowExperienceLocationSuggestions(prev => ({ ...prev, [index]: true }));
+    } catch (error) {
+      console.error('Error fetching experience location suggestions:', error);
+      setExperienceLocationSuggestions(prev => ({ ...prev, [index]: [] }));
+    } finally {
+      setIsLoadingExperienceLocationSuggestions(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
+  // School search handler
+  const handleSchoolSearch = async (input: string, index: number) => {
+    if (input.trim().length < 2) return;
+
+    setIsLoadingSchoolSuggestions(prev => ({ ...prev, [index]: true }));
+    try {
+      const suggestions = await getSchoolSuggestionsAction({ input });
+      setSchoolSuggestions(prev => ({ ...prev, [index]: suggestions }));
+      setShowSchoolSuggestions(prev => ({ ...prev, [index]: true }));
+    } catch (error) {
+      console.error('Error fetching school suggestions:', error);
+      setSchoolSuggestions(prev => ({ ...prev, [index]: [] }));
+    } finally {
+      setIsLoadingSchoolSuggestions(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (locationSearchTimeoutRef.current) {
+        clearTimeout(locationSearchTimeoutRef.current);
+      }
+      Object.values(experienceLocationSearchTimeoutRefs.current).forEach(timeout => {
+        if (timeout) clearTimeout(timeout);
+      });
+      Object.values(schoolSearchTimeoutRefs.current).forEach(timeout => {
+        if (timeout) clearTimeout(timeout);
+      });
+    };
+  }, []);
+
   const handleProfileChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setProfileData((prev: any) => ({ ...prev, [name]: value }));
+
+    // Handle location autocomplete with debouncing
+    if (name === 'location') {
+      // Clear existing timeout
+      if (locationSearchTimeoutRef.current) {
+        clearTimeout(locationSearchTimeoutRef.current);
+      }
+
+      if (value.trim().length >= 2) {
+        // Set new timeout
+        locationSearchTimeoutRef.current = setTimeout(() => {
+          handleLocationSearch(value);
+        }, 300);
+      } else {
+        setLocationSuggestions([]);
+        setShowLocationSuggestions(false);
+      }
+    }
+  };
+
+  const handleLocationSuggestionClick = (suggestion: {description: string; placeId: string}) => {
+    setProfileData((prev: any) => ({ ...prev, location: suggestion.description }));
+    setShowLocationSuggestions(false);
+    setLocationSuggestions([]);
+  };
+
+  const handleExperienceLocationSuggestionClick = (suggestion: {description: string; placeId: string}, index: number) => {
+    const updatedEntries = [...experienceEntries];
+    updatedEntries[index] = { ...updatedEntries[index], location: suggestion.description };
+    setExperienceEntries(updatedEntries);
+    setShowExperienceLocationSuggestions(prev => ({ ...prev, [index]: false }));
+    setExperienceLocationSuggestions(prev => ({ ...prev, [index]: [] }));
+  };
+
+  const handleSchoolSuggestionClick = (suggestion: {description: string; placeId: string}, index: number) => {
+    const updatedEntries = [...educationEntries];
+    updatedEntries[index] = { ...updatedEntries[index], school: suggestion.description };
+    setEducationEntries(updatedEntries);
+    setShowSchoolSuggestions(prev => ({ ...prev, [index]: false }));
+    setSchoolSuggestions(prev => ({ ...prev, [index]: [] }));
   };
 
   const handleQuillChange = (
@@ -317,10 +445,46 @@ const ProfileForm = ({
       const updatedEntries = [...educationEntries];
       updatedEntries[index] = { ...updatedEntries[index], [name]: value };
       setEducationEntries(updatedEntries);
+
+      // Handle education school autocomplete
+      if (name === 'school') {
+        // Clear existing timeout for this index
+        if (schoolSearchTimeoutRefs.current[index]) {
+          clearTimeout(schoolSearchTimeoutRefs.current[index]);
+        }
+
+        if (value.trim().length >= 2) {
+          // Set new timeout for this index
+          schoolSearchTimeoutRefs.current[index] = setTimeout(() => {
+            handleSchoolSearch(value, index);
+          }, 300);
+        } else {
+          setSchoolSuggestions(prev => ({ ...prev, [index]: [] }));
+          setShowSchoolSuggestions(prev => ({ ...prev, [index]: false }));
+        }
+      }
     } else {
       const updatedEntries = [...experienceEntries];
       updatedEntries[index] = { ...updatedEntries[index], [name]: value };
       setExperienceEntries(updatedEntries);
+
+      // Handle experience location autocomplete
+      if (name === 'location') {
+        // Clear existing timeout for this index
+        if (experienceLocationSearchTimeoutRefs.current[index]) {
+          clearTimeout(experienceLocationSearchTimeoutRefs.current[index]);
+        }
+
+        if (value.trim().length >= 2) {
+          // Set new timeout for this index
+          experienceLocationSearchTimeoutRefs.current[index] = setTimeout(() => {
+            handleExperienceLocationSearch(value, index);
+          }, 300);
+        } else {
+          setExperienceLocationSuggestions(prev => ({ ...prev, [index]: [] }));
+          setShowExperienceLocationSuggestions(prev => ({ ...prev, [index]: false }));
+        }
+      }
     }
   };
 
@@ -339,6 +503,29 @@ const ProfileForm = ({
 
   const removeEducationEntry = (index: number) => {
     setEducationEntries(educationEntries.filter((_, i) => i !== index));
+
+    // Clean up school autocomplete state for this index
+    setSchoolSuggestions(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+    setShowSchoolSuggestions(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+    setIsLoadingSchoolSuggestions(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+
+    // Clear timeout for this index
+    if (schoolSearchTimeoutRefs.current[index]) {
+      clearTimeout(schoolSearchTimeoutRefs.current[index]);
+      delete schoolSearchTimeoutRefs.current[index];
+    }
   };
 
   const addExperienceEntry = () => {
@@ -358,6 +545,29 @@ const ProfileForm = ({
 
   const removeExperienceEntry = (index: number) => {
     setExperienceEntries(experienceEntries.filter((_, i) => i !== index));
+
+    // Clean up autocomplete state for this index
+    setExperienceLocationSuggestions(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+    setShowExperienceLocationSuggestions(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+    setIsLoadingExperienceLocationSuggestions(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+
+    // Clear timeout for this index
+    if (experienceLocationSearchTimeoutRefs.current[index]) {
+      clearTimeout(experienceLocationSearchTimeoutRefs.current[index]);
+      delete experienceLocationSearchTimeoutRefs.current[index];
+    }
   };
 
   const handleLanguageInputKeyDown = (
@@ -674,7 +884,38 @@ Education History: ${educationContext}`;
                   className={newStandardInputClass}
                   value={profileData.location}
                   onChange={handleProfileChange}
+                  onFocus={() => {
+                    if (locationSuggestions.length > 0) {
+                      setShowLocationSuggestions(true);
+                    }
+                  }}
+                  onBlur={() => {
+                    // Delay hiding suggestions to allow clicks
+                    setTimeout(() => setShowLocationSuggestions(false), 200);
+                  }}
                 />
+
+                {/* Location suggestions dropdown */}
+                {showLocationSuggestions && (locationSuggestions.length > 0 || isLoadingLocationSuggestions) && (
+                  <div className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-boxdark border border-stroke dark:border-strokedark rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                    {isLoadingLocationSuggestions ? (
+                      <div className="p-3 text-center text-gray-500 dark:text-gray-400">
+                        Loading...
+                      </div>
+                    ) : (
+                      locationSuggestions.map((suggestion, index) => (
+                        <button
+                          key={suggestion.placeId}
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-black dark:text-white text-sm first:rounded-t-lg last:rounded-b-lg transition-colors"
+                          onClick={() => handleLocationSuggestionClick(suggestion)}
+                        >
+                          {suggestion.description}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -705,15 +946,50 @@ Education History: ${educationContext}`;
                   <label htmlFor={`school-${index}`} className={labelClassName}>
                     School
                   </label>
-                  <input
-                    type="text"
-                    id={`school-${index}`}
-                    name="school"
-                    value={edu.school || ""}
-                    onChange={(e) => handleDynamicChange(e, "education", index)}
-                    className={newStandardInputClass}
-                    placeholder="e.g., University of Example"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id={`school-${index}`}
+                      name="school"
+                      value={edu.school || ""}
+                      onChange={(e) => handleDynamicChange(e, "education", index)}
+                      className={newStandardInputClass}
+                      placeholder="e.g., University of Example"
+                      onFocus={() => {
+                        if (schoolSuggestions[index]?.length > 0) {
+                          setShowSchoolSuggestions(prev => ({ ...prev, [index]: true }));
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay hiding suggestions to allow clicks
+                        setTimeout(() => {
+                          setShowSchoolSuggestions(prev => ({ ...prev, [index]: false }));
+                        }, 200);
+                      }}
+                    />
+
+                    {/* School suggestions dropdown */}
+                    {showSchoolSuggestions[index] && (schoolSuggestions[index]?.length > 0 || isLoadingSchoolSuggestions[index]) && (
+                      <div className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-boxdark border border-stroke dark:border-strokedark rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                        {isLoadingSchoolSuggestions[index] ? (
+                          <div className="p-3 text-center text-gray-500 dark:text-gray-400">
+                            Loading...
+                          </div>
+                        ) : (
+                          schoolSuggestions[index]?.map((suggestion, suggestionIndex) => (
+                            <button
+                              key={suggestion.placeId}
+                              type="button"
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-black dark:text-white text-sm first:rounded-t-lg last:rounded-b-lg transition-colors"
+                              onClick={() => handleSchoolSuggestionClick(suggestion, index)}
+                            >
+                              {suggestion.description}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                   {educationErrors[index]?.school && (
                     <p className="text-sm text-red-500 mt-1">
                       {educationErrors[index].school}
@@ -909,17 +1185,52 @@ Education History: ${educationContext}`;
                   >
                     Location
                   </label>
-                  <input
-                    type="text"
-                    id={`location-${index}`}
-                    name="location"
-                    value={exp.location || ""}
-                    onChange={(e) =>
-                      handleDynamicChange(e, "experience", index)
-                    }
-                    className={newStandardInputClass}
-                    placeholder="e.g., City, State"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id={`location-${index}`}
+                      name="location"
+                      value={exp.location || ""}
+                      onChange={(e) =>
+                        handleDynamicChange(e, "experience", index)
+                      }
+                      className={newStandardInputClass}
+                      placeholder="e.g., City, State"
+                      onFocus={() => {
+                        if (experienceLocationSuggestions[index]?.length > 0) {
+                          setShowExperienceLocationSuggestions(prev => ({ ...prev, [index]: true }));
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay hiding suggestions to allow clicks
+                        setTimeout(() => {
+                          setShowExperienceLocationSuggestions(prev => ({ ...prev, [index]: false }));
+                        }, 200);
+                      }}
+                    />
+
+                    {/* Experience location suggestions dropdown */}
+                    {showExperienceLocationSuggestions[index] && (experienceLocationSuggestions[index]?.length > 0 || isLoadingExperienceLocationSuggestions[index]) && (
+                      <div className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-boxdark border border-stroke dark:border-strokedark rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                        {isLoadingExperienceLocationSuggestions[index] ? (
+                          <div className="p-3 text-center text-gray-500 dark:text-gray-400">
+                            Loading...
+                          </div>
+                        ) : (
+                          experienceLocationSuggestions[index]?.map((suggestion, suggestionIndex) => (
+                            <button
+                              key={suggestion.placeId}
+                              type="button"
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-black dark:text-white text-sm first:rounded-t-lg last:rounded-b-lg transition-colors"
+                              onClick={() => handleExperienceLocationSuggestionClick(suggestion, index)}
+                            >
+                              {suggestion.description}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="quill-container">

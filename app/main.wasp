@@ -225,6 +225,16 @@ action parseResumeAndPopulateProfile {
   fn: import { parseResumeAndPopulateProfile } from "@src/features/profile/operations",
   entities: []
 }
+
+action getLocationSuggestions {
+  fn: import { getLocationSuggestions } from "@src/features/profile/operations",
+  entities: []
+}
+
+action getSchoolSuggestions {
+  fn: import { getSchoolSuggestions } from "@src/features/profile/operations",
+  entities: []
+}
 //#endregion
 
 //#region Generation
