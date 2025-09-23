@@ -8,6 +8,7 @@ import {
   getCurrentDailyCredits,
   getLocationSuggestions,
   getSchoolSuggestions,
+  getJobTitleSuggestions,
 } from "wasp/client/operations";
 import { SubscriptionStatus } from "../../payment/plans";
 import UploadSection from "../upload/UploadSection";
@@ -112,6 +113,7 @@ const ProfileForm = ({
   const generateResumePointsAction = useAction(generateAiResumePoints);
   const getLocationSuggestionsAction = useAction(getLocationSuggestions);
   const getSchoolSuggestionsAction = useAction(getSchoolSuggestions);
+  const getJobTitleSuggestionsAction = useAction(getJobTitleSuggestions);
   const [isAiLoading, setIsAiLoading] = useState({
     experience: -1,
     achievements: false,
@@ -130,6 +132,11 @@ const ProfileForm = ({
   const [schoolSuggestions, setSchoolSuggestions] = useState<Record<number, Array<{description: string; placeId: string}>>>({});
   const [showSchoolSuggestions, setShowSchoolSuggestions] = useState<Record<number, boolean>>({});
   const [isLoadingSchoolSuggestions, setIsLoadingSchoolSuggestions] = useState<Record<number, boolean>>({});
+
+  // Experience job title autocomplete state
+  const [jobTitleSuggestions, setJobTitleSuggestions] = useState<Record<number, Array<{description: string; id: string}>>>({});
+  const [showJobTitleSuggestions, setShowJobTitleSuggestions] = useState<Record<number, boolean>>({});
+  const [isLoadingJobTitleSuggestions, setIsLoadingJobTitleSuggestions] = useState<Record<number, boolean>>({});
 
   // Check if user has a valid subscription for AI Writer feature
   const hasValidSubscription =
@@ -321,6 +328,7 @@ const ProfileForm = ({
   const locationSearchTimeoutRef = React.useRef<NodeJS.Timeout>();
   const experienceLocationSearchTimeoutRefs = React.useRef<Record<number, NodeJS.Timeout>>({});
   const schoolSearchTimeoutRefs = React.useRef<Record<number, NodeJS.Timeout>>({});
+  const jobTitleSearchTimeoutRefs = React.useRef<Record<number, NodeJS.Timeout>>({});
 
   // Experience location search handler
   const handleExperienceLocationSearch = async (input: string, index: number) => {
@@ -356,6 +364,23 @@ const ProfileForm = ({
     }
   };
 
+  // Job title search handler
+  const handleJobTitleSearch = async (input: string, index: number) => {
+    if (input.trim().length < 1) return;
+
+    setIsLoadingJobTitleSuggestions(prev => ({ ...prev, [index]: true }));
+    try {
+      const suggestions = await getJobTitleSuggestionsAction({ input });
+      setJobTitleSuggestions(prev => ({ ...prev, [index]: suggestions }));
+      setShowJobTitleSuggestions(prev => ({ ...prev, [index]: true }));
+    } catch (error) {
+      console.error('Error fetching job title suggestions:', error);
+      setJobTitleSuggestions(prev => ({ ...prev, [index]: [] }));
+    } finally {
+      setIsLoadingJobTitleSuggestions(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
@@ -366,6 +391,9 @@ const ProfileForm = ({
         if (timeout) clearTimeout(timeout);
       });
       Object.values(schoolSearchTimeoutRefs.current).forEach(timeout => {
+        if (timeout) clearTimeout(timeout);
+      });
+      Object.values(jobTitleSearchTimeoutRefs.current).forEach(timeout => {
         if (timeout) clearTimeout(timeout);
       });
     };
@@ -416,6 +444,14 @@ const ProfileForm = ({
     setEducationEntries(updatedEntries);
     setShowSchoolSuggestions(prev => ({ ...prev, [index]: false }));
     setSchoolSuggestions(prev => ({ ...prev, [index]: [] }));
+  };
+
+  const handleJobTitleSuggestionClick = (suggestion: {description: string; id: string}, index: number) => {
+    const updatedEntries = [...experienceEntries];
+    updatedEntries[index] = { ...updatedEntries[index], jobTitle: suggestion.description };
+    setExperienceEntries(updatedEntries);
+    setShowJobTitleSuggestions(prev => ({ ...prev, [index]: false }));
+    setJobTitleSuggestions(prev => ({ ...prev, [index]: [] }));
   };
 
   const handleQuillChange = (
@@ -485,6 +521,24 @@ const ProfileForm = ({
           setShowExperienceLocationSuggestions(prev => ({ ...prev, [index]: false }));
         }
       }
+
+      // Handle experience job title autocomplete
+      if (name === 'jobTitle') {
+        // Clear existing timeout for this index
+        if (jobTitleSearchTimeoutRefs.current[index]) {
+          clearTimeout(jobTitleSearchTimeoutRefs.current[index]);
+        }
+
+        if (value.trim().length >= 1) {
+          // Set new timeout for this index
+          jobTitleSearchTimeoutRefs.current[index] = setTimeout(() => {
+            handleJobTitleSearch(value, index);
+          }, 300);
+        } else {
+          setJobTitleSuggestions(prev => ({ ...prev, [index]: [] }));
+          setShowJobTitleSuggestions(prev => ({ ...prev, [index]: false }));
+        }
+      }
     }
   };
 
@@ -546,7 +600,7 @@ const ProfileForm = ({
   const removeExperienceEntry = (index: number) => {
     setExperienceEntries(experienceEntries.filter((_, i) => i !== index));
 
-    // Clean up autocomplete state for this index
+    // Clean up location autocomplete state for this index
     setExperienceLocationSuggestions(prev => {
       const newState = { ...prev };
       delete newState[index];
@@ -563,10 +617,31 @@ const ProfileForm = ({
       return newState;
     });
 
-    // Clear timeout for this index
+    // Clean up job title autocomplete state for this index
+    setJobTitleSuggestions(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+    setShowJobTitleSuggestions(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+    setIsLoadingJobTitleSuggestions(prev => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+
+    // Clear timeouts for this index
     if (experienceLocationSearchTimeoutRefs.current[index]) {
       clearTimeout(experienceLocationSearchTimeoutRefs.current[index]);
       delete experienceLocationSearchTimeoutRefs.current[index];
+    }
+    if (jobTitleSearchTimeoutRefs.current[index]) {
+      clearTimeout(jobTitleSearchTimeoutRefs.current[index]);
+      delete jobTitleSearchTimeoutRefs.current[index];
     }
   };
 
@@ -1124,17 +1199,52 @@ Education History: ${educationContext}`;
                   >
                     Job Title
                   </label>
-                  <input
-                    type="text"
-                    id={`jobTitle-${index}`}
-                    name="jobTitle"
-                    value={exp.jobTitle || ""}
-                    onChange={(e) =>
-                      handleDynamicChange(e, "experience", index)
-                    }
-                    className={newStandardInputClass}
-                    placeholder="e.g., Software Engineer"
-                  ></input>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id={`jobTitle-${index}`}
+                      name="jobTitle"
+                      value={exp.jobTitle || ""}
+                      onChange={(e) =>
+                        handleDynamicChange(e, "experience", index)
+                      }
+                      className={newStandardInputClass}
+                      placeholder="e.g., Software Engineer"
+                      onFocus={() => {
+                        if (jobTitleSuggestions[index]?.length > 0) {
+                          setShowJobTitleSuggestions(prev => ({ ...prev, [index]: true }));
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay hiding suggestions to allow clicks
+                        setTimeout(() => {
+                          setShowJobTitleSuggestions(prev => ({ ...prev, [index]: false }));
+                        }, 200);
+                      }}
+                    />
+
+                    {/* Job title suggestions dropdown */}
+                    {showJobTitleSuggestions[index] && (jobTitleSuggestions[index]?.length > 0 || isLoadingJobTitleSuggestions[index]) && (
+                      <div className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-boxdark border border-stroke dark:border-strokedark rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                        {isLoadingJobTitleSuggestions[index] ? (
+                          <div className="p-3 text-center text-gray-500 dark:text-gray-400">
+                            Loading...
+                          </div>
+                        ) : (
+                          jobTitleSuggestions[index]?.map((suggestion, suggestionIndex) => (
+                            <button
+                              key={suggestion.id}
+                              type="button"
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-black dark:text-white text-sm first:rounded-t-lg last:rounded-b-lg transition-colors"
+                              onClick={() => handleJobTitleSuggestionClick(suggestion, index)}
+                            >
+                              {suggestion.description}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex flex-col mobile-break:flex-row gap-4">

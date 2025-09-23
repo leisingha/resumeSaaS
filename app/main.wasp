@@ -235,6 +235,11 @@ action getSchoolSuggestions {
   fn: import { getSchoolSuggestions } from "@src/features/profile/operations",
   entities: []
 }
+
+action getJobTitleSuggestions {
+  fn: import { getJobTitleSuggestions } from "@src/features/profile/operations",
+  entities: []
+}
 //#endregion
 
 //#region Generation
