@@ -790,6 +790,11 @@ Education History: ${educationContext}`;
       } else {
         alert("Profile Saved Successfully!");
       }
+
+      // Close the accordion after successful save
+      if (onCloseAccordion) {
+        onCloseAccordion();
+      }
     } catch (error: any) {
       console.error("Error saving profile: ", error);
       alert("Error saving profile: " + error.message);

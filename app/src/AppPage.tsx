@@ -45,6 +45,7 @@ const AppPage = () => {
   const updateGeneratedDocumentAction = useAction(updateGeneratedDocument);
   const navigate = useNavigate();
   const customizerRef = useRef<ResumeCustomizerRef>(null);
+  const customizerMobileRef = useRef<ResumeCustomizerRef>(null);
 
   const [isAccordionOpen, setIsAccordionOpen] = useState(true);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
@@ -141,8 +142,22 @@ const AppPage = () => {
   }, [userProfile, isProfileComplete]);
 
   const handleGenerateResume = async () => {
-    // Validate Target Job Title before proceeding
+    // Validate Target Job Title before proceeding - check both desktop and mobile refs
+    let validationFailed = false;
+
+    // Try desktop ref first
     if (customizerRef.current && !customizerRef.current.validateForm()) {
+      validationFailed = true;
+    }
+
+    // Try mobile ref if desktop validation didn't fail or desktop ref doesn't exist
+    if (!validationFailed && customizerMobileRef.current && !customizerMobileRef.current.validateForm()) {
+      validationFailed = true;
+    }
+
+    if (validationFailed) {
+      // Show the detailed customizer so user can see the error message
+      setIsDetailCustomizerVisible(true);
       return;
     }
 
@@ -604,7 +619,7 @@ const AppPage = () => {
                 </div>
               </div>
               <ResumeCustomizer
-                ref={customizerRef}
+                ref={customizerMobileRef}
                 part="detailControls"
                 options={customizationOptions}
                 onOptionsChange={setCustomizationOptions}
