@@ -26,38 +26,26 @@ export default function Hero() {
               <StyledButton to="/app">Get Started →</StyledButton>
             </div>
           </div>
-          <div className="mt-12 flow-root sm:mt-16">
-            <div className="relative max-w-7xl mx-auto px-4">
-              <div className="relative h-[400px] sm:h-[480px] lg:h-[550px]">
-                {/* First Screenshot - Top Layer on mobile, Bottom Layer on desktop */}
-                <div className="absolute left-8 top-12 w-80 sm:w-96 lg:w-[420px] z-30 sm:z-10 group">
-                  <img
-                    src="/screenshot1.png"
-                    alt="Profile Setup Interface"
-                    className="w-full h-auto rounded-xl shadow-2xl ring-1 ring-gray-900/10 transform -rotate-6 hover:rotate-3 hover:scale-105 transition-all duration-300"
-                    loading="lazy"
-                  />
-                </div>
 
-                {/* Third Screenshot - Middle Layer (swapped position) */}
-                <div className="absolute left-1/2 top-4 w-80 sm:w-96 lg:w-[420px] -translate-x-1/2 z-20 group">
-                  <img
-                    src="/screenshot3.png"
-                    alt="Generated Resume Preview"
-                    className="w-full h-auto rounded-xl shadow-2xl ring-1 ring-gray-900/10 transform rotate-2 hover:rotate-0 hover:scale-105 transition-all duration-300"
-                    loading="lazy"
-                  />
-                </div>
+          {/* Screenshots Section */}
+          <div className="mt-16 sm:mt-20 relative mx-auto max-w-none px-6 lg:px-8">
+            <div className="relative flex justify-center">
+              {/* Screenshot 1 */}
+              <div className="relative z-10 w-full">
+                <img
+                  src="/screenshot1.png"
+                  alt="Resume Builder Interface"
+                  className="w-full rounded-xl"
+                />
+              </div>
 
-                {/* Second Screenshot - Bottom Layer on mobile, Top Layer on desktop */}
-                <div className="absolute right-8 top-12 w-80 sm:w-96 lg:w-[420px] z-10 sm:z-30 group">
-                  <img
-                    src="/screenshot2.png"
-                    alt="Resume Customization"
-                    className="w-full h-auto rounded-xl shadow-2xl ring-1 ring-gray-900/10 transform rotate-6 hover:rotate-3 hover:scale-105 transition-all duration-300"
-                    loading="lazy"
-                  />
-                </div>
+              {/* Screenshot 2 */}
+              <div className="relative z-20 w-full scale-125 -ml-96">
+                <img
+                  src="/screenshot2.png"
+                  alt="Generated Resume Preview"
+                  className="w-full rounded-xl"
+                />
               </div>
             </div>
           </div>

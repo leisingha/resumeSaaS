@@ -533,7 +533,7 @@ export const generateAiResumePoints: GenerateAiResumePoints<
     let content = message.content;
 
     // Check if this is a reasoning model response
-    if (!content && completion.usage?.completion_tokens_details?.reasoning_tokens > 0) {
+    if (!content && (completion.usage?.completion_tokens_details?.reasoning_tokens ?? 0) > 0) {
       // For reasoning models, provide a fallback since they don't return content in the standard way
       content = `<ul>
 <li>Developed and implemented innovative solutions that improved system efficiency by 25%</li>
