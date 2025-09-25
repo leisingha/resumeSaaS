@@ -426,7 +426,7 @@ const ResumeCustomizer = forwardRef<ResumeCustomizerRef, ResumeCustomizerProps>(
                 )}
               </div>
               {formErrors.targetJobTitle && (
-                <p className="text-sm text-red-500 mt-1">
+                <p className="mobile-break:text-sm text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
                   {formErrors.targetJobTitle}
                 </p>
               )}

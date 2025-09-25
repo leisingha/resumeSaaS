@@ -142,17 +142,19 @@ const AppPage = () => {
   }, [userProfile, isProfileComplete]);
 
   const handleGenerateResume = async () => {
-    // Validate Target Job Title before proceeding - check both desktop and mobile refs
+    // Validate Target Job Title before proceeding - check the appropriate ref based on screen size
     let validationFailed = false;
 
-    // Try desktop ref first
-    if (customizerRef.current && !customizerRef.current.validateForm()) {
-      validationFailed = true;
-    }
-
-    // Try mobile ref if desktop validation didn't fail or desktop ref doesn't exist
-    if (!validationFailed && customizerMobileRef.current && !customizerMobileRef.current.validateForm()) {
-      validationFailed = true;
+    if (isMobile) {
+      // On mobile, only validate mobile ref
+      if (customizerMobileRef.current && !customizerMobileRef.current.validateForm()) {
+        validationFailed = true;
+      }
+    } else {
+      // On desktop, only validate desktop ref
+      if (customizerRef.current && !customizerRef.current.validateForm()) {
+        validationFailed = true;
+      }
     }
 
     if (validationFailed) {
