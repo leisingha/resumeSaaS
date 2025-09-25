@@ -29,7 +29,26 @@ export default function Hero() {
 
           {/* Screenshots Section */}
           <div className="mt-16 sm:mt-20 relative mx-auto max-w-none px-6 lg:px-8">
-            <div className="relative flex justify-center">
+            {/* Mobile Layout - Vertical Stack */}
+            <div className="flex flex-col gap-8 sm:hidden">
+              <div>
+                <img
+                  src="/screenshot3.png"
+                  alt="Resume Builder Interface"
+                  className="w-full rounded-xl scale-125"
+                />
+              </div>
+              <div>
+                <img
+                  src="/screenshot2.png"
+                  alt="Generated Resume Preview"
+                  className="w-full rounded-xl scale-125"
+                />
+              </div>
+            </div>
+
+            {/* Desktop Layout - Overlapping */}
+            <div className="relative hidden sm:flex justify-center">
               {/* Screenshot 1 */}
               <div className="relative z-10 w-full">
                 <img
