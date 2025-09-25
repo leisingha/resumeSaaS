@@ -257,8 +257,8 @@ const ContestURL = "https://github.com/wasp-lang/wasp";
 function Announcement() {
   return (
     <div className="flex justify-center items-center gap-3 p-3 w-full bg-gradient-to-r from-[#d946ef] to-[#fc0] font-semibold text-white text-center z-49">
-      <p className="cursor-default hover:opacity-90 hover:drop-shadow">
-        🚀 Applify is in beta! Enjoy free access to all premium features ✨
+      <p className="cursor-default hover:opacity-90 hover:drop-shadow text-sm sm:text-base">
+        🚀 New features dropping soon – be the first to know ✨
       </p>
     </div>
   );
